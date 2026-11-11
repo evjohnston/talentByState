@@ -1,0 +1,35 @@
+#!/bin/sh
+# Integrity checks before every commit. Bypass a check on purpose with: ALLOW_README_SHRINK=1 git commit ...
+fail=0
+
+# 1. never commit secrets
+if git diff --cached --name-only | grep -E '(^|/)\.env(\.|$)' >/dev/null; then
+  echo "pre-commit: .env is staged; unstage it (git rm --cached .env)"; fail=1
+fi
+
+# 2. no large files (inputs belong in sources/, which is not tracked)
+git diff --cached --name-only --diff-filter=AM | while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  s=$(wc -c < "$f")
+  if [ "$s" -gt 52428800 ]; then echo "pre-commit: $f is over 50 MB"; exit 1; fi
+done || fail=1
+
+# 3. README must not lose sections or shrink a lot
+if git diff --cached --name-only | grep -qx 'README.md' && git cat-file -e HEAD:README.md 2>/dev/null \
+   && [ -z "$ALLOW_README_SHRINK" ]; then
+  t=$(mktemp -d)
+  git show HEAD:README.md | grep -E '^#{1,3} ' | sort > "$t/old"
+  git show :README.md | grep -E '^#{1,3} ' | sort > "$t/new"
+  lost=$(comm -23 "$t/old" "$t/new")
+  rm -rf "$t"
+  if [ -n "$lost" ]; then
+    echo "pre-commit: README.md headings removed:"; printf '  %s\n' "$lost"; fail=1
+  fi
+  old_n=$(git show HEAD:README.md | wc -l); new_n=$(git show :README.md | wc -l)
+  if [ $((old_n - new_n)) -gt 40 ]; then
+    echo "pre-commit: README.md shrinks by $((old_n - new_n)) lines (from $old_n to $new_n)"; fail=1
+  fi
+  [ $fail -ne 0 ] && echo "If this is intended, commit with ALLOW_README_SHRINK=1."
+fi
+
+exit $fail

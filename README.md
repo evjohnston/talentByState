@@ -17,6 +17,17 @@ and the PDF profiles. They draw on these sources:
 
 Each source has its own section below. The IPEDS pipeline comes first, because it is the largest.
 
+**Repository and data integrity.** Git (github.com/evjohnston/talentByState) tracks the code, templates, docs,
+crosswalks and small reference files. The inputs (`sources/`, `reference/digest/`, `reference/survey_forms/`, about
+34 GB), the rebuildable outputs (`data/`), `cache/` and `.env` are not tracked.
+- **Inputs:** `manifests/sources_manifest.csv` (tracked) records every input file's size and MD5.
+  `python -m ipeds_clean.manifest` reports missing, new or changed inputs; after adding or moving files on
+  purpose, run it with `--update` and commit the manifest. Input files are only ever moved, never edited, and
+  every move is logged in `sources/new_data_moves.csv`.
+- **Commits:** `.githooks/pre-commit` (enabled with `git config core.hooksPath .githooks`) blocks a commit that
+  removes README headings or drops more than 40 README lines, stages `.env`, or adds a file over 50 MB.
+- **Working rules** for editing (exact, unique-match edits; one writer per shared file) are in `RULES.md`.
+
 ## IPEDS / HEGIS 1980–2025: cleaned tables and harmonized annual panels
 
 Every file the IPEDS Data Center publishes for **1980 and 1984–2025** (1981–83 don't exist) is
