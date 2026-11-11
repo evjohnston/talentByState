@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>State Explorer</title>
+<style>
+/*__KIT__*/
+/* Layout: a reference manual open at one division. The board (page ground) takes the open
+   division's colour; controls, map and the state page sit on milk acetate leaves; a stepped tab
+   rail down the right fore edge holds the six divisions, each tab as tall as its share of measures. */
+
+.wrap{height:100%;display:flex;flex-direction:column;gap:14px;padding-block:14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:calc(84px + env(safe-area-inset-right,0px))}
+
+/* top leaf */
+.top{display:flex;align-items:center;gap:24px;padding-block:10px;min-height:58px}
+.brand{display:flex;align-items:center;gap:14px}
+.brand b{font:800 19px/1 var(--display);font-stretch:118%;letter-spacing:.16em;text-transform:uppercase}
+.brand span{font:600 10.5px/1.25 var(--display);font-stretch:112%;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.views{display:flex;border:1px solid var(--ink);border-radius:3px;overflow:hidden}
+.views button{border:0;background:none;padding:7px 16px;font:600 12px var(--display);font-stretch:112%;letter-spacing:.1em;text-transform:uppercase}
+.views button+button{border-left:1px solid var(--ink)}
+.views button[aria-selected="true"]{background:var(--rev);color:var(--on-rev)}
+.util{margin-left:auto;display:flex;align-items:center;gap:12px;color:var(--ink-3)}
+.icon-btn{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:3px;border:1px solid var(--rule);background:transparent}
+.icon-btn:hover{border-color:var(--ink)}
+.xlink{color:var(--ink);font-weight:600;text-underline-offset:3px}
+.xlink.prof{display:inline-block;margin-top:8px;font-size:13px;color:var(--board-ink)}
+
+.app{flex:1;min-height:0;display:grid;grid-template-columns:300px minmax(0,1fr) 370px;gap:14px}
+.app>.leaf{overflow:auto;min-height:0}
+
+
+/* controls leaf */
+.ctl{display:flex;flex-direction:column;gap:18px}
+.div-h{display:flex;justify-content:space-between;gap:12px;align-items:baseline;border-bottom:2px solid var(--board);padding-bottom:6px;transition:border-color 90ms steps(2)}
+.div-h b{font:800 13px var(--display);font-stretch:112%;letter-spacing:.1em;text-transform:uppercase;color:var(--board-ink)}
+.search{position:relative}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-3)}
+.search input{width:100%;height:36px;border:1px solid var(--rule);border-radius:3px;background:var(--leaf-solid);padding:0 10px 0 32px;font-size:13.5px}
+.search input::placeholder{color:var(--ink-3)}
+.search input:focus{outline:2px solid var(--focus);outline-offset:1px}
+.mlist{display:flex;flex-direction:column;gap:12px}
+.mgroup h3{margin:0 0 2px;font:600 11px var(--display);font-stretch:112%;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.mitem{display:flex;justify-content:space-between;align-items:baseline;gap:10px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--rule-2);padding:7px 2px;font:400 16px/1.25 var(--body);color:var(--ink)}
+.mitem small{font:400 11px var(--mono);color:var(--ink-3);white-space:nowrap}
+.mitem:hover{background:var(--sunk)}
+.mitem[aria-current="true"]{font-weight:600;color:var(--board-ink)}
+.mitem[aria-current="true"]::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;background:var(--board);align-self:center;margin-right:-2px;box-shadow:inset 0 1px 1px rgba(0,0,0,.35)}
+.empty{font:400 15px/1.4 var(--body);color:var(--ink-2)}
+.empty button{border:0;background:none;text-decoration:underline;text-underline-offset:3px;padding:0}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--ink);border-radius:3px;overflow:hidden}
+.seg button{border:0;background:none;padding:7px 4px;font:600 12px var(--display);font-stretch:105%}
+.seg button+button{border-left:1px solid var(--ink)}
+.seg button[aria-checked="true"]{background:var(--rev);color:var(--on-rev)}
+.seg button:disabled{color:var(--ink-3);background:repeating-linear-gradient(135deg,transparent 0 4px,var(--rule-2) 4px 5px);cursor:not-allowed}
+.yearrow{display:flex;align-items:center;gap:10px}
+.yearrow output{font:800 34px/1 var(--display);font-stretch:90%;letter-spacing:-.01em;min-width:3ch}
+input[type=range]{width:100%;accent-color:var(--board-ink);margin:8px 0 0}
+.yr-ends{display:flex;justify-content:space-between;font:400 11px var(--mono);color:var(--ink-3)}
+.foot{margin-top:auto;font:400 14px/1.4 var(--body);color:var(--ink-2)}
+
+/* stage leaf */
+.stage h1{font:750 28px/1.08 var(--display);font-stretch:82%;margin:0 0 6px;letter-spacing:-.005em;text-wrap:balance;max-width:34ch}
+.sub{margin:0 0 16px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;font-size:13px;color:var(--ink-2)}
+.sub b{color:var(--ink);font-weight:700}
+.slip-s{font:600 10.5px var(--display);font-stretch:112%;letter-spacing:.1em;text-transform:uppercase;background:var(--verm);color:var(--on-verm);padding:3px 7px;border-radius:2px}
+.tiles{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:5px;max-width:760px}
+.tile{aspect-ratio:1;border:0;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;position:relative;
+  background:var(--c,var(--nd-a));color:var(--t,var(--ink));transition:background-color 90ms steps(2)}
+.tile .ab{font:700 clamp(10px,.95vw,13px)/1 var(--display);font-stretch:105%;letter-spacing:.03em}
+.tile .vl{font:500 clamp(9px,.8vw,11.5px)/1.1 var(--display);opacity:.92}
+.tile.nd{background:repeating-linear-gradient(135deg,var(--nd-a) 0 5px,var(--nd-b) 5px 7px);color:var(--ink-3)}
+.tile:hover{box-shadow:0 0 0 2px var(--leaf-solid),0 0 0 3px var(--ink)}
+.tile[aria-pressed="true"]{box-shadow:0 0 0 2px var(--leaf-solid),0 0 0 4px var(--ink);z-index:1}
+.tile[aria-pressed="true"]::after{content:"";position:absolute;top:2px;right:2px;width:6px;height:6px;border-radius:50%;background:var(--board);box-shadow:0 0 0 1.5px var(--leaf-solid),inset 0 1px 1px rgba(0,0,0,.35)}
+.has-sel .tile:not([aria-pressed="true"]) .vl{opacity:.6}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin:14px 0 0;font-size:12px;color:var(--ink-2);max-width:760px}
+.ramp{display:flex;align-items:center;gap:8px}
+.ramp i{display:block;width:190px;height:10px;border-radius:2px}
+.sw{display:inline-flex;align-items:center;gap:6px}
+.sw i{width:14px;height:14px;border-radius:2px;display:inline-block;position:relative}
+.sw .ndsw{background:repeating-linear-gradient(135deg,var(--nd-a) 0 3px,var(--nd-b) 3px 5px)}
+.sw .selsw{box-shadow:inset 0 0 0 2px var(--ink)}
+.sw .selsw::after{content:"";position:absolute;right:2px;top:2px;width:5px;height:5px;border-radius:50%;background:var(--board)}
+.strip-wrap{margin-top:22px;max-width:760px}
+.strip-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;border-top:1px solid var(--rule);padding-top:10px}
+.strip-h span{font:400 11.5px var(--mono);color:var(--ink-3)}
+#strip{display:block;width:100%;overflow:visible}
+#strip text{font:500 11px var(--display);fill:var(--ink-2)}
+.mnote{margin:20px 0 0;font:400 15.5px/1.45 var(--body);color:var(--ink-2);max-width:70ch}
+
+/* table */
+.tbl{width:100%;max-width:860px;border-collapse:collapse;font-size:13px}
+.tbl th{position:sticky;top:-18px;background:var(--leaf-solid);text-align:right;border-bottom:2px solid var(--ink);padding:0}
+.tbl th button{width:100%;border:0;background:none;text-align:inherit;padding:8px 10px;display:flex;gap:4px;justify-content:flex-end;align-items:center;
+  font:600 11px var(--display);font-stretch:112%;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.tbl th:nth-child(-n+2),.tbl td:nth-child(-n+2){text-align:left}
+.tbl th:nth-child(-n+2) button{justify-content:flex-start}
+.tbl td{padding:6px 10px;border-bottom:1px solid var(--rule-2);text-align:right}
+.tbl td:first-child{font:400 12px var(--mono);color:var(--ink-3)}
+.tbl tr.r{cursor:pointer}
+.tbl tr.r:hover td{background:var(--sunk)}
+.tbl tr[aria-selected="true"] td{background:var(--rev);color:var(--on-rev)}
+.tbl tr.us td{font-weight:700;border-top:2px solid var(--ink)}
+.bar-c{width:170px}
+.bar-c i{display:block;height:9px;border-radius:0 2px 2px 0;background:var(--b)}
+.arrow{width:10px;height:10px}
+
+/* state page leaf */
+.dp-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.dp-h h2{margin:0;font:800 26px/1.05 var(--display);font-stretch:85%}
+.dp-h span{font:500 12px var(--mono);color:var(--ink-3);white-space:nowrap}
+.dp-m{font:400 15px/1.35 var(--body);color:var(--ink-2);margin:8px 0 14px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+.fv{font:700 20px/1.15 var(--display);margin-top:3px}
+.fv.big{font:800 44px/1 var(--display);font-stretch:88%;color:var(--board-ink);letter-spacing:-.01em}
+.fv small{font:500 12px var(--display);color:var(--ink-3)}
+.chart{margin:16px 0 4px}
+.chart-legend{display:flex;gap:14px;font-size:12px;color:var(--ink-2);margin:2px 0 6px}
+.chart-legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:5px}
+#trend{display:block;width:100%;overflow:visible}
+#trend text{font:400 10.5px var(--mono);fill:var(--ink-3)}
+.cite{margin-top:14px;border-top:1px solid var(--rule);padding-top:10px}
+.cite-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cite code{display:block;font:400 11.5px/1.55 var(--mono);color:var(--ink);overflow-wrap:anywhere}
+.sec{margin-top:18px}
+.sec h3{margin:0 0 4px}
+.rel{list-style:none;margin:0;padding:0}
+.rel button{display:grid;grid-template-columns:1fr auto 3.2ch;gap:10px;align-items:baseline;width:100%;border:0;border-top:1px solid var(--rule-2);background:none;text-align:left;padding:6px 2px;font:400 15px/1.25 var(--body)}
+.rel button:hover{background:var(--sunk)}
+.rel button[aria-current="true"]{font-weight:600;color:var(--board-ink)}
+.rel .rv{font:700 13px var(--display)}
+.rel .rk{font:400 11px var(--mono);color:var(--ink-3);text-align:right}
+.rel .old{font:400 10.5px var(--mono);color:var(--ink-3)}
+.notes{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.notes li{font:400 15px/1.4 var(--body);color:var(--ink-2)}
+.notes li.errata{background:var(--verm);color:var(--on-verm);padding:9px 12px 10px;border-radius:2px;transform:rotate(-.4deg);box-shadow:0 2px 0 var(--cut)}
+.notes li.errata b{display:block;font:700 10.5px var(--display);font-stretch:112%;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px}
+
+
+@media (max-width:1240px){
+  html,body{height:auto}
+  .wrap{height:auto}
+  .app{grid-template-columns:280px minmax(0,1fr)}
+  .app>.leaf{overflow:visible}
+  .ctl{grid-row:span 2}
+}
+@media (max-width:820px){
+  .wrap{padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .leaf{padding-left:30px}.leaf::before,.leaf::after{left:10px}
+  .rail{position:static;flex-direction:row;width:auto;height:auto;overflow-x:auto;gap:3px;order:-1}
+  .tabk{writing-mode:horizontal-tb;flex:var(--n) 0 auto;min-height:0;width:auto;height:40px;border-radius:0 0 8px 8px;padding:0 12px;white-space:nowrap}
+  .tabk:hover{width:auto}.tabk[aria-current="true"]{width:auto;height:50px}
+  .app{display:flex;flex-direction:column}
+  .top{flex-wrap:wrap;gap:10px}
+  .brand span,.util .built{display:none}
+  .views{order:3;width:100%}.views button{flex:1}
+  .mlist{max-height:260px;overflow:auto}
+  .foot{display:none}
+  .stage h1{font-size:23px}
+  .tiles{gap:3px}
+  .tile .vl{display:none}
+  .ramp i{width:120px}
+  .tbl .bar-c,.tbl th:nth-child(6){display:none}
+  .tbl td,.tbl th button{padding-left:5px;padding-right:5px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="rail" id="rail" aria-label="Measure divisions"></nav>
+  <header class="leaf top">
+    <div class="brand"><b>State Explorer</b><span>IPEDS state panel<br>50 states + DC · 1980–2025</span></div>
+    <div class="views" role="tablist" aria-label="View">
+      <button role="tab" data-v="map" aria-selected="true">Map</button>
+      <button role="tab" data-v="change" aria-selected="false">Change</button>
+      <button role="tab" data-v="table" aria-selected="false">Table</button>
+    </div>
+    <div class="util"><a class="xlink" href="profiles/index.html">State profiles</a><span class="built code" id="built"></span>
+      <button class="icon-btn" id="theme" aria-label="Switch light or dark theme" title="Theme">
+        <svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></svg></button></div>
+  </header>
+
+  <div class="app">
+    <aside class="leaf ctl" aria-label="Controls">
+      <div class="div-h"><b id="divname"></b><span class="code" id="divcount"></span></div>
+      <div class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+        <label class="vh" for="q">Search all measures</label>
+        <input id="q" type="search" placeholder="Search all 61 measures  ( / )" autocomplete="off"></div>
+      <div class="mlist" id="mlist" aria-label="Measures"></div>
+      <div id="levelbox">
+        <span class="lab" id="lvl-l">Degree level</span>
+        <div class="seg" role="radiogroup" aria-labelledby="lvl-l" id="levels" style="margin-top:7px"></div>
+      </div>
+      <div>
+        <label class="lab" for="yr">Year</label>
+        <div class="yearrow" style="margin-top:6px"><output id="yout" for="yr"></output>
+          <button class="btn-y" id="play" aria-label="Play through years" title="Play (space)">
+            <svg class="i" viewBox="0 0 24 24" id="playi"><path d="M8 5.5v13l10.5-6.5Z"/></svg><span id="playt">Play</span></button></div>
+        <input id="yr" type="range" min="0" max="0" step="1">
+        <div class="yr-ends"><span id="y0"></span><span id="y1"></span></div>
+      </div>
+      <div>
+        <label class="lab" for="cmp">Compare with</label>
+        <select id="cmp" style="margin-top:7px"></select>
+      </div>
+      <p class="foot">States are where institutions are located. International means U.S. nonresidents on temporary visas. Dollars are constant <span id="rb"></span> dollars (CPI-U).</p>
+    </aside>
+
+    <main class="leaf stage" id="stage">
+      <h1 id="title"></h1>
+      <p class="sub" id="sub"></p>
+      <section id="v-map">
+        <div class="tiles" id="tiles" role="group" aria-label="States"></div>
+        <div class="legend" id="legend"></div>
+        <div class="strip-wrap">
+          <div class="strip-h"><span class="lab">Distribution across states</span><span id="strip-n"></span></div>
+          <svg id="strip" height="110" role="img" aria-label="Each dot is one state"></svg>
+        </div>
+      </section>
+      <section id="v-table" hidden>
+        <table class="tbl" id="tbl"><thead></thead><tbody></tbody></table>
+      </section>
+      <p class="mnote" id="mnote"></p>
+    </main>
+
+    <aside class="leaf page" aria-label="Selected state">
+      <div class="dp-h"><h2 id="sname"></h2><span id="scode"></span></div>
+      <a class="xlink prof" id="proflink" href="#">Open the full profile</a>
+      <p class="dp-m" id="smeasure"></p>
+      <div class="fields" id="fields"></div>
+      <div class="chart">
+        <div class="chart-legend" id="clegend"></div>
+        <svg id="trend" height="168" role="img"></svg>
+      </div>
+      <div class="cite">
+        <div class="cite-h"><span class="lab">Citation</span>
+          <button class="btn-y" id="copy" title="Copy a citation for this value">
+            <svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="1.5"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/></svg><span>Copy</span></button></div>
+        <code id="cline"></code>
+      </div>
+      <div class="sec"><h3 class="lab">Read with care</h3><ul class="notes" id="cav"></ul></div>
+      <div class="sec"><h3 class="lab" id="rel-h"></h3><ul class="rel" id="rel"></ul></div>
+    </aside>
+  </div>
+</div>
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const D = /*__DATA__*/null;
+const S = D.states, NS = S.length, US = NS, IDX = Object.fromEntries(S.map((s, i) => [s, i]));
+const M = D.meta, $ = id => document.getElementById(id);
+const RM = matchMedia("(prefers-reduced-motion: reduce)");
+const st = {m: "intl_share_stem_master", y: null, c: null, s: "MO", v: "map", q: "", sort: ["v", -1]};
+
+/* division boards: [light board, light text ink, dark board, dark text ink] */
+const DIV = {
+  "International talent": ["#325ac2", "#294793", "#2a4499", "#a6c1ff"],
+  "STEM & field mix":     ["#007a7c", "#006063", "#006769", "#72d3d3"],
+  "Enrollment":           ["#2f751d", "#1c5d07", "#2b6519", "#a2d297"],
+  "Outcomes":             ["#714ca6", "#593888", "#5e3f8f", "#cbb6f2"],
+  "Prices & finance":     ["#e36927", "#832e00", "#b9531d", "#ffae88"],
+  "Student migration":    ["#8c482f", "#79371e", "#7a3d27", "#ebb7a4"]};
+const SHORT = {"International talent": "International", "STEM & field mix": "STEM & fields", "Enrollment": "Enrollment",
+  "Outcomes": "Outcomes", "Prices & finance": "Prices", "Student migration": "Migration"};
+
+/* ---------- colour: OKLab interpolation over validated ramps ---------- */
+const RAMPS = {
+  light: ["#a7abc0","#8d92ad","#74799a","#5d6284","#474b6f","#323656","#20223d"],
+  dark:  ["#52566f","#686c89","#7f84a5","#979cbe","#b0b5d5","#c8cce5","#e1e4f2"]};
+const DIVS = {
+  light: ["#7b3702","#a85a28","#c68865","#d9b5a2","#dddfd9","#9bc9bf","#56aa9a","#218373","#045a4f"],
+  dark:  ["#f2ab83","#d38151","#a3623b","#6d4934","#303337","#315c53","#358476","#51ab9a","#82cfc0"]};
+const lin = c => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4, gam = c => c <= .0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - .055;
+function hex2lab(h) {
+  const [r, g, b] = [1, 3, 5].map(i => lin(parseInt(h.slice(i, i + 2), 16) / 255));
+  const l = Math.cbrt(.4122214708*r+.5363325363*g+.0514459929*b), m = Math.cbrt(.2119034982*r+.6806995451*g+.1073969566*b), s = Math.cbrt(.0883024619*r+.2817188376*g+.6299787005*b);
+  return [.2104542553*l+.793617785*m-.0040720468*s, 1.9779984951*l-2.428592205*m+.4505937099*s, .0259040371*l+.7827717662*m-.808675766*s];
+}
+function lab2hex([L, a, b]) {
+  const l = (L+.3963377774*a+.2158037573*b)**3, m = (L-.1055613458*a-.0638541728*b)**3, s = (L-.0894841775*a-1.291485548*b)**3;
+  const rgb = [4.0767416621*l-3.3077115913*m+.2309699292*s, -1.2684380046*l+2.6097574011*m-.3413193965*s, -.0041960863*l-.7034186147*m+1.707614701*s];
+  return "#" + rgb.map(c => Math.round(255 * Math.min(1, Math.max(0, gam(c)))).toString(16).padStart(2, "0")).join("");
+}
+const LABS = {}; for (const k of ["light", "dark"]) { LABS["r" + k] = RAMPS[k].map(hex2lab); LABS["d" + k] = DIVS[k].map(hex2lab); }
+const theme = () => document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+function interp(stops, t) {
+  t = Math.min(1, Math.max(0, t)); const x = t * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(x)), f = x - i;
+  return lab2hex(stops[i].map((v, k) => v + (stops[i + 1][k] - v) * f));
+}
+function inkFor(hex) {
+  const [r, g, b] = [1, 3, 5].map(i => lin(parseInt(hex.slice(i, i + 2), 16) / 255));
+  return .2126 * r + .7152 * g + .0722 * b > .2 ? "#14162a" : "#ffffff";
+}
+
+/* ---------- data access & formatting ---------- */
+const yrs = m => D.data[m].y;
+function row(m, y) { const d = D.data[m], i = d.y.indexOf(y); return i < 0 ? null : d.v[i]; }
+const val = (m, y, s) => { const r = row(m, y); return r ? r[s === "US" ? US : IDX[s]] : null; };
+function fmt(m, x) {
+  if (x == null) return "–"; const f = M[m].fmt;
+  const s = Math.abs(x).toLocaleString("en-US", {minimumFractionDigits: f.d, maximumFractionDigits: f.d, useGrouping: f.comma});
+  return (x < 0 ? "−" : f.sign && x > 0 ? "+" : "") + f.pre + s + f.suf;
+}
+function chg(m, a, b) { if (a == null || b == null) return null; return M[m].change === "diff" ? b - a : a === 0 ? null : (b / a - 1) * 100; }
+function fmtChg(m, x) {
+  if (x == null) return "–"; const sgn = x > 0.0005 ? "+" : x < -0.0005 ? "−" : "±", a = Math.abs(x);
+  if (M[m].change === "diff") return sgn + a.toFixed(a >= 10 ? 0 : 1) + (M[m].unit === "%" ? " pp" : "");
+  return sgn + a.toFixed(a >= 10 ? 0 : 1) + "%";
+}
+const chgLabel = m => M[m].change === "diff" ? (M[m].unit === "%" ? "Percentage points" : "Points") : "Percent change";
+function ranks(r) {
+  const vals = S.map((s, i) => [s, r ? r[i] : null]).filter(d => d[1] != null).sort((a, b) => b[1] - a[1]);
+  const out = {}; vals.forEach((d, i) => { out[d[0]] = (i && d[1] === vals[i - 1][1]) ? out[vals[i - 1][0]] : i + 1; });
+  return [out, vals.length];
+}
+function nearestYear(m, y) { const ys = yrs(m); if (ys.includes(y)) return y; return ys.reduce((a, b) => Math.abs(b - y) < Math.abs(a - y) ? b : a); }
+function latestAtOrBefore(m, y, s) {
+  const ys = yrs(m); for (let i = ys.length - 1; i >= 0; i--) { if (ys[i] <= y) { const v = D.data[m].v[i][s === "US" ? US : IDX[s]]; if (v != null) return [v, ys[i]]; } }
+  return [null, null];
+}
+
+/* ---------- scales ---------- */
+function levelScale(m) {
+  const t = theme(), u = M[m];
+  if (u.div) { const R = Math.max(Math.abs(u.lo), Math.abs(u.hi)); return {lo: -R, hi: R, f: x => interp(LABS["d" + t], (x + R) / (2 * R)), stops: DIVS[t]}; }
+  return {lo: u.lo, hi: u.hi, f: x => interp(LABS["r" + t], (x - u.lo) / (u.hi - u.lo || 1)), stops: RAMPS[t]};
+}
+function niceCeil(x) { if (!(x > 0)) return 1; const p = 10 ** Math.floor(Math.log10(x)), n = x / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
+function changeScale(m, deltas) {
+  const a = deltas.filter(d => d != null).map(Math.abs).sort((x, y) => x - y);
+  const R = niceCeil(a.length ? a[Math.floor(.95 * (a.length - 1))] : 1), t = theme();
+  return {lo: -R, hi: R, f: x => interp(LABS["d" + t], (x + R) / (2 * R)), stops: DIVS[t]};
+}
+
+/* ---------- state from / to URL ---------- */
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (M[p.get("m")]) st.m = p.get("m");
+  if (p.get("s") && IDX[p.get("s")] != null) st.s = p.get("s");
+  if (["map", "change", "table"].includes(p.get("v"))) st.v = p.get("v");
+  const ys = yrs(st.m), last = ys[ys.length - 1];
+  st.y = p.get("y") ? nearestYear(st.m, +p.get("y")) : last;
+  st.c = p.get("c") ? nearestYear(st.m, +p.get("c")) : nearestYear(st.m, st.y - 10);
+}
+function writeHash() { try { history.replaceState(null, "", "#" + new URLSearchParams({m: st.m, y: st.y, c: st.c, s: st.s, v: st.v})); } catch (e) {} }
+
+/* ---------- division board & tab rail ---------- */
+function applyBoard() {
+  const h = DIV[M[st.m].group], dark = theme() === "dark", r = document.documentElement.style;
+  r.setProperty("--board", dark ? h[2] : h[0]); r.setProperty("--board-ink", dark ? h[3] : h[1]);
+}
+function renderTabs() {
+  const g = M[st.m].group;
+  $("rail").innerHTML = D.groups.map(k => {
+    const n = Object.values(M).filter(u => u.group === k).length, h = DIV[k][theme() === "dark" ? 2 : 0];
+    return `<button class="tabk" style="--n:${n};--c:${h};--len:${SHORT[k].length + String(n).length + 1}" data-g="${esc(k)}" aria-current="${k === g}" title="${esc(k)}: ${n} measures"><span>${SHORT[k]}</span><small>${n}</small></button>`;
+  }).join("");
+  $("rail").querySelectorAll(".tabk").forEach(b => b.onclick = () => {
+    const k = b.dataset.g; if (k === M[st.m].group) return;
+    const lev = M[st.m].level || "master", ms = Object.keys(M).filter(m => M[m].group === k);
+    $("q").value = st.q = "";
+    setMeasure(ms.find(m => M[m].level === lev) || ms[0]);
+  });
+  $("divname").textContent = g; $("divcount").textContent = Object.values(M).filter(u => u.group === g).length + " measures";
+}
+
+/* ---------- measure list ---------- */
+function entries() {
+  const seen = new Set(), out = [];
+  for (const [m, u] of Object.entries(M)) {
+    const key = u.level ? u.family : m; if (seen.has(key)) continue; seen.add(key);
+    const ms = u.level ? Object.keys(M).filter(k => M[k].family === u.family) : [m];
+    const all = ms.flatMap(k => yrs(k));
+    out.push({key, label: u.label, group: u.group, ms, span: Math.min(...all) + "–" + String(Math.max(...all)).slice(2),
+      hay: (u.label + " " + ms.map(k => M[k].title).join(" ") + " " + u.group).toLowerCase()});
+  }
+  return out;
+}
+const ENTRIES = entries();
+function renderRail() {
+  const q = st.q.trim().toLowerCase(), box = $("mlist"), cur = M[st.m].level ? M[st.m].family : st.m;
+  const hits = ENTRIES.filter(e => q ? q.split(/\s+/).every(w => e.hay.includes(w)) : e.group === M[st.m].group);
+  if (!hits.length) { box.innerHTML = `<p class="empty">No measure matches “${esc(st.q)}”. <button id="clr">Clear the search</button></p>`; $("clr").onclick = () => { $("q").value = st.q = ""; renderRail(); $("q").focus(); }; return; }
+  box.innerHTML = D.groups.map(g => {
+    const es = hits.filter(e => e.group === g); if (!es.length) return "";
+    return `<div class="mgroup">${q ? `<h3>${g}</h3>` : ""}` + es.map(e => `<button class="mitem" data-k="${e.key}" aria-current="${e.key === cur}"><span>${esc(e.label)}</span><small>${e.span}</small></button>`).join("") + "</div>";
+  }).join("");
+  box.querySelectorAll(".mitem").forEach(b => b.onclick = () => {
+    const e = ENTRIES.find(x => x.key === b.dataset.k), lev = M[st.m].level || "master";
+    setMeasure(e.ms.find(k => M[k].level === lev) || e.ms.find(k => M[k].level === "master") || e.ms[0]);
+  });
+}
+function renderLevels() {
+  const u = M[st.m], box = $("levels"); $("levelbox").hidden = !u.level; if (!u.level) return;
+  box.innerHTML = Object.entries(D.levels).map(([k, lab]) => { const id = u.family + "_" + k;
+    return `<button role="radio" data-m="${id}" aria-checked="${k === u.level}" ${M[id] ? "" : "disabled"}>${lab}</button>`; }).join("");
+  box.querySelectorAll("button:not(:disabled)").forEach(b => b.onclick = () => setMeasure(b.dataset.m));
+}
+function renderYears() {
+  const ys = yrs(st.m), r = $("yr"); r.max = ys.length - 1; r.value = ys.indexOf(st.y);
+  $("yout").textContent = st.y; $("y0").textContent = ys[0]; $("y1").textContent = ys[ys.length - 1];
+  r.setAttribute("aria-valuetext", String(st.y));
+  $("cmp").innerHTML = ys.map(y => `<option value="${y}" ${y === st.c ? "selected" : ""}>${y}</option>`).join("");
+}
+
+/* ---------- tiles ---------- */
+const tileEls = {};
+function buildTiles() {
+  const box = $("tiles");
+  for (const s of S) {
+    const [c, r] = D.tiles[s], b = document.createElement("button");
+    b.className = "tile"; b.style.gridColumn = c + 1; b.style.gridRow = r + 1; b.dataset.s = s; b.dataset.col = c;
+    b.innerHTML = `<span class="ab">${s}</span><span class="vl"></span>`;
+    b.onclick = () => select(s);
+    b.onmouseenter = b.onfocus = e => showTip(s, e.currentTarget);
+    b.onmouseleave = b.onblur = hideTip;
+    box.appendChild(b); tileEls[s] = b;
+  }
+}
+let paintTimers = [];
+function paint(animate) {
+  paintTimers.forEach(clearTimeout); paintTimers = [];
+  const ch = st.v === "change", r = row(st.m, st.y), rc = row(st.m, st.c);
+  const deltas = S.map((s, i) => chg(st.m, rc && rc[i], r && r[i]));
+  const sc = ch ? changeScale(st.m, deltas) : levelScale(st.m);
+  $("tiles").classList.toggle("has-sel", !!st.s);
+  for (const s of S) {
+    const i = IDX[s], x = ch ? deltas[i] : r && r[i], el = tileEls[s];
+    const apply = () => {
+      if (x == null) { el.classList.add("nd"); el.style.removeProperty("--c"); el.style.removeProperty("--t"); el.querySelector(".vl").textContent = "–"; }
+      else { const c = sc.f(x); el.classList.remove("nd"); el.style.setProperty("--c", c); el.style.setProperty("--t", inkFor(c));
+        el.querySelector(".vl").textContent = ch ? fmtChg(st.m, x).replace(" pp", "") : short(st.m, x); }
+      el.setAttribute("aria-pressed", s === st.s);
+      el.setAttribute("aria-label", `${D.names[s]}: ${ch ? fmtChg(st.m, x) : fmt(st.m, x)}`);
+    };
+    const delay = animate && !RM.matches ? +el.dataset.col * 30 : 0;   // the year sweeps across the map, column by column
+    if (delay) paintTimers.push(setTimeout(apply, delay)); else apply();
+  }
+  renderLegend(sc, ch);
+  renderStrip(ch ? deltas : S.map((s, i) => r && r[i]), sc, ch);
+}
+function short(m, x) {
+  const u = M[m]; if (u.unit === "students" || u.unit === "degrees") return x >= 1e6 ? (x / 1e6).toFixed(1) + "M" : x >= 1e4 ? Math.round(x / 1e3) + "k" : x >= 1e3 ? (x / 1e3).toFixed(1) + "k" : Math.round(x);
+  if (u.fmt.pre === "$") return "$" + (x >= 1e3 ? Math.round(x / 1e3) + "k" : Math.round(x));
+  return fmt(m, x);
+}
+function renderLegend(sc, ch) {
+  const lo = ch ? fmtChg(st.m, sc.lo) : fmt(st.m, sc.lo), hi = ch ? fmtChg(st.m, sc.hi) : fmt(st.m, sc.hi);
+  $("legend").innerHTML = `<span class="ramp"><span>≤ ${lo}</span><i style="background:linear-gradient(90deg,${sc.stops.join(",")})"></i><span>≥ ${hi}</span></span>` +
+    (ch ? `<span>${esc(chgLabel(st.m))}, ${st.c}–${st.y}. Copper fell, teal rose.</span>` : M[st.m].div ? `<span>${esc(M[st.m].divNote)}</span>` : `<span>Ink density = value; scale fixed across all years</span>`) +
+    `<span class="sw"><i class="ndsw"></i>No data</span><span class="sw"><i class="selsw"></i>Selected</span>`;
+}
+
+/* ---------- distribution strip (beeswarm) ---------- */
+function renderStrip(xs, sc, ch) {
+  const svg = $("strip"), W = svg.clientWidth || 700, pad = 14, rr = 5.5;
+  const pts = S.map((s, i) => ({s, x: xs[i]})).filter(d => d.x != null);
+  $("strip-n").textContent = `${pts.length} of ${NS} reporting · ${ch ? st.c + "–" + st.y : st.y}`;
+  if (!pts.length) { svg.setAttribute("height", 60); svg.innerHTML = `<text x="0" y="30">No state reports this measure in ${st.y}.</text>`; return; }
+  const lo = Math.min(sc.lo, ...pts.map(d => d.x)), hi = Math.max(sc.hi, ...pts.map(d => d.x));
+  const X = x => pad + (x - lo) / (hi - lo || 1) * (W - 2 * pad);
+  pts.sort((a, b) => a.x - b.x); const placed = [];
+  const off = j => (j % 2 ? 1 : -1) * Math.ceil(j / 2) * (rr * 2 + 1);
+  for (const d of pts) {
+    d.cx = X(d.x); let k = 0;
+    while (placed.some(p => Math.abs(p.cx - d.cx) < rr * 2 + 1 && p.off === off(k))) k++;
+    d.off = off(k); placed.push(d);
+  }
+  const top = -Math.min(0, ...pts.map(d => d.off)), bot = Math.max(0, ...pts.map(d => d.off));
+  const base = 30 + top, H = base + bot + 32; svg.setAttribute("height", H);
+  pts.forEach(d => d.cy = base + d.off);
+  const usx = ch ? chg(st.m, val(st.m, st.c, "US"), val(st.m, st.y, "US")) : val(st.m, st.y, "US");
+  const sel = pts.find(d => d.s === st.s), F = x => ch ? fmtChg(st.m, x) : fmt(st.m, x);
+  let h = `<line x1="${pad}" x2="${W - pad}" y1="${H - 14}" y2="${H - 14}" stroke="var(--rule)"/>`;
+  h += `<text x="${pad}" y="${H - 1}">${F(lo)}</text><text x="${W - pad}" y="${H - 1}" text-anchor="end">${F(hi)}</text>`;
+  if (ch) h += `<line x1="${X(0)}" x2="${X(0)}" y1="6" y2="${H - 14}" stroke="var(--rule)"/>`;
+  if (usx != null) h += `<line x1="${X(usx)}" x2="${X(usx)}" y1="4" y2="${H - 14}" stroke="var(--ink)" stroke-dasharray="3 3"/><text x="${X(usx)}" y="${H - 1}" text-anchor="middle" style="font-weight:700;fill:var(--ink)">U.S. ${F(usx)}</text>`;
+  h += pts.map(d => d === sel
+    ? `<circle data-s="${d.s}" cx="${d.cx.toFixed(1)}" cy="${d.cy}" r="7.5" fill="var(--ink)" style="cursor:pointer"/><circle cx="${d.cx.toFixed(1)}" cy="${d.cy}" r="3.2" fill="var(--board)" pointer-events="none"/>`
+    : `<circle data-s="${d.s}" cx="${d.cx.toFixed(1)}" cy="${d.cy}" r="${rr}" fill="${sc.f(d.x)}" stroke="var(--leaf-solid)" stroke-width="1.5" style="cursor:pointer"/>`).join("");
+  const lab = [pts[0], pts[pts.length - 1]]; if (sel) lab.push(sel);
+  if (sel) h += `<line x1="${sel.cx}" x2="${sel.cx}" y1="15" y2="${sel.cy - 9}" stroke="var(--ink)"/><text x="${sel.cx}" y="11" text-anchor="${sel.cx > W - 40 ? "end" : sel.cx < 40 ? "start" : "middle"}" style="font-weight:800;fill:var(--ink)">${sel.s}</text>`;
+  h += [...new Set(lab)].filter(d => d !== sel).map(d => `<text x="${d.cx}" y="${d.cy - 11}" text-anchor="${d.cx > W - 40 ? "end" : d.cx < 40 ? "start" : "middle"}" style="${d === sel ? "font-weight:800;fill:var(--ink)" : ""}">${d.s}</text>`).join("");
+  svg.innerHTML = h;
+  svg.querySelectorAll("circle[data-s]").forEach(c => { c.onclick = () => select(c.dataset.s); c.onmouseenter = () => showTip(c.dataset.s, c); c.onmouseleave = hideTip; });
+}
+
+/* ---------- table ---------- */
+function renderTable() {
+  const r = row(st.m, st.y), rc = row(st.m, st.c), [rk] = ranks(r), mx = Math.max(...S.map((s, i) => Math.abs(r && r[i] || 0)));
+  const rows = S.map((s, i) => ({s, n: D.names[s], v: r && r[i], c: rc && rc[i], d: chg(st.m, rc && rc[i], r && r[i]), k: rk[s]}));
+  const [key, dir] = st.sort;
+  rows.sort((a, b) => key === "n" ? dir * a.n.localeCompare(b.n) : (a[key] == null) - (b[key] == null) || dir * ((a[key] ?? 0) - (b[key] ?? 0)));
+  const cols = [["k", "Rank"], ["n", "State"], ["v", String(st.y)], ["c", String(st.c)], ["d", "Change"], [null, ""]];
+  const arrow = d => `<svg class="arrow" viewBox="0 0 10 10"><path d="${d > 0 ? "M2 6.5 5 3.5 8 6.5" : "M2 3.5 5 6.5 8 3.5"}" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`;
+  $("tbl").tHead.innerHTML = "<tr>" + cols.map(([k, l]) => k ? `<th aria-sort="${key === k ? (dir > 0 ? "ascending" : "descending") : "none"}"><button data-k="${k}">${l}${key === k ? arrow(dir) : ""}</button></th>` : `<th class="bar-c"><span class="vh">Bar</span></th>`).join("") + "</tr>";
+  const sc = levelScale(st.m), usv = val(st.m, st.y, "US"), usc = val(st.m, st.c, "US");
+  $("tbl").tBodies[0].innerHTML = rows.map(d => `<tr class="r" data-s="${d.s}" aria-selected="${d.s === st.s}"><td>${d.k ? String(d.k).padStart(2, "0") : "–"}</td><td>${esc(d.n)}</td><td>${fmt(st.m, d.v)}</td><td>${fmt(st.m, d.c)}</td><td>${fmtChg(st.m, d.d)}</td><td class="bar-c">${d.v == null ? "" : `<i style="width:${(Math.abs(d.v) / (mx || 1) * 100).toFixed(1)}%;--b:${d.s === st.s ? "var(--board)" : sc.f(d.v)}"></i>`}</td></tr>`).join("") +
+    `<tr class="us"><td></td><td>United States</td><td>${fmt(st.m, usv)}</td><td>${fmt(st.m, usc)}</td><td>${fmtChg(st.m, chg(st.m, usc, usv))}</td><td class="bar-c"></td></tr>`;
+  $("tbl").tHead.querySelectorAll("button").forEach(b => b.onclick = () => { const k = b.dataset.k; st.sort = [k, st.sort[0] === k ? -st.sort[1] : k === "n" || k === "k" ? 1 : -1]; renderTable(); });
+  $("tbl").tBodies[0].querySelectorAll("tr.r").forEach(tr => tr.onclick = () => select(tr.dataset.s));
+}
+
+/* ---------- state page ---------- */
+function renderPage() {
+  const s = st.s, u = M[st.m], r = row(st.m, st.y), [rk, n] = ranks(r);
+  const v = val(st.m, st.y, s), vc = val(st.m, st.c, s), usv = val(st.m, st.y, "US"), d = chg(st.m, vc, v);
+  $("sname").textContent = D.names[s];
+  $("proflink").href = `profiles/${s}.html`; $("proflink").textContent = `Open ${D.names[s]}'s full profile`;
+  $("scode").textContent = `${s} · ${st.y}`;
+  $("smeasure").textContent = u.title + (u.unit !== "%" ? ` (${u.unit})` : "");
+  $("fields").innerHTML =
+    `<div style="grid-column:1/-1"><div class="lab">Value, ${st.y}</div><div class="fv big">${fmt(st.m, v)}</div></div>` +
+    `<div><div class="lab">Rank</div><div class="fv">${rk[s] || "–"} <small>of ${n}</small></div></div>` +
+    `<div><div class="lab">United States</div><div class="fv">${fmt(st.m, usv)}</div></div>` +
+    `<div><div class="lab">${st.c} value</div><div class="fv">${fmt(st.m, vc)}</div></div>` +
+    `<div><div class="lab">Change since ${st.c}</div><div class="fv">${fmtChg(st.m, d)}</div></div>`;
+  $("clegend").innerHTML = `<span><i style="background:var(--board-ink);height:3px"></i>${esc(D.names[s])}</span><span><i style="background:var(--ink-3)"></i>United States</span>`;
+  renderTrend();
+  $("cline").textContent = `${st.m} · ${s} · ${st.y} · ${v == null ? "NA" : v} · rank ${rk[s] ? String(rk[s]).padStart(2, "0") : "NA"}/${n} · US ${usv ?? "NA"} · state_panel.csv`;
+  $("copy").dataset.cite = `${D.names[s]}, ${u.title.charAt(0).toLowerCase() + u.title.slice(1)}, ${st.y}: ${fmt(st.m, v)}` +
+    (rk[s] ? ` (rank ${rk[s]} of ${n}` : " (") + `; U.S. ${fmt(st.m, usv)}). Source: IPEDS, harmonized state panel (data/states/state_panel.csv, measure ${st.m}); institutions located in the state.`;
+  renderRelated(); renderCaveats();
+}
+function renderTrend() {
+  const svg = $("trend"), W = svg.clientWidth || 320, H = 168, L = 40, R = 10, T = 8, B = 22, m = st.m, u = M[m];
+  const ys = yrs(m), sv = ys.map(y => val(m, y, st.s)), uv = ys.map(y => val(m, y, "US"));
+  const all = [...sv, ...uv].filter(x => x != null);
+  svg.setAttribute("aria-label", `${D.names[st.s]} and U.S., ${u.title}, ${ys[0]}–${ys[ys.length - 1]}`);
+  if (!all.length) { svg.innerHTML = `<text x="0" y="80">No values for this state.</text>`; return; }
+  let lo = Math.min(...all), hi = Math.max(...all);
+  if (lo >= 0 && (u.unit === "%" || u.unit === "students" || u.unit === "degrees")) lo = 0;
+  const step = niceCeil((hi - lo) / 3 || 1); lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step || step;
+  const X = y => L + (y - ys[0]) / ((ys[ys.length - 1] - ys[0]) || 1) * (W - L - R), Y = x => T + (1 - (x - lo) / (hi - lo || 1)) * (H - T - B);
+  const path = arr => { let p = "", pen = false; ys.forEach((y, i) => { if (arr[i] == null || (i && y - ys[i - 1] > 1)) pen = false; if (arr[i] != null) { p += (pen ? "L" : "M") + X(y).toFixed(1) + " " + Y(arr[i]).toFixed(1); pen = true; } }); return p; };
+  let h = "";
+  for (let g = lo; g <= hi + step / 2; g += step) h += `<line x1="${L}" x2="${W - R}" y1="${Y(g)}" y2="${Y(g)}" stroke="var(--rule-2)"/><text x="${L - 6}" y="${Y(g) + 3.5}" text-anchor="end">${axisFmt(m, g)}</text>`;
+  const xt = [ys[0], ys[Math.floor(ys.length / 2)], ys[ys.length - 1]];
+  h += xt.map(y => `<text x="${X(y)}" y="${H - 6}" text-anchor="middle">${y}</text>`).join("");
+  h += `<line x1="${X(st.c)}" x2="${X(st.c)}" y1="${T}" y2="${H - B}" stroke="var(--rule)" stroke-dasharray="2 3"/>`;
+  h += `<line x1="${X(st.y)}" x2="${X(st.y)}" y1="${T}" y2="${H - B}" stroke="var(--ink-3)"/>`;
+  h += `<path d="${path(uv)}" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-linejoin="round"/>`;
+  h += `<path d="${path(sv)}" fill="none" stroke="var(--board-ink)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  const cv = val(m, st.y, st.s); if (cv != null) h += `<circle cx="${X(st.y)}" cy="${Y(cv)}" r="4.5" fill="var(--board-ink)" stroke="var(--leaf-solid)" stroke-width="2"/>`;
+  h += `<g id="xh" style="display:none"><line y1="${T}" y2="${H - B}" stroke="var(--ink-3)"/><circle r="4" fill="var(--board-ink)" stroke="var(--leaf-solid)" stroke-width="2"/><circle r="4" fill="var(--ink-3)" stroke="var(--leaf-solid)" stroke-width="2"/></g>`;
+  h += `<rect x="${L}" y="0" width="${W - L - R}" height="${H}" fill="transparent" id="hit" style="cursor:crosshair"/>`;
+  svg.innerHTML = h;
+  const hit = svg.querySelector("#hit"), xh = svg.querySelector("#xh");
+  const near = px => ys.reduce((a, b) => Math.abs(X(b) - px) < Math.abs(X(a) - px) ? b : a);
+  hit.onmousemove = e => {
+    const bx = svg.getBoundingClientRect(), y = near(e.clientX - bx.left), i = ys.indexOf(y);
+    xh.style.display = ""; const [ln, c1, c2] = xh.children; ln.setAttribute("x1", X(y)); ln.setAttribute("x2", X(y));
+    c1.style.display = sv[i] == null ? "none" : ""; c1.setAttribute("cx", X(y)); c1.setAttribute("cy", Y(sv[i] ?? 0));
+    c2.style.display = uv[i] == null ? "none" : ""; c2.setAttribute("cx", X(y)); c2.setAttribute("cy", Y(uv[i] ?? 0));
+    tipAt(e.clientX, bx.top + Y(sv[i] ?? uv[i] ?? lo), `<b>${y}</b><br>${esc(D.names[st.s])} <b>${fmt(m, sv[i])}</b><br>United States <b>${fmt(m, uv[i])}</b><br><span style="opacity:.75">Click to jump to ${y}</span>`);
+  };
+  hit.onmouseleave = () => { xh.style.display = "none"; hideTip(); };
+  hit.onclick = e => { stop(); setYear(near(e.clientX - svg.getBoundingClientRect().left)); };
+}
+function axisFmt(m, x) {
+  const u = M[m]; if (u.fmt.pre === "$") return "$" + (Math.abs(x) >= 1e3 ? Math.round(x / 1e3) + "k" : Math.round(x));
+  if (u.unit === "students" || u.unit === "degrees") return Math.abs(x) >= 1e6 ? (x / 1e6) + "M" : Math.abs(x) >= 1e3 ? (x / 1e3) + "k" : x;
+  return (+x.toFixed(2)) + (u.unit === "%" ? "%" : "");
+}
+function renderRelated() {
+  const u = M[st.m], lev = u.level;
+  const ms = Object.keys(M).filter(k => M[k].group === u.group && (lev ? (M[k].level === lev || !M[k].level) : (!M[k].level || M[k].level === "master"))).slice(0, 12);
+  $("rel-h").textContent = `${SHORT[u.group]} · ${D.names[st.s]} · ${st.y}`;
+  $("rel").innerHTML = ms.map(k => {
+    const [v, y] = latestAtOrBefore(k, st.y, st.s), r = y ? ranks(row(k, y))[0][st.s] : null;
+    return `<li><button data-m="${k}" aria-current="${k === st.m}"><span>${esc(M[k].title)}</span><span class="rv">${fmt(k, v)}${y && y !== st.y ? ` <span class="old">${y}</span>` : ""}</span><span class="rk">${r ? "#" + r : ""}</span></button></li>`;
+  }).join("");
+  $("rel").querySelectorAll("button").forEach(b => b.onclick = () => setMeasure(b.dataset.m));
+}
+function renderCaveats() {
+  const u = M[st.m], notes = [], errata = [];
+  if (u.online && D.onlineGiants[st.s]) errata.push(["Online institution", D.onlineGiants[st.s]]);
+  if (st.y >= 2024 || st.c >= 2024) errata.push(["Latest release", "2024 and 2025 values come from the newest IPEDS files; some are provisional and may be revised."]);
+  if (u.level === "doc" && st.m.startsWith("intl_")) errata.push(["Small numbers", "Research doctorates are few in small states, so shares can move several points on a handful of degrees."]);
+  if (u.note) (u.note.includes(D.names[st.s]) ? errata.push(["About " + D.names[st.s], u.note]) : notes.push(u.note));
+  if (u.group === "STEM & field mix" || st.m.startsWith("intl_share_")) notes.push("Field shares use 2-digit CIP-2020 families, harmonized across the 1985, 1990, 2000 and 2010 CIP editions.");
+  const ys = yrs(st.m); if (ys.includes(1980) && !ys.includes(1982)) notes.push("1981–1983 are absent from the source files.");
+  $("cav").innerHTML = errata.map(([t, x]) => `<li class="errata"><b>${esc(t)}</b>${esc(x)}</li>`).join("") + notes.map(t => `<li>${esc(t)}</li>`).join("");
+}
+
+/* ---------- tooltip & toast ---------- */
+const tip = $("tip");
+function showTip(s, el) {
+  const ch = st.v === "change", v = val(st.m, st.y, s), vc = val(st.m, st.c, s), [rk, n] = ranks(row(st.m, st.y)), b = el.getBoundingClientRect();
+  tipAt(b.left + b.width / 2, b.top, `<b>${esc(D.names[s])}</b><br><span class="tv">${ch ? fmtChg(st.m, chg(st.m, vc, v)) : fmt(st.m, v)}</span>` +
+    (ch ? `<br>${fmt(st.m, vc)} in ${st.c} → ${fmt(st.m, v)} in ${st.y}` : `<br>${rk[s] ? "Rank " + rk[s] + " of " + n : "No data"} · ${st.c}: ${fmt(st.m, vc)}`));
+}
+function tipAt(x, y, html) {
+  tip.innerHTML = html; tip.classList.add("on");
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + "px";
+  tip.style.top = (y - h - 10 < 8 ? y + 24 : y - h - 10) + "px";
+}
+function hideTip() { tip.classList.remove("on"); }
+function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 1600); }
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+
+/* ---------- head & orchestration ---------- */
+function renderHead() {
+  const u = M[st.m], ch = st.v === "change", usv = val(st.m, st.y, "US"), usc = val(st.m, st.c, "US");
+  $("title").textContent = ch ? `Change in ${u.title.charAt(0).toLowerCase() + u.title.slice(1)}, ${st.c}–${st.y}` : u.title;
+  const n = (row(st.m, st.y) || []).slice(0, NS).filter(x => x != null).length;
+  $("sub").innerHTML = (ch ? `<span>U.S. <b>${fmt(st.m, usc)}</b> → <b>${fmt(st.m, usv)}</b> (${fmtChg(st.m, chg(st.m, usc, usv))})</span>`
+    : `<span><b>${st.y}</b></span><span>U.S. <b>${fmt(st.m, usv)}</b></span>`) +
+    `<span>${n} of ${NS} states reporting</span>` + (u.unit !== "%" ? `<span>Unit: ${esc(u.unit)}</span>` : "") +
+    `<span class="code">${st.m}</span>` + (st.y >= 2024 ? `<span class="slip-s">Latest release</span>` : "");
+  $("mnote").textContent = u.note || ""; $("mnote").hidden = !u.note;
+  document.querySelectorAll(".views button").forEach(t => t.setAttribute("aria-selected", t.dataset.v === st.v));
+  $("v-map").hidden = st.v === "table"; $("v-table").hidden = st.v !== "table";
+}
+function render(animate) {
+  applyBoard(); renderTabs(); renderHead(); renderRail(); renderLevels(); renderYears();
+  if (st.v === "table") renderTable(); else paint(animate);
+  renderPage(); writeHash();
+}
+function hingeLeaves() {
+  if (RM.matches) return;
+  for (const el of document.querySelectorAll(".stage,.page")) { el.classList.remove("hinge"); void el.offsetWidth; el.classList.add("hinge"); }
+}
+function setMeasure(m) {
+  stop(); const turned = M[m].group !== M[st.m].group;
+  st.m = m; st.y = nearestYear(m, st.y); st.c = nearestYear(m, st.c); if (st.c === st.y) st.c = yrs(m)[0];
+  render(true); if (turned) hingeLeaves();
+}
+function setYear(y) { st.y = y; renderHead(); renderYears(); if (st.v === "table") renderTable(); else paint(true); renderPage(); writeHash(); }
+function select(s) { st.s = s; if (st.v === "table") renderTable(); else paint(false); renderPage(); writeHash(); }
+let timer = null;
+function stop() { clearInterval(timer); timer = null; $("play").setAttribute("aria-label", "Play through years"); $("playt").textContent = "Play"; $("playi").innerHTML = '<path d="M8 5.5v13l10.5-6.5Z"/>'; }
+function play() {
+  if (timer) return stop();
+  const ys = yrs(st.m); if (st.y === ys[ys.length - 1]) setYear(ys[0]);
+  $("play").setAttribute("aria-label", "Pause"); $("playt").textContent = "Pause"; $("playi").innerHTML = '<path d="M8.5 5.5v13M15.5 5.5v13"/>';
+  timer = setInterval(() => { const ys = yrs(st.m), i = ys.indexOf(st.y); if (i >= ys.length - 1) return stop(); setYear(ys[i + 1]); }, 700);
+}
+
+/* ---------- wiring ---------- */
+try { const t = localStorage.getItem("se-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+readHash(); buildTiles();
+$("built").textContent = "Built " + D.built; $("rb").textContent = D.realBase;
+$("q").oninput = e => { st.q = e.target.value; renderRail(); };
+$("q").onkeydown = e => { if (e.key === "Escape") { e.target.value = st.q = ""; renderRail(); } if (e.key === "Enter") { const b = $("mlist").querySelector(".mitem"); if (b) b.click(); } };
+$("yr").oninput = e => { stop(); setYear(yrs(st.m)[+e.target.value]); };
+$("cmp").onchange = e => { st.c = +e.target.value; render(false); };
+$("play").onclick = play;
+document.querySelectorAll(".views button").forEach(t => t.onclick = () => { st.v = t.dataset.v; render(false); });
+$("theme").onclick = () => { document.documentElement.dataset.theme = theme() === "dark" ? "light" : "dark"; try { localStorage.setItem("se-theme", document.documentElement.dataset.theme); } catch (e) {} render(false); };
+$("copy").onclick = async () => {
+  const t = $("copy").dataset.cite, lab = $("copy").querySelector("span");
+  try { await navigator.clipboard.writeText(t); lab.textContent = "Copied"; toast("Citation copied"); }
+  catch (e) { const rg = document.createRange(); rg.selectNodeContents($("cline")); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg); lab.textContent = "Selected"; toast("Clipboard blocked: press ⌘C / Ctrl+C"); }
+  setTimeout(() => lab.textContent = "Copy", 1600);
+};
+document.addEventListener("keydown", e => {
+  const typing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
+  if (e.key === "/" && !typing) { e.preventDefault(); $("q").focus(); }
+  if (typing) return;
+  const ys = yrs(st.m), i = ys.indexOf(st.y);
+  if (e.key === "ArrowRight" && i < ys.length - 1) { e.preventDefault(); stop(); setYear(ys[i + 1]); }
+  if (e.key === "ArrowLeft" && i > 0) { e.preventDefault(); stop(); setYear(ys[i - 1]); }
+  if (e.key === " " && e.target === document.body) { e.preventDefault(); play(); }
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => render(false));
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (st.v !== "table") paint(false); renderTrend(); }, 120); });
+render(false);
+</script>
+</body>
+</html>

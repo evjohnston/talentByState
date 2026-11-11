@@ -1,0 +1,22 @@
+{
+  "series": "Talent Profile",
+  "authors": [
+    {
+      "name": "Emerson Victoria Johnston",
+      "bio": "is a research assistant with the Hoover Institution's Technology Policy Accelerator. A Knight-Hennessy Scholar, she holds a master's in international policy from Stanford University, and is on leave from its master's program in the history of science, technology, environment, and medicine."
+    },
+    {
+      "name": "Dr. Amy Zegart",
+      "bio": "is the Morris Arnold and Nona Jean Cox Senior Fellow at the Hoover Institution, director of Hoover's Technology Policy Accelerator, and a senior fellow and associate director at Stanford University's Institute for Human-Centered Artificial Intelligence."
+    }
+  ],
+  "byline": "By Emerson Johnston and Amy Zegart",
+  "cite_authors": "Emerson V. Johnston and Amy Zegart",
+  "publisher": "Technology Policy Accelerator, Hoover Institution, and the Institute for Human-Centered Artificial Intelligence, Stanford University, Stanford, CA",
+  "publication_note": "A publication jointly produced by the Hoover Institution and the Institute for Human-Centered Artificial Intelligence at Stanford University.",
+  "companion": "The 2026 US Talent Report: Benchmarking America's STEM Pipeline Amid the Great Talent Competition",
+  "process": "Data come from the Integrated Postsecondary Education Data System (IPEDS), the Department of Homeland Security's SEVIS by the Numbers, the National Assessment of Educational Progress, NSF's Survey of Graduate Students and Postdoctorates and Survey of Earned Doctorates, the Department of Labor's Office of Foreign Labor Certification, the USCIS H-1B Employer Data Hub, the Census Bureau's American Community Survey and USPTO patent data via PatentsView, processed in Python; every figure and table is generated from those sources, and each one names its source.",
+  "acknowledgments": [],
+  "data_url": "",
+  "license": "This profile is licensed under Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)."
+}

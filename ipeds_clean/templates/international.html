@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>International Talent</title>
+<style>
+/*__KIT__*/
+/* Layout: the national chapter of the Comparison Sheet. Tab bar, a short lede, then wide flow
+   diagrams first (where international students enrol and graduate), then the state comparison. */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--rule-2)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.brand{font-weight:700;font-size:16px;margin-right:6px}
+.grow{flex:1}
+main{max-width:1440px;padding:0 max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.hero{padding:24px 0 18px;border-bottom:2px solid var(--ink)}
+.hero h1{margin:0;font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-.012em;max-width:30ch}
+.lede{margin:10px 0 0;font-size:15.5px;line-height:1.55;color:var(--ink-2);max-width:86ch}
+.lede b{color:var(--ink);font-weight:600}
+section.sec{padding:22px 0 28px;border-bottom:2px solid var(--ink)}
+.sec-h{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px;margin-bottom:4px}
+.sec-h h2{margin:0;font-size:20px;font-weight:700}
+.sec-h .note{margin:4px 0 0;font-size:13px;color:var(--ink-3);max-width:96ch;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 32px;margin-top:10px}
+.grid>*{min-width:0}
+.fig h3{margin:0 0 2px;font-size:14.5px;font-weight:600}
+.fig p{margin:0 0 8px;font-size:12.5px;color:var(--ink-3);line-height:1.45}
+.fig svg{display:block;width:100%;overflow:visible}
+.fig svg text{font-size:11px;fill:var(--ink-3)}
+.tiles{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;max-width:560px}
+.tile{aspect-ratio:1;border-radius:2px;display:grid;place-items:center;font-size:10.5px;font-weight:600;cursor:pointer;border:0;padding:0;text-decoration:none}
+.bars{display:flex;flex-direction:column;gap:2px}
+.bar-r{display:grid;grid-template-columns:minmax(0,15em) minmax(0,1fr) 6em;gap:10px;align-items:center;font-size:13px;padding:3px 0;color:var(--ink);text-decoration:none}
+.bar-r:hover{background:var(--hover)}
+.bar-r .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-r .nm small{color:var(--ink-3);margin-left:6px}
+.bar-r .nm small.pre{display:inline-block;width:2.4em;margin:0;font-weight:600}
+.bar-r .tr{height:10px;background:var(--hover);border-radius:0 2px 2px 0;position:relative}
+.bar-r .tr i{position:absolute;top:0;bottom:0;border-radius:2px;background:var(--c)}
+.bar-r .vv{text-align:right;font-weight:600}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.datanote{border:1px solid var(--caveat);border-radius:4px;padding:10px 14px;font-size:13.5px;line-height:1.5;max-width:96ch;margin-top:12px}
+.datanote b{display:block;color:var(--caveat);font-size:12px;margin-bottom:2px}
+.foot{font-size:12.5px;color:var(--ink-3);line-height:1.55;max-width:110ch;padding:16px 0}
+@media (max-width:1000px){.grid{grid-template-columns:1fr}.hero h1{font-size:28px}.bar-r{grid-template-columns:minmax(0,10em) minmax(0,1fr) 5em}}
+</style>
+</head>
+<body>
+<header class="top" id="top">
+  <!--__SITENAV__-->
+  <div class="bar">
+    <span class="brand">International Talent</span>
+    <span class="lab">U.S. nonresident students and graduates, all 50 states and DC</span>
+    <span class="grow"></span>
+    <button class="btn" id="theme" aria-label="Switch light or dark theme" title="Theme"><svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></svg></button>
+  </div>
+</header>
+<main id="main"></main>
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<script>
+/*__SANKEY__*/
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id), S = D.states, NM = D.names;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const theme = () => document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+const nf = (x, d = 0) => x == null ? "–" : (x < 0 ? "−" : "") + Math.abs(x).toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+const pct = (x, d) => x == null ? "–" : nf(x, d ?? (Math.abs(x) < 10 ? 1 : 0)) + "%";
+const last = s => s && s.v.length ? s.v[s.v.length - 1] : null, lastY = s => s && s.y.length ? s.y[s.y.length - 1] : null;
+const tip = $("tip");
+function tipAt(x, y, html) { tip.innerHTML = html; tip.classList.add("on"); const w = tip.offsetWidth, h = tip.offsetHeight; tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + "px"; tip.style.top = (y - h - 12 < 8 ? y + 18 : y - h - 12) + "px"; }
+const hideTip = () => tip.classList.remove("on");
+const sankTip = (html, e) => html ? tipAt(e.clientX, e.clientY - 8, html) : hideTip();
+function ticks(lo, hi, n = 4) { const r = (hi - lo) / n, p = 10 ** Math.floor(Math.log10(r || 1)), q = r / p, s = (q <= 1 ? 1 : q <= 2 ? 2 : q <= 2.5 ? 2.5 : q <= 5 ? 5 : 10) * p, o = []; for (let t = Math.ceil(lo / s) * s; t <= hi + s * 1e-9; t += s) o.push(+t.toFixed(10)); return o; }
+const compact = x => Math.abs(x) >= 1e6 ? +(x / 1e6).toFixed(1) + "M" : Math.abs(x) >= 1e3 ? +(x / 1e3).toFixed(1) + "k" : String(x);
+function sec(id, title, note) { const s = document.createElement("section"); s.className = "sec"; s.id = id;
+  s.innerHTML = `<div class="sec-h"><div><h2>${title}</h2>${note ? `<p class="note">${note}</p>` : ""}</div><div class="ctrl" data-ctrl></div></div><div class="body"></div>`; $("main").appendChild(s); return s; }
+function fig(parent, title, note) { const f = document.createElement("div"); f.className = "fig"; f.innerHTML = `<h3>${title}</h3>${note ? `<p>${note}</p>` : ""}<div class="b"></div>`; parent.appendChild(f); return f.querySelector(".b"); }
+function seg(host, opts, cur, on) { host.innerHTML = `<span class="seg" role="group">${opts.map(([k, l]) => `<button data-k="${k}" aria-pressed="${k === cur}">${l}</button>`).join("")}</span>`;
+  host.querySelectorAll("button").forEach(b => b.onclick = () => { host.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); on(b.dataset.k); }); }
+
+/* line chart: [{n, s, c, w, dash}] */
+function line(el, series, fmt, zero = true, H = 240) {
+  el.innerHTML = `<div class="legend">${series.map(s => `<span><i class="${s.dash ? "dash" : "ln"}" style="${s.dash ? "border-top-color:" + s.c : "background:" + s.c}"></i>${esc(s.n)}</span>`).join("")}</div><div></div>`;
+  const box = el.lastElementChild, W = Math.max(300, box.clientWidth || 560), L = 52, R = 70, T = 10, B = 24;
+  const ys = [...new Set(series.flatMap(s => s.s.y))].sort((a, b) => a - b), all = series.flatMap(s => s.s.v).filter(v => v != null);
+  let lo = zero ? 0 : Math.min(...all), hi = Math.max(...all); const tk = ticks(lo, hi); lo = Math.min(lo, tk[0]); hi = Math.max(hi, tk[tk.length - 1]);
+  const X = y => L + (y - ys[0]) / ((ys[ys.length - 1] - ys[0]) || 1) * (W - L - R), Y = v => T + (1 - (v - lo) / ((hi - lo) || 1)) * (H - T - B);
+  let h = tk.map(t => `<line x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--rule)"/><text x="${L - 6}" y="${Y(t) + 4}" text-anchor="end">${fmt(t, true)}</text>`).join("");
+  h += ticks(ys[0], ys[ys.length - 1], 5).filter(Number.isInteger).map(t => `<text x="${X(t)}" y="${H - 6}" text-anchor="middle">${t}</text>`).join("");
+  const ends = [];
+  for (const s of series) { let d = "", pen = false; s.s.y.forEach((y, i) => { const v = s.s.v[i]; if (v == null || (i && y - s.s.y[i - 1] > 2)) pen = false; if (v != null) { d += (pen ? "L" : "M") + X(y).toFixed(1) + " " + Y(v).toFixed(1); pen = true; } });
+    h += `<path d="${d}" fill="none" stroke="${s.c}" stroke-width="${s.w || 2.2}" ${s.dash ? 'stroke-dasharray="5 4"' : ""} stroke-linejoin="round"/>`;
+    if (last(s.s) != null) ends.push({y: Y(last(s.s)), x: X(lastY(s.s)), t: fmt(last(s.s))}); }
+  ends.sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 12) ends[i].y = ends[i - 1].y + 12;
+  h += ends.map(e => `<text x="${e.x + 6}" y="${e.y + 4}" style="fill:var(--ink);font-weight:600">${e.t}</text>`).join("");
+  h += `<line class="xh" y1="${T}" y2="${H - B}" stroke="var(--ink-3)" style="display:none"/><rect x="${L}" y="0" width="${W - L - R}" height="${H}" fill="transparent"/>`;
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
+  const sv = box.firstElementChild, hit = sv.lastElementChild, xh = sv.querySelector(".xh");
+  hit.onmousemove = e => { const bx = sv.getBoundingClientRect(), px = (e.clientX - bx.left) * W / bx.width, y = ys.reduce((a, b) => Math.abs(X(b) - px) < Math.abs(X(a) - px) ? b : a);
+    xh.style.display = ""; xh.setAttribute("x1", X(y)); xh.setAttribute("x2", X(y));
+    tipAt(e.clientX, bx.top + 8, `<b>${y}</b>` + series.map(s => { const i = s.s.y.indexOf(y); return `<br><span style="color:${s.c}">■</span> ${esc(s.n)} <b>${i < 0 ? "–" : fmt(s.s.v[i])}</b>`; }).join("")); };
+  hit.onmouseleave = () => { xh.style.display = "none"; hideTip(); };
+}
+function barsHTML(rows, fmt, max) { const m = max || Math.max(...rows.map(r => Math.abs(r.v))) || 1, neg = rows.some(r => r.v < 0);
+  return `<div class="bars">${rows.map(r => { const w = 100 * Math.abs(r.v) / m * (neg ? .5 : 1), left = neg ? (r.v < 0 ? 50 - w : 50) : 0;
+    return `<a class="bar-r" href="${r.href || "#"}" title="${esc(r.t || r.n)}"><span class="nm">${r.sub ? `<small class="pre">${esc(r.sub)}</small>` : ""}${esc(r.n)}</span><span class="tr"><i style="left:${left}%;width:${w.toFixed(1)}%;--c:${r.c || "var(--accent)"}"></i></span><span class="vv">${fmt(r.v)}</span></a>`; }).join("")}</div>`; }
+
+/* ---------------------------------------------------------------- page */
+const LVN = {bach: "Bachelor's", master: "Master's", doc_res: "Research doctorates"};
+const prof = s => `profiles/${s}.html`;
+let flowLevel = "all", mapM = "intl_stem_master_count", flowTop = 12;
+function build() {
+  $("main").innerHTML = "";
+  const N = D.nat, PL = D.pipeline, F = D.flows, ys = D.years;
+  const usStem = last(N.intl_stem_master_count), share = last(N.intl_share_stem_master), gshare = last(N.intl_share_enroll_grad);
+  const top5 = Object.entries(D.share.intl_stem_master_count).filter(e => e[1] != null).sort((a, b) => b[1] - a[1]);
+  const top5sum = top5.slice(0, 5).reduce((a, e) => a + e[1], 0);
+  const hero = document.createElement("div"); hero.className = "hero";
+  hero.innerHTML = `<h1>Where international students study and graduate</h1><p class="lede">International students are <b>${pct(gshare)}</b> of U.S. graduate enrollment (fall ${lastY(N.intl_share_enroll_grad)}) and earned <b>${pct(share)}</b> of all STEM master's degrees in ${lastY(N.intl_share_stem_master)}: <b>${nf(usStem)}</b> degrees. Five states (${top5.slice(0, 5).map(e => esc(NM[e[0]])).join(", ")}) awarded ${pct(100 * top5sum / usStem)} of them. Every state links to its full profile.</p>`;
+  $("main").appendChild(hero);
+
+  /* flow 1: from abroad to the states */
+  let s1 = sec("abroad", "From abroad to the states", `First-time students whose home is outside the United States, by the state of the institution they entered, fall ${F.year}. IPEDS does not record which country they come from.`);
+  const xi = F.homes.indexOf("XX"), ab = F.states.map((s, i) => [s, F.m[i][xi]]).sort((a, b) => b[1] - a[1]);
+  const drawAbroad = () => { const top = ab.slice(0, flowTop), rest = ab.slice(flowTop).reduce((a, b) => a + b[1], 0), tot = ab.reduce((a, b) => a + b[1], 0);
+    const nodes = [{id: "abroad", label: "From abroad", col: 0, color: css("--s2")}, ...top.map(([s]) => ({id: s, label: NM[s], col: 1, color: css("--s1")})), {id: "oth", label: "Other states", col: 1, color: css("--s0")}];
+    const links = [...top.map(([s, n]) => ({s: "abroad", t: s, v: n})), {s: "abroad", t: "oth", v: rest}];
+    const b = s1.querySelector(".body"); b.innerHTML = `<p class="lab" style="margin:6px 0 8px">${nf(tot)} first-time students from abroad; the top ${flowTop} states took ${pct(100 * (tot - rest) / tot)}.</p><div></div>`;
+    sankey(b.lastElementChild, {nodes, links, H: 460, unit: "first-time students", tip: sankTip, colLabels: ["Home", "Enrolled in"], label: "First-time students from abroad by state"}); };
+  seg(s1.querySelector("[data-ctrl]"), [["8", "Top 8"], ["12", "Top 12"], ["20", "Top 20"]], String(flowTop), k => { flowTop = +k; drawAbroad(); drawPipe(); });
+  drawAbroad();
+
+  /* flow 2: degree level -> field -> state */
+  let s2 = sec("graduates", "International graduates: level, field, state", `Degrees earned by international students in ${PL.year}, from degree level to field to the state that awarded them. Blue fields are STEM.`);
+  const drawPipe = () => { const lvs = flowLevel === "all" ? PL.levels : [flowLevel], li = l => PL.levels.indexOf(l), G = PL.groups, stemN = 6;
+    const byState = S.map(s => [s, lvs.reduce((a, l) => a + PL.v[s][li(l)][1].reduce((x, y) => x + y, 0), 0)]).sort((a, b) => b[1] - a[1]);
+    const top = byState.slice(0, flowTop).map(e => e[0]), isTop = new Set(top);
+    const nodes = [...lvs.map(l => ({id: "L" + l, label: LVN[l], col: 0, color: css(["--s4", "--s6", "--s5"][li(l)])})),
+      ...G.map((g, i) => ({id: "G" + i, label: g, col: 1, color: i < stemN ? css("--s1") : css("--s0")})),
+      ...top.map(s => ({id: s, label: NM[s], col: 2, color: css("--s2")})), {id: "oth", label: "Other states", col: 2, color: css("--s0")}];
+    const links = [];
+    lvs.forEach(l => G.forEach((g, i) => links.push({s: "L" + l, t: "G" + i, v: S.reduce((a, s) => a + PL.v[s][li(l)][1][i], 0)})));
+    G.forEach((g, i) => { let rest = 0; S.forEach(s => { const v = lvs.reduce((a, l) => a + PL.v[s][li(l)][1][i], 0); if (isTop.has(s)) links.push({s: "G" + i, t: s, v, color: i < stemN ? css("--s1") : css("--s0")}); else rest += v; });
+      links.push({s: "G" + i, t: "oth", v: rest, color: i < stemN ? css("--s1") : css("--s0")}); });
+    const tot = byState.reduce((a, e) => a + e[1], 0);
+    const b = s2.querySelector(".body"); b.innerHTML = `<p class="lab" style="margin:6px 0 8px">${nf(tot)} degrees to international students${flowLevel === "all" ? " at the bachelor's, master's and research-doctorate levels" : ""}.</p><div></div>`;
+    sankey(b.lastElementChild, {nodes, links, H: 560, labelW: 220, unit: "degrees", tip: sankTip, colLabels: ["Degree level", "Field", "State"], label: "International graduates by level, field and state"}); };
+  seg(s2.querySelector("[data-ctrl]"), [["all", "All levels"], ["bach", "Bachelor's"], ["master", "Master's"], ["doc_res", "Doctorates"]], flowLevel, k => { flowLevel = k; drawPipe(); });
+  drawPipe();
+
+  /* map + ranking */
+  const s3 = sec("states", "State by state", "Choose a measure; click any state to open its profile.");
+  const MAPM = [["intl_stem_master_count", "International STEM master's", v => nf(v)], ["share_of_us_intl_stem_master", "Share of the U.S. total", v => pct(v, 1)],
+    ["intl_share_stem_master", "International share of STEM master's", v => pct(v)], ["intl_share_stem_doc", "International share of STEM doctorates", v => pct(v)], ["intl_share_enroll_grad", "International share of graduate students", v => pct(v)]];
+  const g3 = document.createElement("div"); g3.className = "grid"; s3.querySelector(".body").appendChild(g3);
+  const mb = fig(g3, "Map", ""), rb = fig(g3, "Ranking", "");
+  const drawMap = () => { const [m, lab, f] = MAPM.find(x => x[0] === mapM), vals = D.share[m], vs = Object.values(vals).filter(v => v != null), lo = Math.min(...vs), hi = Math.max(...vs);
+    const dark = theme() === "dark", a = dark ? "#1f2636" : "#e8eefb", b = dark ? "#8fb0f7" : "#1d3f99";
+    const mix = (x, y, t) => "#" + [1, 3, 5].map(i => Math.round(parseInt(x.slice(i, i + 2), 16) * (1 - t) + parseInt(y.slice(i, i + 2), 16) * t).toString(16).padStart(2, "0")).join("");
+    const scale = m === "intl_stem_master_count" ? v => Math.sqrt((v - lo) / ((hi - lo) || 1)) : v => (v - lo) / ((hi - lo) || 1);
+    mb.innerHTML = `<div class="tiles">${S.map(s => { const [c, r] = D.tiles[s], v = vals[s], t = v == null ? 0 : scale(v);
+      return `<a class="tile" href="${prof(s)}" data-s="${s}" style="grid-column:${c + 1};grid-row:${r + 1};background:${v == null ? "var(--panel)" : mix(a, b, t)};color:${t > .55 ? (dark ? "#0f1115" : "#fff") : "var(--ink)"}" aria-label="${esc(NM[s])}: ${f(v)}">${s}</a>`; }).join("")}</div>
+      <div class="legend" style="margin-top:6px"><span>${f(lo)}</span><span style="width:140px;height:8px;border-radius:2px;background:linear-gradient(90deg,${a},${b})"></span><span>${f(hi)}</span>${m === "intl_stem_master_count" ? "<span>square-root scale</span>" : ""}</div>`;
+    mb.querySelectorAll(".tile").forEach(t => { t.onmousemove = e => tipAt(e.clientX, e.clientY - 8, `<b>${esc(NM[t.dataset.s])}</b><br>${esc(lab)}: <b>${f(vals[t.dataset.s])}</b>${D.online[t.dataset.s] ? "<br>† includes a nationwide online university" : ""}`); t.onmouseleave = hideTip; });
+    const rows = Object.entries(vals).filter(e => e[1] != null).sort((x, y) => y[1] - x[1]).slice(0, 15).map(([s, v]) => ({n: NM[s], v, href: prof(s), sub: D.online[s] ? "†" : ""}));
+    rb.innerHTML = `<p>Top 15: ${esc(lab)}.</p>` + barsHTML(rows, f); };
+  seg(s3.querySelector("[data-ctrl]"), MAPM.map(x => [x[0], x[1]]), mapM, k => { mapM = k; drawMap(); });
+  drawMap();
+
+  /* growth and concentration */
+  const s4 = sec("growth", "Who gained since 2015", `Change in STEM master's degrees earned by international students, 2015 to ${ys.stem_master}.`);
+  const g4 = document.createElement("div"); g4.className = "grid"; s4.querySelector(".body").appendChild(g4);
+  const gr = Object.entries(D.growth).filter(([, v]) => v.y0 != null && v.y1 != null).map(([s, v]) => ({s, d: v.y1 - v.y0, p: v.y0 ? 100 * (v.y1 / v.y0 - 1) : null}));
+  fig(g4, "Largest gains in degrees", "").innerHTML = barsHTML(gr.sort((a, b) => b.d - a.d).slice(0, 15).map(r => ({n: NM[r.s], v: r.d, href: prof(r.s), c: r.d >= 0 ? "var(--gain)" : "var(--loss)", t: `${NM[r.s]}: ${r.d >= 0 ? "+" : ""}${nf(r.d)} (${r.p == null ? "–" : (r.p >= 0 ? "+" : "") + nf(r.p) + "%"})`})), v => (v >= 0 ? "+" : "") + nf(v));
+  const cum = [1, 3, 5, 10, 20].map(n => ({n: `Top ${n} state${n > 1 ? "s" : ""}`, v: 100 * top5.slice(0, n).reduce((a, e) => a + e[1], 0) / usStem, c: "var(--s1)"}));
+  fig(g4, "How concentrated", `Share of all international STEM master's (${ys.stem_master}) awarded in the leading states.`).innerHTML = barsHTML(cum.map(r => ({...r, href: "#states"})), v => pct(v), 100);
+
+  /* trends */
+  const s5 = sec("trends", "National trends", "International students as a share of U.S. enrollment and degrees.");
+  const g5 = document.createElement("div"); g5.className = "grid"; s5.querySelector(".body").appendChild(g5);
+  const tA = fig(g5, "International share of degrees", "Solid = all fields, dashed = STEM.");
+  line(tA, [{n: "Master's", s: N.intl_share_master, c: css("--s6")}, {n: "Doctorates", s: N.intl_share_doc, c: css("--s5")}, {n: "Bachelor's", s: N.intl_share_bach, c: css("--s4")},
+    {n: "STEM master's", s: N.intl_share_stem_master, c: css("--s6"), dash: true}, {n: "STEM doctorates", s: N.intl_share_stem_doc, c: css("--s5"), dash: true}], (v, a) => pct(v, a ? 0 : undefined));
+  const tB = fig(g5, "International students enrolled", "Fall headcount, graduate and undergraduate.");
+  line(tB, [{n: "Graduate", s: N.enroll_grad_n, c: css("--s1")}, {n: "Undergraduate", s: N.enroll_ug_n, c: css("--s3")}], (v, a) => a ? compact(v) : nf(v));
+  const tC = fig(g5, "International STEM master's, leading states", "Degrees per year for the five states that award the most today.");
+  line(tC, top5.slice(0, 5).map(([s], i) => ({n: NM[s], s: D.trend_states[s], c: css("--s" + (i + 1))})), (v, a) => a ? compact(v) : nf(v));
+  const tD = fig(g5, "International STEM master's, United States", "All states.");
+  line(tD, [{n: "United States", s: N.intl_stem_master_count, c: css("--ink")}], (v, a) => a ? compact(v) : nf(v));
+
+  /* institutions */
+  const s6 = sec("institutions", "Leading institutions", `International STEM degrees by institution, ${ys.completions}.`);
+  const g6 = document.createElement("div"); g6.className = "grid"; s6.querySelector(".body").appendChild(g6);
+  for (const [lv, lab] of [["ms", "STEM master's"], ["phd", "STEM research doctorates"]])
+    fig(g6, lab, "Top 25 nationally; the state code links to that state's profile.").innerHTML = barsHTML(D.inst.filter(r => r.lv === lv).map(r => ({n: r.name, sub: r.state, v: r.n, href: prof(r.state), c: "var(--s1)"})), v => nf(v));
+
+  const note = document.createElement("div"); note.className = "datanote";
+  note.innerHTML = `<b>About these data</b>International means U.S. nonresidents (students on temporary visas). IPEDS does not record country of citizenship, so this page shows where international students enrol and graduate, not where they come from. STEM = CIP 03, 04, 11, 14, 15, 26, 27, 40. † marks states whose totals include a nationwide online university.`;
+  $("main").appendChild(note);
+  const foot = document.createElement("p"); foot.className = "foot"; foot.textContent = `Source: IPEDS, harmonized panels in this project (degree-granting institutions; Title IV participants from 1996). Built ${D.built}.`;
+  $("main").appendChild(foot);
+}
+try { const t = localStorage.getItem("se-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+$("theme").onclick = () => { document.documentElement.dataset.theme = theme() === "dark" ? "light" : "dark"; try { localStorage.setItem("se-theme", document.documentElement.dataset.theme); } catch (e) {} build(); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", build);
+let rz, lw = innerWidth; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (Math.abs(innerWidth - lw) > 30) { lw = innerWidth; build(); } }, 150); });
+build();
+</script>
+</body>
+</html>

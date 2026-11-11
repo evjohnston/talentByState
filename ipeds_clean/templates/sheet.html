@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>State Talent Sheet</title>
+<style>
+/*__KIT__*/
+/* Layout: sticky control bar, then one comparison sheet (a column per chosen state + U.S., a row per
+   measure). Any row opens in place into its comparison panel. */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--rule-2)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.brand{font-weight:700;font-size:16px;margin-right:8px;white-space:nowrap}
+.grow{flex:1}
+.acts-top{margin-left:auto;display:inline-flex;gap:8px}
+.panel .src{grid-column:1/-1;font-size:11.5px;color:var(--ink-3);margin:2px 0 0}
+.prov{font-size:9.5px;color:var(--caveat);margin-left:1px;cursor:help}
+.bar .grp,.sub .grp{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0;max-width:100%}
+.bar .grp>.lab{white-space:nowrap}
+.chips{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center}
+#addpeer{width:116px}
+.sub{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:8px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-top:1px solid var(--rule)}
+.sub .note{font-size:12.5px;color:var(--ink-3)}
+#q{width:220px}
+
+main{padding:0 max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.wrapx{overflow-x:visible}
+table.sheet{border-collapse:separate;border-spacing:0;width:100%;min-width:900px;font-size:13.5px}
+.sheet th,.sheet td{border-bottom:1px solid var(--rule);padding:7px 10px;vertical-align:middle}
+.sheet thead th{position:sticky;top:var(--top-h,104px);z-index:5;background:var(--bg);border-bottom:2px solid var(--ink);text-align:right;font-weight:600;white-space:nowrap}
+.sheet thead th:first-child{text-align:left;min-width:280px}
+.sheet thead th .cdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.sheet thead th a{color:var(--ink);text-decoration:none}
+.sheet thead th a:hover{text-decoration:underline}
+.sheet thead th .x{border:0;background:none;color:var(--ink-3);padding:0 0 0 4px;font-size:14px}
+.sheet thead th .x:hover{color:var(--ink)}
+.sheet .fc{background:var(--focus-bg)}
+.sheet thead th.fc{background:var(--focus-bg)}
+.sheet tr.g td{font-weight:700;font-size:13px;padding-top:16px;border-bottom:2px solid var(--ink);background:var(--bg)}
+.sheet tr.g td span{font-weight:400;color:var(--ink-3);margin-left:8px}
+.sheet tr.r{cursor:pointer}
+.sheet tr.r:hover td{background:var(--hover)}
+.sheet tr.r:hover td.fc{background:var(--focus-bg)}
+.sheet tr.r[aria-expanded="true"] td{border-bottom-color:transparent}
+.sheet td.m{max-width:340px}
+.sheet td.m .t{display:flex;align-items:baseline;gap:6px}
+.sheet td.m .car{width:12px;color:var(--ink-3);flex:none;transition:transform .15s}
+.sheet tr.r[aria-expanded="true"] td.m .car{transform:rotate(90deg)}
+.sheet td.m .yr{font-size:11.5px;color:var(--ink-3);white-space:nowrap}
+.sheet td.m .info{color:var(--ink-3);cursor:help;font-size:12px}
+.sheet td.c{text-align:right;white-space:nowrap}
+.cv{font-weight:500;font-size:14px}
+.fc .cv{font-weight:700}
+.cs{display:block;font-size:11.5px;color:var(--ink-3);margin-top:1px}
+.best{color:var(--accent);font-size:9px;vertical-align:4px;margin-left:3px}
+.spark{display:inline-block;vertical-align:middle;margin-left:8px}
+.flag{color:var(--caveat);font-size:11px;margin-left:2px;cursor:help}
+.na{color:var(--ink-3)}
+tr.d td{padding:0 0 18px;border-bottom:2px solid var(--ink);background:var(--bg)!important;cursor:auto}
+.panel{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px 28px;padding:6px 4px 0}
+.panel>*{min-width:0}
+.panel .plotsel{max-width:100%}
+.swipe{display:none;font-size:12.5px;color:var(--ink-3);margin:8px 0 0}
+.panel .card h4{margin:0 0 2px;font-size:13.5px;font-weight:600}
+.panel .card p{margin:0 0 6px;font-size:12.5px;color:var(--ink-3)}
+.panel .card .hd{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;margin-bottom:4px}
+.panel .card .hd>div{flex:1 1 240px;min-width:0}
+.panel .card .hd>.btn{flex:none}
+.panel svg{display:block;width:100%;overflow:visible}
+.panel svg.i{display:inline-block;width:16px;height:16px}
+.panel svg text{font-size:11px;fill:var(--ink-3)}
+.panel .acts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px solid var(--rule);padding-top:10px;font-size:12.5px;color:var(--ink-3)}
+.tiles{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;max-width:480px}
+.tile{aspect-ratio:1;border-radius:2px;display:grid;place-items:center;font-size:10px;font-weight:600;cursor:pointer;border:0;padding:0}
+.tile.sel{outline:2px solid var(--ink);outline-offset:1px}
+#flows{padding-top:16px}
+.fhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 20px;margin-bottom:10px}
+.fhead h2{margin:0;font-size:20px;font-weight:700}.fhead p{margin:2px 0 0;color:var(--ink-3);font-size:13px;max-width:80ch}
+.fcard{border-top:2px solid var(--ink);padding:10px 0 18px}
+.fcard .fh{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.fcard h3{margin:0;font-size:15px;font-weight:600}.fcard p{margin:2px 0 8px;color:var(--ink-3);font-size:12.5px;max-width:90ch}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 32px}
+@media (max-width:900px){.fgrid{grid-template-columns:1fr}}
+.foot{font-size:12.5px;color:var(--ink-3);margin-top:14px;max-width:110ch;line-height:1.55}
+.empty-row td{padding:28px 10px;color:var(--ink-2)}
+@media (max-width:900px){
+  .wrapx{overflow-x:auto}
+  .panel{position:sticky;left:0;width:calc(100vw - 32px)}
+  .swipe{display:block}
+  .sheet thead th:first-child{min-width:150px;width:150px}
+  .sheet td.m{max-width:150px;font-size:12.5px}
+  .sheet td.m .info{display:none}
+  .sheet td.m .yr{white-space:normal}
+  .sheet th,.sheet td{padding:7px 8px}
+  .sheet td.c{min-width:96px}
+  .panel .card .hd{flex-direction:column;align-items:flex-start}
+  .panel .card .hd>div{flex:none;width:100%}
+  .panel{grid-template-columns:1fr}
+  #q{width:100%}
+  .sheet thead th{top:0}
+}
+</style>
+</head>
+<body>
+<header class="top" id="top">
+  <!--__SITENAV__-->
+  <div class="bar">
+    <span class="brand">State Talent Sheet</span>
+    <span class="grp"><label class="lab" for="state">State</label><select id="state"></select></span>
+    <span class="grp"><span class="lab">Compared with</span><span class="pmenu"><button class="btn" id="psbtn" aria-haspopup="menu" aria-expanded="false" title="Choose a suggested set of comparison states"><b id="pslab"></b><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg></button><div class="menu" id="psmenu" role="menu" hidden></div></span><span class="chips" id="chips"></span>
+      <select id="addpeer" aria-label="Add a competitor state"></select></span>
+    <span class="acts-top"><a class="btn" id="proflink" href="#">Profile</a>
+    <button class="btn" id="csv" aria-label="Export CSV" title="Export the visible sheet as CSV"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>CSV</button>
+    <button class="btn" id="theme" aria-label="Switch light or dark theme" title="Theme"><svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></svg></button></span>
+  </div>
+  <div class="sub">
+    <span class="seg" id="view" role="tablist" aria-label="View"><button data-k="sheet" aria-pressed="true">Sheet</button><button data-k="flows" aria-pressed="false">Flows</button></span>
+    <span class="grp" id="showgrp"><span class="lab">Show</span><span class="seg" id="mode" role="group" aria-label="Cell display">
+      <button data-k="value" aria-pressed="true">Value</button><button data-k="change" aria-pressed="false">Change since base year</button><button data-k="rank" aria-pressed="false">Rank</button></span></span>
+    <span class="grp"><label class="lab" for="base">Base year</label><select id="base"></select></span>
+    <span class="grp"><label class="lab" for="latest">Latest</label><select id="latest"></select></span>
+    <span class="grp"><span class="lab">Degree level</span><span class="seg" id="level" role="group" aria-label="Degree level">
+      <button data-k="bach" aria-pressed="false">Bachelor's</button><button data-k="master" aria-pressed="true">Master's</button><button data-k="doc" aria-pressed="false">Doctorates</button></span></span>
+    <span class="grp"><label class="vh" for="q">Filter measures</label><input id="q" type="search" placeholder="Filter measures ( / )"></span>
+    <span class="note" id="count"></span>
+      </div>
+</header>
+<main>
+  <p class="swipe" id="swipe">Swipe the table sideways to see the other states →</p>
+  <div class="wrapx" id="sheetwrap"><table class="sheet" id="sheet"><thead></thead><tbody></tbody></table></div>
+  <section id="flows" hidden>
+    <div class="fhead"><div><h2>Talent flows</h2><p>Saturated bars are the totals at each end; dots travel in the direction students and degrees flow. Hover a ribbon for its size.</p></div>
+      <div class="grp"><span class="lab">State</span><span class="seg" id="fstate" role="group" aria-label="State shown"></span></div></div>
+    <div class="fcard"><div class="fh"><h3 id="pipe-h"></h3><span class="seg" id="plevel" role="group" aria-label="Levels shown"><button data-k="all" aria-pressed="true">All levels</button><button data-k="bach" aria-pressed="false">Bachelor's</button><button data-k="master" aria-pressed="false">Master's</button><button data-k="doc_res" aria-pressed="false">Doctorates</button></span></div>
+      <p id="pipe-p"></p><div id="pipe"></div></div>
+    <label class="lab" style="display:inline-flex;gap:8px;align-items:center;margin:4px 0 6px"><input type="checkbox" id="instate"> Include students who stay in their home state (they are most of every class, which shrinks the out-of-state flows)</label>
+    <div class="fgrid">
+      <div class="fcard"><div class="fh"><h3 id="in-h"></h3></div><p id="in-p"></p><div id="inflow"></div></div>
+      <div class="fcard"><div class="fh"><h3 id="out-h"></h3></div><p id="out-p"></p><div id="outflow"></div></div>
+    </div>
+  </section>
+  <p class="foot">Source: IPEDS, harmonized state panel (degree-granting institutions located in each state; Title IV participants from 1996). International = U.S. nonresidents. Rows marked (SEVIS) come from DHS, SEVIS by the Numbers: active F-1/M-1 students at schools in each state, one fall snapshot a year (the month is shown), every level from primary school to doctorate; they are not the same population as IPEDS nonresidents. Rows marked with another source in parentheses come from that source (Census ACS, NAEP, NSF GSS and SED, USCIS, DOL, USPTO); each names its source under its chart and explains its year and coverage in the ⓘ note. Years are each source's own: fall survey year, fiscal year or grant year. STEM = CIP 03, 04, 11, 14, 15, 26, 27, 40. Dollars in constant <span id="rb"></span> dollars (CPI-U). <sup class="prov">p</sup> = provisional (latest IPEDS release, may be revised). Rank 1 = highest value among the 50 states and DC, which is not always better. ● marks the highest value among the states shown. † marks a state whose totals include a nationwide online university. Change is in points for percentages and per-100 measures, percent otherwise. Click any row to compare it in charts.</p>
+</main>
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+/*__SANKEY__*/
+/*__PEERS__*/
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id), S = D.states, NS = S.length, US = NS, IDX = Object.fromEntries(S.map((s, i) => [s, i])), M = D.meta;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const theme = () => document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+const st = {ps: "size", inst: false, s: "CA", peers: [], base: 2015, latest: 0, level: "master", mode: "value", q: "", open: new Set(["intl_share_stem_master"]), plot: {}, view: "sheet", fs: null, plv: "all"};
+const SLOT = {}; // peer -> colour slot, fixed while the peer stays in the set
+
+/* ---------- data ---------- */
+const yrs = m => D.data[m].y;
+const ylab = (m, y) => (M[m].months && M[m].months[y]) || y;   // SEVIS rows name the snapshot month
+const srcLine = m => D.srcLines[M[m].src] || "Data from NCES, IPEDS";
+function row(m, y) { const d = D.data[m], i = d.y.indexOf(y); return i < 0 ? null : d.v[i]; }
+const val = (m, y, s) => { const r = row(m, y); return r ? r[s === "US" ? US : IDX[s]] : null; };
+// A measure's latest/base year is the last year in which any state reports it; a state missing that year shows a
+// blank in its own cell. Years with only a national figure (e.g. NSF GSS after 2016) stay in the charts.
+const sYrs = m => yrs(m).filter(y => nRep(m, y) > 0);
+const yearFor = (m, cap) => { const ys = sYrs(m); const ok = ys.filter(y => !cap || y <= cap); return ok.length ? ok[ok.length - 1] : null; };
+const baseFor = m => { const ys = sYrs(m); const ok = ys.filter(y => y <= st.base); return ok.length ? ok[ok.length - 1] : ys[0]; };
+function rank(m, y, s) { const r = row(m, y); if (!r || r[IDX[s]] == null) return null; const v = r[IDX[s]]; let k = 1; for (let i = 0; i < NS; i++) if (r[i] != null && r[i] > v) k++; return k; }
+const nRep = (m, y) => { const r = row(m, y); return r ? r.slice(0, NS).filter(v => v != null).length : 0; };
+function fmt(m, x) { if (x == null) return "–"; const f = M[m].fmt; const s = Math.abs(x).toLocaleString("en-US", {minimumFractionDigits: f.d, maximumFractionDigits: f.d, useGrouping: f.comma}); return (x < 0 ? "−" : f.sign && x > 0 ? "+" : "") + f.pre + s + f.suf; }
+const isDiff = m => M[m].change === "diff";
+function chg(m, a, b) { if (a == null || b == null) return null; return isDiff(m) ? b - a : a === 0 ? null : (b / a - 1) * 100; }
+function fmtChg(m, x) { if (x == null) return "–"; const a = Math.abs(x), s = x > 0.05 ? "+" : x < -0.05 ? "−" : "±"; return s + a.toFixed(a >= 10 ? 0 : 1) + (isDiff(m) ? (M[m].unit === "%" ? " pts" : "") : "%"); }
+const cls = x => x == null ? "na" : x > 0.05 ? "up" : x < -0.05 ? "down" : "flat";
+const cols = () => [st.s, ...st.peers, "US"];
+const colour = s => s === st.s ? css("--s1") : s === "US" ? css("--us") : css("--s" + (SLOT[s] || 2));
+function assignSlots() { const used = new Set(st.peers.map(p => SLOT[p]).filter(Boolean)); for (const p of st.peers) if (!SLOT[p]) { for (let k = 2; k <= 8; k++) if (!used.has(k)) { SLOT[p] = k; used.add(k); break; } } for (const k of Object.keys(SLOT)) if (!st.peers.includes(k)) delete SLOT[k]; }
+
+/* default competitors: the four states closest in enrollment */
+function similar(s) { const m = "enroll_total", y = yearFor(m), me = val(m, y, s); return S.filter(x => x !== s && val(m, y, x) != null).sort((a, b) => Math.abs(Math.log(val(m, y, a) / me)) - Math.abs(Math.log(val(m, y, b) / me))).slice(0, 4); }
+function nearby(s) { const [c, r] = D.tiles[s]; return S.filter(x => x !== s).map(x => [x, Math.hypot(D.tiles[x][0] - c, D.tiles[x][1] - r)]).sort((a, b) => a[1] - b[1]).slice(0, 4).map(x => x[0]); }
+
+/* ---------- URL + storage ---------- */
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (IDX[p.get("s")] != null) st.s = p.get("s");
+  st.peers = (p.get("p") || "").split(",").filter(x => IDX[x] != null && x !== st.s);
+  if (!p.has("p") && !D.presets[p.get("ps")]) { try { const saved = JSON.parse(localStorage.getItem("sheet-peers") || "null"); if (saved && saved.s === st.s) { st.peers = saved.p; if (saved.ps) st.ps = saved.ps; } } catch (e) {} }
+  if (D.presets[p.get("ps")] || p.get("ps") === "custom") st.ps = p.get("ps");
+  if (!st.peers.length && !p.has("p")) st.peers = (D.presets[st.ps] || D.presets.size).peers[st.s].slice();
+  if (+p.get("b")) st.base = +p.get("b");
+  if (+p.get("l")) st.latest = +p.get("l");
+  if (["bach", "master", "doc"].includes(p.get("lv"))) st.level = p.get("lv");
+  if (["value", "change", "rank"].includes(p.get("v"))) st.mode = p.get("v");
+  if (p.get("view") === "flows") st.view = "flows";
+  if (p.get("o")) st.open = new Set(p.get("o").split(",").filter(m => M[m]));
+}
+function writeHash() {
+  const p = new URLSearchParams({s: st.s, p: st.peers.join(","), b: st.base, lv: st.level, v: st.mode}); if (st.view === "flows") p.set("view", "flows"); p.set("ps", st.ps); if (st.latest) p.set("l", st.latest); if (st.open.size) p.set("o", [...st.open].join(","));
+  try { history.replaceState(null, "", "#" + p); localStorage.setItem("sheet-peers", JSON.stringify({s: st.s, p: st.peers, ps: st.ps})); } catch (e) {}
+  $("proflink").href = `profiles/${st.s}.html#p=${st.peers.join(",")}&ps=${st.ps}`;
+}
+
+/* ---------- controls ---------- */
+function renderControls() {
+  $("state").innerHTML = [...S].sort((a, b) => D.names[a].localeCompare(D.names[b])).map(s => `<option value="${s}" ${s === st.s ? "selected" : ""}>${esc(D.names[s])}</option>`).join("");
+  assignSlots();
+  $("chips").innerHTML = (st.peers.length ? "" : `<span class="lab">no states yet</span>`) +
+    st.peers.map(p => `<span class="chip"><i style="background:${colour(p)}"></i>${esc(D.names[p])}<button data-p="${p}" aria-label="Remove ${esc(D.names[p])}"><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M7 7l10 10M17 7 7 17"/></svg></button></span>`).join("");
+  $("chips").querySelectorAll("button").forEach(b => b.onclick = () => { st.peers = st.peers.filter(x => x !== b.dataset.p); st.ps = "custom"; render(); });
+  const left = [...S].sort((a, b) => D.names[a].localeCompare(D.names[b])).filter(s => s !== st.s && !st.peers.includes(s));
+  $("addpeer").innerHTML = `<option value="">${st.peers.length >= 7 ? "Up to 7 states" : "+ Add state"}</option>` + (st.peers.length >= 7 ? "" : left.map(s => `<option value="${s}">${esc(D.names[s])}</option>`).join(""));
+  peerMenu({btn: $("psbtn"), label: $("pslab"), menu: $("psmenu"), presets: D.presets, names: D.names, current: () => st.ps, focus: () => st.s,
+    onPick: (k, list) => { st.ps = k; st.peers = list; render(); toast(`Compared with ${D.presets[k].label.toLowerCase()}`); }});
+  const all = [...new Set(Object.values(D.data).flatMap(d => d.y))].sort((a, b) => a - b);
+  $("base").innerHTML = all.filter(y => y < all[all.length - 1]).map(y => `<option ${y === st.base ? "selected" : ""}>${y}</option>`).join("");
+  $("latest").innerHTML = `<option value="0" ${!st.latest ? "selected" : ""}>Latest available</option>` + all.filter(y => y > st.base).reverse().map(y => `<option value="${y}" ${y === st.latest ? "selected" : ""}>${y}</option>`).join("");
+  document.querySelectorAll("#mode button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === st.mode));
+  document.querySelectorAll("#level button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === st.level));
+}
+
+/* ---------- sheet ---------- */
+function rowsShown() {
+  const q = st.q.trim().toLowerCase();
+  return Object.keys(M).filter(m => (!M[m].level || M[m].level === st.level) && (!q || q.split(/\s+/).every(w => (M[m].title + " " + M[m].group).toLowerCase().includes(w))));
+}
+function spark(m, s, y0, y1) {
+  const ys = yrs(m).filter(y => y >= y0 && y <= y1); const vs = ys.map(y => val(m, y, s)); const ok = vs.filter(v => v != null);
+  if (ok.length < 3) return "";
+  let lo = Math.min(...ok), hi = Math.max(...ok); if (hi === lo) hi = lo + 1;
+  const W = 52, H = 16, X = y => (y - y0) / ((y1 - y0) || 1) * W, Y = v => H - 1 - (v - lo) / (hi - lo) * (H - 2);
+  let d = "", pen = false; ys.forEach((y, i) => { if (vs[i] == null) { pen = false; return; } d += (pen ? "L" : "M") + X(y).toFixed(1) + " " + Y(vs[i]).toFixed(1); pen = true; });
+  const lv = ok[ok.length - 1];
+  return `<svg class="spark" width="${W + 3}" height="${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="${s === st.s ? css("--s1") : css("--s0")}" stroke-width="1.4"/><circle cx="${X(ys[vs.lastIndexOf(lv)])}" cy="${Y(lv)}" r="2" fill="${s === st.s ? css("--s1") : css("--ink-3")}"/></svg>`;
+}
+function cell(m, s, y, b) {
+  const v = val(m, y, s), v0 = val(m, b, s), c = chg(m, v0, v), r = s === "US" ? null : rank(m, y, s), r0 = s === "US" ? null : rank(m, b, s);
+  const flag = M[m].online && D.onlineGiants[s] ? `<span class="flag" title="${esc(D.onlineGiants[s])}">†</span>` : "";
+  if (st.mode === "change") return {k: c, h: `<span class="cv ${cls(c)}">${fmtChg(m, c)}</span><!--B-->${flag}<span class="cs">${fmt(m, v0)} → ${fmt(m, v)}</span>`};
+  if (st.mode === "rank") { const dr = r != null && r0 != null ? r0 - r : null;
+    return {k: r == null ? null : -r, h: s === "US" ? `<span class="cv na">–</span><span class="cs">${fmt(m, v)}</span>` : `<span class="cv">${r ? "#" + r : "–"}</span><!--B-->${flag}<span class="cs ${cls(dr)}">${dr == null ? "" : dr > 0 ? "up " + dr : dr < 0 ? "down " + -dr : "no change"}${r0 ? " from #" + r0 : ""}</span>`}; }
+  return {k: v, h: `<span class="cv">${fmt(m, v)}</span><!--B-->${flag}${spark(m, s, b, y)}<span class="cs">${r ? "#" + r : s === "US" ? "U.S." : ""}${c != null ? ` · <span class="${cls(c)}">${fmtChg(m, c)}</span>` : ""}</span>`};
+}
+function render() {
+  readControlsIntoCols(); renderControls();
+  document.querySelectorAll("#view button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === st.view));
+  const fl = st.view === "flows"; $("sheetwrap").hidden = fl; $("flows").hidden = !fl; $("swipe").hidden = fl;
+  ["showgrp"].forEach(id => $(id).hidden = fl); $("q").parentNode.hidden = fl; $("count").hidden = fl;
+  if (fl) { renderFlows(); writeHash(); measureTop(); return; }
+  const C = cols();
+  $("sheet").tHead.innerHTML = `<tr><th>Measure <span class="lab">(latest year)</span></th>` + C.map(s => `<th class="${s === st.s ? "fc" : ""}"><span class="cdot" style="background:${colour(s)}"></span>${s === "US" ? "United States" : `<a href="profiles/${s}.html#p=${st.peers.join(",")}" title="Open ${esc(D.names[s])}'s full profile">${esc(D.names[s])}</a>`}${st.peers.includes(s) ? `<button class="x" data-p="${s}" aria-label="Remove ${esc(D.names[s])}"><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M7 7l10 10M17 7 7 17"/></svg></button>` : ""}</th>`).join("") + `</tr>`;
+  $("sheet").tHead.querySelectorAll(".x").forEach(b => b.onclick = e => { e.stopPropagation(); st.peers = st.peers.filter(x => x !== b.dataset.p); st.ps = "custom"; render(); });
+  const shown = rowsShown(); let h = "";
+  $("count").textContent = `${shown.length} of ${Object.keys(M).length} measures · ${C.length - 1} states + U.S.`;
+  if (!shown.length) h = `<tr class="empty-row"><td colspan="${C.length + 1}">No measure matches “${esc(st.q)}”. <button class="btn link" id="clr">Clear the filter</button></td></tr>`;
+  for (const g of D.groups) {
+    const ms = shown.filter(m => M[m].group === g); if (!ms.length) continue;
+    h += `<tr class="g"><td colspan="${C.length + 1}">${esc(g)}<span>${ms.length} measure${ms.length > 1 ? "s" : ""}</span></td></tr>`;
+    for (const m of ms) {
+      const y = yearFor(m, st.latest), b = baseFor(m); if (y == null) continue;
+      const cs = C.map(s => cell(m, s, y, b));
+      const kk = cs.slice(0, -1).map(c => c.k).filter(k => k != null), best = kk.length ? Math.max(...kk) : null;
+      const open = st.open.has(m);
+      h += `<tr class="r" data-m="${m}" aria-expanded="${open}" tabindex="0"><td class="m"><div class="t"><svg class="i car" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><span>${esc(M[m].title)}</span>${M[m].note ? `<span class="info" title="${esc(M[m].note)}"><svg class="i info-i" viewBox="0 0 24 24" style="width:13px;height:13px"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg></span>` : ""}</div><span class="yr">${st.mode === "value" ? ylab(m, y) : ylab(m, b) + " → " + ylab(m, y)}${y >= 2024 && M[m].src === "ipeds" ? '<sup class="prov" title="Provisional: 2024 and 2025 come from the latest IPEDS releases and may be revised">p</sup>' : ""}${M[m].unit !== "%" ? " · " + esc(M[m].unit) : ""}</span></td>` +
+        cs.map((c, i) => `<td class="c ${C[i] === st.s ? "fc" : ""}">${c.h.replace("<!--B-->", i < C.length - 1 && best != null && c.k === best && kk.length > 1 ? '<span class="best" title="Highest among the states shown">●</span>' : "")}</td>`).join("") + `</tr>`;
+      if (open) h += `<tr class="d" data-for="${m}"><td colspan="${C.length + 1}"><div class="panel" id="p-${m}"></div></td></tr>`;
+    }
+  }
+  $("sheet").tBodies[0].innerHTML = h;
+  if ($("clr")) $("clr").onclick = () => { $("q").value = st.q = ""; render(); };
+  $("sheet").tBodies[0].querySelectorAll("tr.r").forEach(tr => { const go = () => { const m = tr.dataset.m; st.open.has(m) ? st.open.delete(m) : st.open.add(m); render(); };
+    tr.onclick = e => { if (e.target.closest("a,button")) return; go(); }; tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }; });
+  for (const m of st.open) if ($("p-" + m)) panel(m, $("p-" + m));
+  writeHash(); measureTop();
+}
+function readControlsIntoCols() { st.peers = st.peers.filter(p => p !== st.s); }
+
+/* ---------- row panel ---------- */
+function panel(m, el) {
+  const y = yearFor(m, st.latest), b = baseFor(m), C = cols();
+  el.innerHTML = `<div class="card"><div class="hd"><div><h4>${esc(M[m].title)}: trend</h4><p>${esc(D.names[st.s])}, competitors and the U.S. Dashed lines mark ${b} and ${y}.</p></div></div><div class="leg"></div><div class="trend"></div></div>
+    <div class="card"><div class="hd"><div><h4 class="rk-h">All 50 states + DC, ${y}</h4><p>${nRep(m, y)} reporting. Chosen states coloured. Press play to watch the ranking change.</p></div><button class="btn rk-play"><svg class="i" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5Z"/></svg><span>Play</span></button></div><div class="rankc"></div></div>
+    <div class="card"><div class="hd"><div><h4>Map, ${y}</h4><p>Darker = higher. Click a state to add or remove it.</p></div></div><div class="mapc"></div></div>
+    <div class="card"><div class="hd"><div><h4>Plot against another measure</h4><p>Every state at ${y}; chosen states coloured.</p></div><select class="plotsel" aria-label="Measure for the horizontal axis"></select></div><div class="scat"></div></div>
+    <div class="acts"><span>Sort columns by this row:</span><button class="btn" data-sort="desc">Highest first</button><button class="btn" data-sort="asc">Lowest first</button><button class="btn link" data-close>Close</button>${M[m].note ? `<span>${esc(M[m].note)}</span>` : ""}</div>
+    <p class="src">${srcLine(m)}.</p>`;
+  el.querySelector(".leg").innerHTML = `<div class="legend">${C.map(s => `<span><i class="${s === "US" ? "dash" : "ln"}" style="${s === "US" ? "border-top-color:" + colour(s) : "background:" + colour(s)}"></i>${esc(s === "US" ? "United States" : D.names[s])}</span>`).join("")}</div>`;
+  trend(el.querySelector(".trend"), m, b, y);
+  const race = rankRace(el.querySelector(".rankc"), m, y);
+  const pb = el.querySelector(".rk-play"); let tmr = null;
+  pb.onclick = () => { if (tmr) { clearInterval(tmr); tmr = null; pb.querySelector("span").textContent = "Play"; return; }
+    const ys = yrs(m).filter(z => z <= y); let i = 0; pb.querySelector("span").textContent = "Pause";
+    tmr = setInterval(() => { if (!el.isConnected || i >= ys.length) { clearInterval(tmr); tmr = null; pb.querySelector("span").textContent = "Play"; race(y); el.querySelector(".rk-h").textContent = `All 50 states + DC, ${y}`; return; }
+      race(ys[i]); el.querySelector(".rk-h").textContent = `All 50 states + DC, ${ys[i]}`; i++; }, 520); };
+  tileMap(el.querySelector(".mapc"), m, y);
+  const sel = el.querySelector(".plotsel"), def = st.plot[m] || (m === "intl_share_stem_master" ? "stem_share_master" : m.startsWith("intl_") ? "enroll_total" : "intl_share_stem_master");
+  sel.innerHTML = Object.keys(M).filter(k => k !== m).map(k => `<option value="${k}" ${k === def ? "selected" : ""}>${esc(M[k].title)}</option>`).join("");
+  const sc = () => { st.plot[m] = sel.value; scatter(el.querySelector(".scat"), sel.value, m, y); }; sel.onchange = sc; sc();
+  el.querySelectorAll("[data-sort]").forEach(btn => btn.onclick = () => { const d = btn.dataset.sort === "desc" ? -1 : 1; st.peers.sort((a, c) => d * ((val(m, y, a) ?? -Infinity) - (val(m, y, c) ?? -Infinity))); render(); });
+  el.querySelector("[data-close]").onclick = () => { st.open.delete(m); render(); };
+}
+function svg(el, H) { el.innerHTML = ""; const W = Math.max(280, el.clientWidth || 560), s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", `0 0 ${W} ${H}`); s.setAttribute("height", H); el.appendChild(s); return [s, W]; }
+function ticks(lo, hi, n = 4) { const r = (hi - lo) / n, p = 10 ** Math.floor(Math.log10(r || 1)), q = r / p, s = (q <= 1 ? 1 : q <= 2 ? 2 : q <= 2.5 ? 2.5 : q <= 5 ? 5 : 10) * p, o = []; for (let t = Math.ceil(lo / s) * s; t <= hi + s * 1e-9; t += s) o.push(+t.toFixed(10)); return o; }
+const axf = (m, t) => { const u = M[m]; if (u.fmt.pre === "$") return "$" + (Math.abs(t) >= 1e3 ? +(t / 1e3).toFixed(1) + "k" : t); if (u.unit !== "%" && u.unit !== "score") return Math.abs(t) >= 1e6 ? +(t / 1e6).toFixed(1) + "M" : Math.abs(t) >= 1e3 ? +(t / 1e3).toFixed(1) + "k" : t; return t + (u.unit === "%" ? "%" : ""); };
+function trend(el, m, b, y) {
+  const [s, W] = svg(el, 240), L = 50, R = 64, T = 10, B = 24, ys = yrs(m), C = cols();
+  const all = C.flatMap(c => ys.map(yy => val(m, yy, c))).filter(v => v != null); if (!all.length) { s.innerHTML = `<text x="0" y="30">No data.</text>`; return; }
+  let lo = Math.min(...all), hi = Math.max(...all); if (lo > 0 && M[m].unit !== "score" && M[m].fmt.pre !== "$") lo = 0; if (hi === lo) hi = lo + 1;
+  const tk = ticks(lo, hi); lo = Math.min(lo, tk[0]); hi = Math.max(hi, tk[tk.length - 1]);
+  const X = yy => L + (yy - ys[0]) / ((ys[ys.length - 1] - ys[0]) || 1) * (W - L - R), Y = v => T + (1 - (v - lo) / (hi - lo)) * (240 - T - B);
+  let h = tk.map(t => `<line x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--rule)"/><text x="${L - 6}" y="${Y(t) + 4}" text-anchor="end">${axf(m, t)}</text>`).join("");
+  h += ticks(ys[0], ys[ys.length - 1], 5).filter(Number.isInteger).map(t => `<text x="${X(t)}" y="234" text-anchor="middle">${t}</text>`).join("");
+  [b, y].forEach(t => h += `<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${240 - B}" stroke="var(--rule-2)" stroke-dasharray="3 3"/>`);
+  const ends = [];
+  for (const c of [...C].reverse()) { let d = "", pen = false; ys.forEach((yy, i) => { const v = val(m, yy, c); if (v == null || (i && yy - ys[i - 1] > (M[m].gap || 2))) pen = false; if (v != null) { d += (pen ? "L" : "M") + X(yy).toFixed(1) + " " + Y(v).toFixed(1); pen = true; } });
+    h += `<path d="${d}" fill="none" stroke="${colour(c)}" stroke-width="${c === st.s ? 3 : 1.8}" ${c === "US" ? 'stroke-dasharray="5 4"' : ""} stroke-linejoin="round"/>`;
+    const lv = val(m, y, c); if (lv != null) ends.push({c, y: Y(lv), t: c + " " + fmt(m, lv)}); }
+  ends.sort((a, z) => a.y - z.y); for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 12) ends[i].y = ends[i - 1].y + 12;
+  h += ends.map(e => `<text x="${X(y) + 6}" y="${e.y + 4}" style="fill:${e.c === st.s ? "var(--ink)" : "var(--ink-2)"};font-weight:${e.c === st.s ? 700 : 500}">${esc(e.t)}</text>`).join("");
+  h += `<line class="xh" y1="${T}" y2="${240 - B}" stroke="var(--ink-3)" style="display:none"/><rect x="${L}" y="0" width="${W - L - R}" height="240" fill="transparent" style="cursor:crosshair"/>`;
+  s.innerHTML = h; const hit = s.lastElementChild, xh = s.querySelector(".xh");
+  hit.onmousemove = e => { const bx = s.getBoundingClientRect(), px = (e.clientX - bx.left) * W / bx.width, yy = ys.reduce((a, z) => Math.abs(X(z) - px) < Math.abs(X(a) - px) ? z : a);
+    xh.style.display = ""; xh.setAttribute("x1", X(yy)); xh.setAttribute("x2", X(yy));
+    tipAt(e.clientX, bx.top + 8, `<b>${yy}</b>` + C.map(c => `<br><span style="color:${colour(c)}">■</span> ${esc(c === "US" ? "United States" : D.names[c])} <b>${fmt(m, val(m, yy, c))}</b>${c !== "US" && rank(m, yy, c) ? ` #${rank(m, yy, c)}` : ""}`).join("")); };
+  hit.onmouseleave = () => { xh.style.display = "none"; hideTip(); };
+}
+function rankStrip(el, m, y) {
+  const r = row(m, y); const pts = S.map((s, i) => ({s, v: r && r[i]})).filter(p => p.v != null).sort((a, b) => b.v - a.v); const C = cols();
+  const [s, W] = svg(el, 240); if (!pts.length) { s.innerHTML = `<text x="0" y="30">No data.</text>`; return; }
+  const L = 8, R = 8, bw = (W - L - R) / pts.length, lo = Math.min(0, ...pts.map(p => p.v)), hi = Math.max(...pts.map(p => p.v)), Y = v => 200 - (v - lo) / ((hi - lo) || 1) * 180;
+  let h = `<line x1="${L}" x2="${W - R}" y1="${Y(Math.max(lo, 0))}" y2="${Y(Math.max(lo, 0))}" stroke="var(--rule-2)"/>`;
+  const usv = val(m, y, "US"); if (usv != null) h += `<line x1="${L}" x2="${W - R}" y1="${Y(usv)}" y2="${Y(usv)}" stroke="${colour("US")}" stroke-dasharray="4 4"/><text x="${W - R}" y="${Y(usv) - 4}" text-anchor="end">U.S. ${fmt(m, usv)}</text>`;
+  pts.forEach((p, i) => { const on = C.includes(p.s), x = L + i * bw, y0 = Y(Math.max(lo, 0)), y1 = Y(p.v);
+    h += `<rect data-s="${p.s}" x="${x + .5}" y="${Math.min(y0, y1)}" width="${Math.max(1, bw - 1.5)}" height="${Math.max(1, Math.abs(y1 - y0))}" rx="1" fill="${on ? colour(p.s) : css("--rule-2")}"/>`;
+    if (on) h += `<text x="${x + bw / 2}" y="${222}" text-anchor="middle" style="fill:var(--ink);font-weight:${p.s === st.s ? 700 : 500}">${p.s}</text><text x="${x + bw / 2}" y="${236}" text-anchor="middle">#${i + 1}</text>`; });
+  s.innerHTML = h;
+  s.querySelectorAll("rect[data-s]").forEach(rc => { rc.style.cursor = "pointer"; rc.onmousemove = e => tipAt(e.clientX, e.clientY - 8, `<b>${esc(D.names[rc.dataset.s])}</b><br>${fmt(m, val(m, y, rc.dataset.s))}, #${rank(m, y, rc.dataset.s)} of ${pts.length}`); rc.onmouseleave = hideTip; rc.onclick = () => togglePeer(rc.dataset.s); });
+}
+/* Ranking of all states that can replay over time: bars slide to their new rank each year. */
+function rankRace(el, m, y) {
+  const W = Math.max(280, el.clientWidth || 560), H = 290, L = 8, R = 8, C = cols();
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" style="width:100%;display:block;overflow:visible"><line class="base" stroke="var(--rule-2)"/><line class="usl" stroke-dasharray="4 4"/><text class="ust" text-anchor="end"></text>` +
+    S.map(s => `<g data-s="${s}" style="transition:transform .45s cubic-bezier(.2,.8,.2,1)"><rect rx="1" style="transition:height .45s,y .45s"></rect>${C.includes(s) ? `<text class="a" text-anchor="middle" y="222" style="fill:var(--ink);font-weight:${s === st.s ? 700 : 500}">${s}</text><text class="b" text-anchor="middle" y="236"></text>` : ""}</g>`).join("") + `</svg>`;
+  const sv = el.firstElementChild, bw = (W - L - R) / NS;
+  const all = yrs(m).flatMap(yy => S.map(s => val(m, yy, s))).filter(v => v != null), lo = Math.min(0, ...all), hi = Math.max(...all), Y = v => 200 - (v - lo) / ((hi - lo) || 1) * 180;
+  const upd = yy => {
+    const pts = S.map(s => ({s, v: val(m, yy, s)})).sort((a, b) => (b.v ?? -Infinity) - (a.v ?? -Infinity));
+    const y0 = Y(Math.max(lo, 0)), base = sv.querySelector(".base"); base.setAttribute("x1", L); base.setAttribute("x2", W - R); base.setAttribute("y1", y0); base.setAttribute("y2", y0);
+    const usv = val(m, yy, "US"), ul = sv.querySelector(".usl"), ut = sv.querySelector(".ust");
+    if (usv != null) { ul.setAttribute("x1", L); ul.setAttribute("x2", W - R); ul.setAttribute("y1", Y(usv)); ul.setAttribute("y2", Y(usv)); ul.setAttribute("stroke", colour("US")); ut.setAttribute("x", W - R); ut.setAttribute("y", Y(usv) - 4); ut.textContent = "U.S. " + fmt(m, usv); } else { ul.removeAttribute("y1"); ut.textContent = ""; }
+    let lastX = null, row_ = 0;
+    pts.forEach((p, i) => { const g = sv.querySelector(`g[data-s="${p.s}"]`), r = g.firstElementChild, on = C.includes(p.s);
+      g.style.transform = `translateX(${L + i * bw}px)`; g.style.opacity = p.v == null ? 0 : 1;
+      const yv = p.v == null ? y0 : Y(p.v); r.setAttribute("x", .5); r.setAttribute("width", Math.max(1, bw - 1.5)); r.setAttribute("y", Math.min(y0, yv)); r.setAttribute("height", Math.max(1, Math.abs(yv - y0)));
+      r.setAttribute("fill", on ? colour(p.s) : css("--rule-2"));
+      const a = g.querySelector(".a"), b = g.querySelector(".b"); if (a) { const px = L + i * bw, near = lastX != null && px - lastX < 30; lastX = near ? lastX : px; row_ = near ? row_ + 1 : 0;
+        a.setAttribute("x", bw / 2); b.setAttribute("x", bw / 2); a.setAttribute("y", 218 + row_ * 26); b.setAttribute("y", 231 + row_ * 26); b.textContent = p.v == null ? "" : "#" + (i + 1); } });
+  };
+  sv.querySelectorAll("g[data-s]").forEach(g => { g.style.cursor = "pointer"; g.onmousemove = e => { const s = g.dataset.s; tipAt(e.clientX, e.clientY - 8, `<b>${esc(D.names[s])}</b>`); }; g.onmouseleave = hideTip; g.onclick = () => togglePeer(g.dataset.s); });
+  upd(y); return upd;
+}
+function lerp(a, b, f) { return "#" + [1, 3, 5].map(i => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - f) + parseInt(b.slice(i, i + 2), 16) * f).toString(16).padStart(2, "0")).join(""); }
+function tileMap(el, m, y) {
+  const r = row(m, y), vs = S.map((s, i) => r && r[i]).filter(v => v != null); const lo = Math.min(...vs), hi = Math.max(...vs), C = cols();
+  const dark = theme() === "dark", a = dark ? "#1f2636" : "#e8eefb", b = dark ? "#8fb0f7" : "#1d3f99";
+  el.innerHTML = `<div class="tiles">${S.map(s => { const [c, rr] = D.tiles[s], v = val(m, y, s), f = v == null ? 0 : (v - lo) / ((hi - lo) || 1), bg = v == null ? "var(--panel)" : lerp(a, b, f);
+    return `<button class="tile ${C.includes(s) ? "sel" : ""}" data-s="${s}" style="grid-column:${c + 1};grid-row:${rr + 1};background:${bg};color:${f > .55 ? (dark ? "#0f1115" : "#fff") : "var(--ink)"}" aria-label="${esc(D.names[s])}: ${fmt(m, v)}">${s}</button>`; }).join("")}</div>
+    <div class="legend" style="margin-top:6px"><span>${fmt(m, lo)}</span><span style="width:120px;height:8px;border-radius:2px;background:linear-gradient(90deg,${a},${b})"></span><span>${fmt(m, hi)}</span><span>outlined = chosen</span></div>`;
+  el.querySelectorAll(".tile").forEach(t => { t.onmousemove = e => tipAt(e.clientX, e.clientY - 8, `<b>${esc(D.names[t.dataset.s])}</b><br>${fmt(m, val(m, y, t.dataset.s))}${rank(m, y, t.dataset.s) ? ", #" + rank(m, y, t.dataset.s) : ""}`); t.onmouseleave = hideTip; t.onclick = () => togglePeer(t.dataset.s); });
+}
+function scatter(el, mx, my, y0) {
+  const yx = yearFor(mx, y0) ?? yearFor(mx), C = cols();
+  const pts = S.map(s => ({s, x: val(mx, yx, s), y: val(my, y0, s)})).filter(p => p.x != null && p.y != null);
+  const [s, W] = svg(el, 260); if (!pts.length) { s.innerHTML = `<text x="0" y="30">These two measures share no states in ${y0}.</text>`; return; }
+  const L = 50, R = 16, T = 10, B = 34, H = 260;
+  let x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y_0 = Math.min(...pts.map(p => p.y)), y_1 = Math.max(...pts.map(p => p.y));
+  const px = (x1 - x0) * .06 || 1, py = (y_1 - y_0) * .08 || 1; x0 -= px; x1 += px; y_0 -= py; y_1 += py;
+  const X = v => L + (v - x0) / (x1 - x0) * (W - L - R), Y = v => T + (1 - (v - y_0) / (y_1 - y_0)) * (H - T - B);
+  let h = ticks(y_0, y_1).map(t => `<line x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--rule)"/><text x="${L - 6}" y="${Y(t) + 4}" text-anchor="end">${axf(my, t)}</text>`).join("");
+  h += ticks(x0, x1).map(t => `<text x="${X(t)}" y="${H - B + 14}" text-anchor="middle">${axf(mx, t)}</text>`).join("");
+  h += `<text x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle" style="fill:var(--ink-2)">${esc(M[mx].title)}${yx !== y0 ? " (" + yx + ")" : ""}</text>`;
+  const ord = [...pts].sort((a, b) => C.includes(a.s) - C.includes(b.s));
+  h += ord.map(p => { const on = C.includes(p.s); return `<circle data-s="${p.s}" cx="${X(p.x)}" cy="${Y(p.y)}" r="${on ? 6 : 4}" fill="${on ? colour(p.s) : css("--s0")}" fill-opacity="${on ? 1 : .55}" stroke="var(--bg)" stroke-width="1.5"/>` + (on ? `<text x="${X(p.x) + 8}" y="${Y(p.y) + 4}" style="fill:var(--ink);font-weight:${p.s === st.s ? 700 : 500}">${p.s}</text>` : ""); }).join("");
+  s.innerHTML = h;
+  s.querySelectorAll("circle").forEach(c => { c.style.cursor = "pointer"; c.onmousemove = e => tipAt(e.clientX, e.clientY - 8, `<b>${esc(D.names[c.dataset.s])}</b><br>${esc(M[mx].title)}: ${fmt(mx, val(mx, yx, c.dataset.s))}<br>${esc(M[my].title)}: ${fmt(my, val(my, y0, c.dataset.s))}`); c.onmouseleave = hideTip; c.onclick = () => togglePeer(c.dataset.s); });
+}
+function togglePeer(s) { if (s === st.s) return; st.ps = "custom"; if (st.peers.includes(s)) st.peers = st.peers.filter(x => x !== s); else if (st.peers.length < 7) st.peers.push(s); else return toast("Up to 7 comparison states"); render(); }
+
+/* ---------- flows (animated Sankeys) ---------- */
+const LVN = {bach: "Bachelor's", master: "Master's", doc_res: "Research doctorates"};
+function sankTip(html, e) { if (!html) return hideTip(); tipAt(e.clientX, e.clientY - 8, html); }
+function renderFlows() {
+  const C = cols().filter(s => s !== "US"); if (!st.fs || !C.includes(st.fs)) st.fs = st.s;
+  $("fstate").innerHTML = C.map(s => `<button data-k="${s}" aria-pressed="${s === st.fs}"><span class="cdot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${colour(s)};margin-right:6px"></span>${esc(D.names[s])}</button>`).join("");
+  $("fstate").querySelectorAll("button").forEach(b => b.onclick = () => { st.fs = b.dataset.k; renderFlows(); });
+  document.querySelectorAll("#plevel button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === st.plv));
+  const s = st.fs, nm = D.names[s], PL = D.pipeline, F = D.flows;
+  /* pipeline: level -> residency -> field group */
+  const v = PL.v[s], lvs = st.plv === "all" ? PL.levels : [st.plv], li = l => PL.levels.indexOf(l);
+  const stemN = 6, gcol = (g, i) => i < stemN ? css("--s1") : css("--s0");
+  const nodes = [...lvs.map((l, i) => ({id: "L" + l, label: LVN[l], col: 0, color: css(["--s4", "--s6", "--s5"][li(l)])})),
+    {id: "Rd", label: "Domestic graduates", col: 1, color: css("--s3")}, {id: "Ri", label: "International graduates", col: 1, color: css("--s2")},
+    ...PL.groups.map((g, i) => ({id: "G" + i, label: g, col: 2, color: gcol(g, i), sub: i < stemN ? "STEM" : ""}))];
+  const links = [];
+  lvs.forEach(l => [0, 1].forEach(f => links.push({s: "L" + l, t: f ? "Ri" : "Rd", v: v[li(l)][f].reduce((a, b) => a + b, 0)})));
+  [0, 1].forEach(f => PL.groups.forEach((g, i) => links.push({s: f ? "Ri" : "Rd", t: "G" + i, v: lvs.reduce((a, l) => a + v[li(l)][f][i], 0), color: f ? css("--s2") : css("--s3")})));
+  const tot = links.slice(0, lvs.length * 2).reduce((a, l) => a + l.v, 0), intl = links.slice(0, lvs.length * 2).filter(l => l.t === "Ri").reduce((a, l) => a + l.v, 0);
+  const stemI = lvs.reduce((a, l) => a + v[li(l)][1].slice(0, stemN).reduce((x, y) => x + y, 0), 0);
+  $("pipe-h").textContent = `${nm}: who earns degrees, and in what, ${PL.year}`;
+  $("pipe-p").textContent = `${tot.toLocaleString("en-US")} degrees${st.plv === "all" ? " at the bachelor's, master's and research-doctorate levels" : ""}; international graduates earned ${(100 * intl / (tot || 1)).toFixed(1)}%, and ${(100 * stemI / (intl || 1)).toFixed(0)}% of their degrees were in STEM (blue fields).`;
+  sankey($("pipe"), {nodes, links, H: 440, labelW: 240, colLabels: ["Degree level", "Who earned it", "Field"], unit: "degrees", tip: sankTip, label: `${nm} degree pipeline`});
+  /* migration: origins -> state, residents -> destinations */
+  const si = F.states.indexOf(s), row = F.m[si], hi = h => F.homes.indexOf(h);
+  const stay = row[hi(s)], abroad = row[hi("XX")];
+  const arrivals = F.homes.map((h, i) => [h, row[i]]).filter(([h]) => h !== s && h !== "XX").sort((a, b) => b[1] - a[1]);
+  const topA = arrivals.slice(0, 8), restA = arrivals.slice(8).reduce((a, b) => a + b[1], 0);
+  const pc = h => cols().includes(h) ? colour(h) : css("--s0");
+  $("instate").checked = st.inst;
+  const inNodes = [...(st.inst ? [{id: "home", label: `${nm} residents`, col: 0, color: colour(s)}] : []), ...topA.map(([h]) => ({id: h, label: D.names[h], col: 0, color: pc(h)})),
+    {id: "oth", label: "Other states", col: 0, color: css("--s0")}, {id: "XX", label: "Abroad", col: 0, color: css("--s2")}, {id: "inst", label: `${nm} institutions`, col: 1, color: css("--ink")}];
+  const inLinks = [...(st.inst ? [{s: "home", t: "inst", v: stay}] : []), ...topA.map(([h, n]) => ({s: h, t: "inst", v: n})), {s: "oth", t: "inst", v: restA}, {s: "XX", t: "inst", v: abroad}];
+  const inTot = stay + abroad + arrivals.reduce((a, b) => a + b[1], 0);
+  $("in-h").textContent = `Who enrolls at ${nm} institutions, fall ${F.year}`;
+  $("in-p").textContent = `${inTot.toLocaleString("en-US")} first-time students: ${(100 * stay / (inTot || 1)).toFixed(0)}% from ${nm}, ${(100 * (inTot - stay - abroad) / (inTot || 1)).toFixed(0)}% from other states, ${(100 * abroad / (inTot || 1)).toFixed(1)}% from abroad. Competitor states keep their colours.`;
+  sankey($("inflow"), {nodes: inNodes, links: inLinks, H: 380, colLabels: ["Home of first-time students", "Enrolled in"], unit: "students", tip: sankTip, labelW: 150, gap: 6, label: `Students arriving at ${nm} institutions`});
+  const leaving = F.states.map((d, i) => [d, F.m[i][hi(s)]]).filter(([d]) => d !== s).sort((a, b) => b[1] - a[1]);
+  const topL = leaving.slice(0, 8), restL = leaving.slice(8).reduce((a, b) => a + b[1], 0), outTot = stay + leaving.reduce((a, b) => a + b[1], 0);
+  const outNodes = [{id: "res", label: `${nm} residents`, col: 0, color: colour(s)}, ...(st.inst ? [{id: "stay", label: `Stayed in ${nm}`, col: 1, color: colour(s)}] : []),
+    ...topL.map(([d]) => ({id: d, label: D.names[d], col: 1, color: pc(d)})), {id: "oth", label: "Other states", col: 1, color: css("--s0")}];
+  const outLinks = [...(st.inst ? [{s: "res", t: "stay", v: stay}] : []), ...topL.map(([d, n]) => ({s: "res", t: d, v: n})), {s: "res", t: "oth", v: restL}];
+  $("out-h").textContent = `Where ${nm}'s residents enroll, fall ${F.year}`;
+  $("out-p").textContent = `${outTot.toLocaleString("en-US")} first-time students from ${nm}: ${(100 * stay / (outTot || 1)).toFixed(0)}% stayed, ${(100 * (outTot - stay) / (outTot || 1)).toFixed(0)}% left; the largest draw is ${topL[0] ? D.names[topL[0][0]] : "–"}.`;
+  sankey($("outflow"), {nodes: outNodes, links: outLinks, H: 380, colLabels: ["Residents", "Enrolled in"], unit: "students", tip: sankTip, labelW: 150, gap: 6, label: `Where ${nm} residents enroll`});
+}
+/* ---------- tooltip, toast, csv ---------- */
+const tip = $("tip");
+function tipAt(x, y, html) { tip.innerHTML = html; tip.classList.add("on"); const w = tip.offsetWidth, h = tip.offsetHeight; tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + "px"; tip.style.top = (y - h - 12 < 8 ? y + 18 : y - h - 12) + "px"; }
+function hideTip() { tip.classList.remove("on"); }
+function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 1800); }
+function exportCSV() {
+  const C = cols(), q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const lines = [["measure_id", "measure", "unit", "base_year", "year", ...C.flatMap(s => [s, s + "_rank", s + "_change"])].map(q).join(",")];
+  for (const m of rowsShown()) { const y = yearFor(m, st.latest), b = baseFor(m); if (y == null) continue;
+    lines.push([m, M[m].title, M[m].unit, b, y, ...C.flatMap(s => [val(m, y, s), s === "US" ? "" : rank(m, y, s), chg(m, val(m, b, s), val(m, y, s))])].map(q).join(",")); }
+  const blob = new Blob([lines.join("\n")], {type: "text/csv"}), a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = `state_talent_sheet_${st.s}_${st.peers.join("-")}.csv`; document.body.appendChild(a); a.click(); a.remove(); toast("CSV downloaded");
+}
+function measureTop() { document.documentElement.style.setProperty("--top-h", $("top").offsetHeight + "px"); }
+
+/* ---------- wiring ---------- */
+try { const t = localStorage.getItem("se-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+readHash();
+$("rb").textContent = D.realBase;
+$("state").onchange = e => { st.s = e.target.value; if (!D.presets[st.ps]) st.ps = "size"; st.peers = D.presets[st.ps].peers[st.s].slice(); render(); };
+$("addpeer").onchange = e => { const v = e.target.value; if (!v) return;
+  st.peers.push(v); st.ps = "custom"; render(); };
+$("base").onchange = e => { st.base = +e.target.value; if (st.latest && st.latest <= st.base) st.latest = 0; render(); };
+$("latest").onchange = e => { st.latest = +e.target.value; render(); };
+document.querySelectorAll("#mode button").forEach(b => b.onclick = () => { st.mode = b.dataset.k; render(); });
+document.querySelectorAll("#view button").forEach(b => b.onclick = () => { st.view = b.dataset.k; render(); });
+document.querySelectorAll("#plevel button").forEach(b => b.onclick = () => { st.plv = b.dataset.k; renderFlows(); });
+$("instate").onchange = e => { st.inst = e.target.checked; renderFlows(); };
+document.querySelectorAll("#level button").forEach(b => b.onclick = () => { st.level = b.dataset.k; st.open = new Set([...st.open].map(m => M[m].level ? M[m].family + "_" + st.level : m).filter(m => M[m])); render(); });
+$("q").oninput = e => { st.q = e.target.value; render(); };
+$("q").onkeydown = e => { if (e.key === "Escape") { e.target.value = st.q = ""; render(); } };
+$("csv").onclick = exportCSV;
+$("theme").onclick = () => { document.documentElement.dataset.theme = theme() === "dark" ? "light" : "dark"; try { localStorage.setItem("se-theme", document.documentElement.dataset.theme); } catch (e) {} render(); };
+document.addEventListener("keydown", e => { if (e.key === "/" && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); $("q").focus(); } });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(render, 150); });
+addEventListener("hashchange", () => { readHash(); render(); });
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+/*__KIT__*/
+/* Layout: the state's chapter of the Comparison Sheet. Sticky control bar with the competitor set,
+   a section list on the left, and sections of charts; every time series carries the competitors. */
+:root{--state:var(--s1)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--rule-2)}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.brand{font-weight:700;font-size:16px;margin-right:6px;white-space:nowrap}
+.top .grp{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0;max-width:100%}
+.layout>*{min-width:0}
+.chips{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center}
+#addpeer{width:116px}
+.grow{flex:1}
+.layout{display:grid;grid-template-columns:190px minmax(0,1fr);gap:32px;padding:0 max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));max-width:1560px}
+nav.toc{position:sticky;top:calc(var(--top-h,60px) + 12px);align-self:start;padding-top:18px;display:flex;flex-direction:column;gap:1px}
+nav.toc a{display:block;padding:6px 10px;border-radius:3px;color:var(--ink-2);text-decoration:none;font-size:13.5px}
+nav.toc a:hover{background:var(--hover);color:var(--ink)}
+nav.toc a.tlink{color:var(--accent-ink);font-weight:500}
+nav.toc a.tlink+a:not(.tlink){margin-top:10px}
+nav.toc a[aria-current="true"]{background:var(--focus-bg);color:var(--ink);font-weight:600;box-shadow:inset 2px 0 0 var(--accent)}
+.peerinfo{font-size:12px;color:var(--ink-3);padding:10px 10px 0;line-height:1.45}
+section.sec{padding:22px 0 30px;border-bottom:2px solid var(--ink);scroll-margin-top:calc(var(--top-h,60px) + 8px)}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:2px}
+.sec-h h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.005em}
+.sec-h span{font-size:12.5px;color:var(--ink-3);text-align:right}
+.lede{margin:6px 0 18px;font-size:15px;line-height:1.55;color:var(--ink-2);max-width:82ch}
+.lede b{color:var(--ink);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 32px}
+.grid .wide{grid-column:1/-1}
+.fig{min-width:0}
+.fig h3{margin:0 0 2px;font-size:14.5px;font-weight:600}
+.fig .note{margin:0 0 8px;font-size:12.5px;line-height:1.45;color:var(--ink-3);max-width:90ch}
+.fig .src{margin:6px 0 0;font-size:12px;color:var(--ink-3)}
+.fig svg{display:block;width:100%;overflow:visible}
+.fig svg text{font-size:11px;fill:var(--ink-3)}
+.fig svg .dl{font-weight:600;fill:var(--ink)}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:0 0 10px}
+.ctrl label{font-size:12px;color:var(--ink-3)}
+.ctrl select{min-width:160px}
+.bars{display:flex;flex-direction:column;gap:2px}
+.bar{display:grid;grid-template-columns:minmax(0,13.5em) minmax(0,1fr) 5.2em;gap:10px;align-items:center;font-size:13px;padding:3px 0}
+.bar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .tr{height:10px;background:var(--hover);border-radius:0 2px 2px 0;position:relative}
+.bar .tr i{position:absolute;left:0;top:0;bottom:0;border-radius:0 2px 2px 0;background:var(--c)}
+.bar .vv{text-align:right;font-weight:600}
+.hero{padding:22px 0 28px;border-bottom:2px solid var(--ink)}
+.hero h1{margin:0;font-size:40px;line-height:1.05;font-weight:700;letter-spacing:-.015em}
+.hero .lede{margin-top:8px}
+table.facts{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+.facts th,.facts td{border-bottom:1px solid var(--rule);padding:7px 10px;text-align:right;white-space:nowrap}
+.facts th{border-bottom:2px solid var(--ink);font-weight:600}
+.facts th:first-child,.facts td:first-child{text-align:left;white-space:normal;padding-left:0}
+.facts td .cs{display:block;font-size:11.5px;color:var(--ink-3)}
+.facts .fc{background:var(--focus-bg);font-weight:700}
+.facts tr.r{cursor:pointer}.facts tr.r:hover td{background:var(--hover)}
+.facts .cdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.facts .best{color:var(--accent);font-size:9px;vertical-align:3px;margin-left:3px}
+.errata{border:1px solid var(--caveat);border-radius:4px;padding:10px 14px;font-size:14px;line-height:1.5;margin:14px 0 0;max-width:90ch}
+.errata b{display:block;font-size:12px;color:var(--caveat);margin-bottom:2px}
+.mat{border-collapse:separate;border-spacing:3px;font-size:13px;min-width:560px;width:100%}
+.mat th{font-size:12px;font-weight:600;color:var(--ink-3);text-align:center;padding:4px 6px}
+.mat th:first-child{text-align:left}
+.mat td{padding:7px 10px;border-radius:2px;text-align:center;min-width:120px}
+.mat td:first-child{text-align:left;min-width:220px;padding-left:0;color:var(--ink)}
+.mat td b{font-size:14.5px;font-weight:700;display:block}
+.mat td small{font-size:11px;opacity:.85}
+.mat td.na{color:var(--ink-3);background:var(--hover)}
+.mat .tag{font-size:10.5px;font-weight:600;color:var(--accent-ink);margin-left:4px}
+.heatwrap{overflow-x:auto}
+#heat text{font-size:11px}
+.foot{font-size:12.5px;color:var(--ink-3);line-height:1.55;max-width:110ch;padding:16px 0}
+@media (max-width:1100px){.grid{grid-template-columns:1fr}}
+@media (max-width:860px){.layout{grid-template-columns:1fr;gap:0}nav.toc{position:static;flex-direction:row;overflow-x:auto;padding-top:8px;border-bottom:1px solid var(--rule)}nav.toc a{white-space:nowrap}.peerinfo{display:none}
+  .bar{grid-template-columns:minmax(0,9em) minmax(0,1fr) 4.6em}.hero h1{font-size:32px}}
+/* institution detail panel */
+.bar.inst { cursor: pointer } .bar.inst:hover .nm { text-decoration: underline; color: var(--accent-ink) }
+.ipanel-bg { position: fixed; inset: 0; background: rgba(10,12,16,.35); z-index: 60 }
+.ipanel { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100vw); background: var(--bg); z-index: 61; overflow-y: auto; box-shadow: var(--pop-shadow);
+  border-left: 1px solid var(--rule-2); padding: max(16px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) 28px 22px }
+.ipanel .x { position: sticky; top: 0; float: right; margin: -4px -6px 0 8px }
+.ipanel h2 { margin: 2px 0 4px; font-size: 20px; line-height: 1.2 } .ipanel .sub { color: var(--ink-3); font-size: 13px }
+.ipanel .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px } .ipanel .badges span { font-size: 12px; border: 1px solid var(--rule-2); border-radius: 999px; padding: 2px 9px; color: var(--ink-2) }
+.ipanel .ids { font-size: 12px; color: var(--ink-3); margin: 4px 0 12px }
+.ipanel h3 { font-size: 13px; text-transform: none; margin: 18px 0 6px; padding-top: 10px; border-top: 1px solid var(--rule) }
+.ipanel .kv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px }
+.ipanel .kv div b { display: block; font-size: 17px; font-variant-numeric: tabular-nums } .ipanel .kv div span { font-size: 12px; color: var(--ink-3); line-height: 1.3; display: block }
+.ipanel table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums }
+.ipanel th { text-align: right; font-weight: 600; color: var(--ink-3); font-size: 12px; padding: 4px 6px; border-bottom: 1px solid var(--rule-2) }
+.ipanel th:first-child, .ipanel td:first-child { text-align: left } .ipanel td { text-align: right; padding: 4px 6px; border-bottom: 1px solid var(--rule) }
+.ipanel .spark { display: grid; grid-template-columns: 1fr 1fr; gap: 12px } .ipanel .spark figure { margin: 0 } .ipanel .spark figcaption { font-size: 12px; color: var(--ink-3) }
+.ipanel .spark svg { width: 100%; height: 70px; display: block; overflow: visible } .ipanel .spark svg text { font-size: 10px; fill: var(--ink-3) }
+.ipanel .fbar { display: grid; grid-template-columns: minmax(0, 1fr) 70px 50px; gap: 8px; align-items: center; font-size: 13px; padding: 2px 0 }
+.ipanel .fbar i { display: block; height: 8px; background: var(--rule); border-radius: 0 2px 2px 0; position: relative } .ipanel .fbar i b { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 0 2px 2px 0 }
+.ipanel .note { font-size: 12px; color: var(--ink-3); margin-top: 14px }
+.ilist input { width: 100%; max-width: 360px; margin-bottom: 8px } .ilist .scroll { max-height: 420px; overflow: auto; border: 1px solid var(--rule) }
+.ilist table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums } .ilist th { position: sticky; top: 0; background: var(--bg); text-align: right; font-weight: 600; font-size: 12px; color: var(--ink-3); padding: 6px 8px; border-bottom: 1px solid var(--rule-2); cursor: pointer; white-space: nowrap }
+.ilist th:first-child, .ilist td:first-child { text-align: left } .ilist td { padding: 5px 8px; text-align: right; border-bottom: 1px solid var(--rule) } .ilist tbody tr { cursor: pointer } .ilist tbody tr:hover td { background: var(--hover) }
+.ilist td small { display: block; color: var(--ink-3); font-size: 11.5px }
+@media (max-width: 600px) { .ipanel .kv { grid-template-columns: repeat(2, minmax(0, 1fr)) } .ipanel .spark { grid-template-columns: 1fr } }
+</style>
+</head>
+<body>
+<header class="top" id="top">
+  <!--__SITENAV__-->
+  <div class="topbar">
+  <span class="brand">State Talent Profile</span>
+  <span class="grp"><label class="lab" for="pick">State</label><select id="pick"></select></span>
+  <span class="grp"><span class="lab">Compared with</span><span class="pmenu"><button class="btn" id="psbtn" aria-haspopup="menu" aria-expanded="false" title="Choose a suggested set of comparison states"><b id="pslab"></b><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg></button><div class="menu" id="psmenu" role="menu" hidden></div></span><span class="chips" id="chips"></span><select id="addpeer" aria-label="Add a competitor state"></select></span>
+  <span class="grow"></span>
+  <a class="btn" id="pdflink" href="#" title="Open the printable PDF profile; download one state or all 51 from there"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5M9 13h6M9 17h6"/></svg>View PDF</a>
+  <button class="btn" id="theme" aria-label="Switch light or dark theme" title="Theme"><svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></svg></button>
+  </div>
+</header>
+<div class="layout">
+  <nav class="toc" id="rail" aria-label="Sections"></nav>
+  <div>
+    <main id="main"></main>
+    <p class="foot">Sources: NCES, IPEDS, harmonized panels in this project; DHS, SEVIS by the Numbers (countries of citizenship); NCES, NAEP (K-12 scores); NSF NCSES, Survey of Graduate Students and Postdoctorates and Survey of Earned Doctorates; DOL, Office of Foreign Labor Certification (H-1B labor condition applications and PERM); USCIS, H-1B Employer Data Hub; U.S. Census Bureau, American Community Survey; USPTO via PatentsView. Each figure names its source, and each source keeps its own years (fall survey year, fiscal year, assessment or grant year). Degree-granting institutions located in the state (Title IV participants from 1996). International means U.S. nonresidents on temporary visas. STEM = CIP 03, 04, 11, 14, 15, 26, 27, 40. Dollars are constant <span id="rb"></span> dollars (BLS CPI-U). Completions count first majors. <span id="built"></span></p>
+  </div>
+</div>
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+/*__SANKEY__*/
+/*__PEERS__*/
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id), ST = D.state, NAME = D.name, P = D.panel;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const theme = () => document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const S8 = () => [1, 2, 3, 4, 5, 6, 7, 8].map(i => css("--s" + i));
+const SECTOR_C = {"Public 4-year": "--s1", "Public 2-year": "--s2", "Private nonprofit": "--s3", "For-profit": "--s4"};
+
+/* sections: id, label */
+const SECTIONS = [
+  ["glance", "At a glance"],
+  ["institutions", "Institutions"],
+  ["students", "Students"],
+  ["international", "International"],
+  ["stem", "STEM"],
+  ["cross", "Intl × STEM"],
+  ["fields", "Fields"],
+  ["money", "Money"],
+  ["outcomes", "Outcomes"],
+  ["faculty", "Faculty"],
+  ["migration", "Migration"],
+  ["k12", "K-12 preparation"],
+  ["research", "Grad research"],
+  ["stay", "Do graduates stay?"],
+  ["visas", "H-1B & green cards"],
+  ["workforce", "STEM workforce"],
+  ["patents", "Patents"],
+  ["measures", "All measures"],
+  ["compare", "Compare states"]];
+
+/* ---------- formatting ---------- */
+const nf = (x, d = 0) => { if (x == null || !isFinite(x)) return "–"; if (d === true) d = 0; return (x < 0 ? "−" : "") + Math.abs(x).toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d}); };
+const pct = (x, d) => x == null ? "–" : d === true ? nf(x, Number.isInteger(+(+x).toFixed(6)) ? 0 : 1) + "%" : nf(x, d ?? (Math.abs(x) < 10 ? 1 : 0)) + "%";
+const usd = x => x == null ? "–" : "$" + nf(x);
+const big = x => x == null ? "–" : Math.abs(x) >= 1e6 ? nf(x / 1e6, 2) + " million" : nf(x);
+const compact = x => Math.abs(x) >= 1e6 ? (x / 1e6).toFixed(Math.abs(x) >= 1e7 ? 0 : 1) + "M" : Math.abs(x) >= 1e3 ? (x / 1e3).toFixed(Math.abs(x) >= 1e4 ? 0 : 1) + "k" : String(+x.toFixed(2));
+const at = (s, y) => { if (!s) return null; const i = s.y.indexOf(y); return i < 0 ? null : s.v[i]; };
+const last = s => s && s.v.length ? s.v[s.v.length - 1] : null, lastY = s => s && s.y.length ? s.y[s.y.length - 1] : null;
+function niceStep(range, n = 4) { const r = range / n, p = 10 ** Math.floor(Math.log10(r || 1)), m = r / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; }
+function ticks(lo, hi, n = 4) { const s = niceStep(hi - lo, n), out = []; for (let t = Math.ceil(lo / s) * s; t <= hi + s * 1e-9; t += s) out.push(+t.toFixed(10)); return out; }
+
+/* ---------- tooltip ---------- */
+const tip = $("tip");
+function tipAt(x, y, html) { tip.innerHTML = html; tip.classList.add("on"); const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + "px"; tip.style.top = (y - h - 12 < 8 ? y + 18 : y - h - 12) + "px"; }
+const hideTip = () => tip.classList.remove("on");
+
+/* ---------- chart primitives (SVG, redrawn on resize and theme change) ---------- */
+const CHARTS = [];
+function chart(el, draw) { const c = {el, draw}; CHARTS.push(c); draw(el); return c; }
+function svgOf(el, H) { el.innerHTML = ""; const W = Math.max(260, el.clientWidth || 600); const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", `0 0 ${W} ${H}`); s.setAttribute("height", H); el.appendChild(s); return [s, W]; }
+function legendHTML(items) { return `<div class="legend">${items.map(i => `<span><i class="${i.kind || ""}" style="${(i.kind || "").includes("dash") ? `border-top-color:${i.c}` : `background:${i.c}`}"></i>${esc(i.n)}</span>`).join("")}</div>`; }
+
+/* Line chart: series [{n, s:{y,v}, c, dash, w}], fmt for axis/tooltip, zero baseline option. */
+function line(el, {series, fmt = nf, zero = true, H = 230, mark, gap = 2}) {   // gap: max years between points joined by a line
+  const box = document.createElement("div"); el.appendChild(box);
+  const leg = document.createElement("div"); el.insertBefore(leg, box);
+  leg.innerHTML = legendHTML(series.map(s => ({n: s.n, c: s.c, kind: s.dash ? "ln dash" : "ln"})));
+  chart(box, b => {
+    const [svg, W] = svgOf(b, H), L = 52, R = 70, T = 10, B = 24;
+    const all = series.flatMap(s => s.s ? s.s.v : []).filter(v => v != null);
+    const ys = [...new Set(series.flatMap(s => s.s ? s.s.y : []))].sort((a, b) => a - b);
+    if (!all.length) { svg.innerHTML = `<text x="0" y="40">No data reported.</text>`; return; }
+    let lo = Math.min(...all), hi = Math.max(...all); if (zero && lo > 0) lo = 0; if (hi === lo) hi = lo + 1;
+    const tk = ticks(lo, hi); lo = Math.min(lo, tk[0]); hi = Math.max(hi, tk[tk.length - 1]);
+    const x0 = ys[0], x1 = ys[ys.length - 1];
+    const X = y => L + (y - x0) / ((x1 - x0) || 1) * (W - L - R), Y = v => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+    let h = tk.map(t => `<line x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--rule-2)"/><text x="${L - 6}" y="${Y(t) + 4}" text-anchor="end">${fmt(t, true)}</text>`).join("");
+    const xt = ticks(x0, x1, 5).filter(t => Number.isInteger(t)); h += xt.map(t => `<text x="${X(t)}" y="${H - 6}" text-anchor="middle">${t}</text>`).join("");
+    if (mark) h += `<line x1="${X(mark)}" x2="${X(mark)}" y1="${T}" y2="${H - B}" stroke="var(--rule)" stroke-dasharray="2 3"/>`;
+    const labels = [];
+    for (const s of series) {
+      if (!s.s) continue; let d = "", pen = false;
+      s.s.y.forEach((y, i) => { const v = s.s.v[i]; if (v == null || (i && y - s.s.y[i - 1] > gap)) pen = false; if (v != null) { d += (pen ? "L" : "M") + X(y).toFixed(1) + " " + Y(v).toFixed(1); pen = true; } });
+      h += `<path d="${d}" fill="none" stroke="${s.c}" stroke-width="${s.w || 2}" ${s.dash ? 'stroke-dasharray="5 4"' : ""} stroke-linejoin="round" stroke-linecap="round"/>`;
+      const lv = last(s.s); if (lv != null) labels.push({y: Y(lv), x: X(lastY(s.s)), t: fmt(lv), c: s.c});
+    }
+    labels.sort((a, b) => a.y - b.y); for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 13) labels[i].y = labels[i - 1].y + 13;
+    h += labels.map(l => `<circle cx="${l.x}" cy="${l.y}" r="0"/><text class="dl" x="${l.x + 6}" y="${l.y + 4}">${l.t}</text>`).join("");
+    h += `<g class="xh" style="display:none"><line y1="${T}" y2="${H - B}" stroke="var(--ink-3)"/></g><rect x="${L}" y="0" width="${W - L - R}" height="${H}" fill="transparent" style="cursor:crosshair"/>`;
+    svg.innerHTML = h;
+    const hit = svg.lastElementChild, xh = svg.querySelector(".xh line");
+    hit.onmousemove = e => { const bx = svg.getBoundingClientRect(), px = (e.clientX - bx.left) * W / bx.width;
+      const y = ys.reduce((a, b) => Math.abs(X(b) - px) < Math.abs(X(a) - px) ? b : a);
+      xh.parentNode.style.display = ""; xh.setAttribute("x1", X(y)); xh.setAttribute("x2", X(y));
+      tipAt(e.clientX, bx.top + 10, `<b>${y}</b>` + series.map(s => `<br><span style="color:${s.c}">■</span> ${esc(s.n)} <b>${fmt(at(s.s, y))}</b>`).join("")); };
+    hit.onmouseleave = () => { xh.parentNode.style.display = "none"; hideTip(); };
+  });
+}
+
+/* Stacked area: frame {y,k,v}; share=true draws 100% composition. */
+function area(el, {fr, share = false, colors, fmt = compact, H = 250, keys}) {
+  if (!fr || !fr.y.length) { el.innerHTML = `<p class="empty">No data reported.</p>`; return; }
+  const ks = keys || fr.k, cols = colors || (k => S8()[ks.indexOf(k) % 8]);
+  const box = document.createElement("div"), leg = document.createElement("div"); el.append(leg, box);
+  const paintLeg = () => leg.innerHTML = legendHTML(ks.map(k => ({n: k, c: k === "Other fields" || k === "Unknown" ? css("--s0") : cols(k)})));
+  paintLeg();
+  chart(box, b => {
+    paintLeg();
+    const [svg, W] = svgOf(b, H), L = 52, R = 12, T = 8, B = 24;
+    const raw = ks.map(k => fr.v[fr.k.indexOf(k)] || fr.y.map(() => 0));
+    const keep = fr.y.map((_, i) => raw.reduce((a, v) => a + (v[i] || 0), 0) > 0);
+    const ys = fr.y.filter((_, i) => keep[i]), n = ys.length, vals = raw.map(v => v.filter((_, i) => keep[i]));
+    const tot = ys.map((_, i) => vals.reduce((a, v) => a + (v[i] || 0), 0));
+    const data = vals.map(v => v.map((x, i) => share ? 100 * (x || 0) / (tot[i] || 1) : (x || 0)));
+    const hi = share ? 100 : Math.max(...ys.map((_, i) => data.reduce((a, v) => a + v[i], 0))) || 1;
+    const tk = ticks(0, hi), top = share ? 100 : Math.max(hi, tk[tk.length - 1]) * 1.04;
+    const X = i => L + (ys[i] - ys[0]) / ((ys[n - 1] - ys[0]) || 1) * (W - L - R), Y = v => T + (1 - v / top) * (H - T - B);
+    let h = tk.map(t => `<line x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--rule-2)"/><text x="${L - 6}" y="${Y(t) + 4}" text-anchor="end">${share ? t + "%" : fmt(t, true)}</text>`).join("");
+    h += ticks(ys[0], ys[n - 1], 5).filter(Number.isInteger).map(t => `<text x="${L + (t - ys[0]) / ((ys[n - 1] - ys[0]) || 1) * (W - L - R)}" y="${H - 6}" text-anchor="middle">${t}</text>`).join("");
+    const base = ys.map(() => 0);
+    data.forEach((v, j) => {
+      const up = v.map((x, i) => base[i] + x);
+      const d = "M" + up.map((u, i) => X(i).toFixed(1) + " " + Y(u).toFixed(1)).join("L") + "L" + base.map((u, i) => X(i).toFixed(1) + " " + Y(u).toFixed(1)).reverse().join("L") + "Z";
+      const k = ks[j], c = k === "Other fields" || k === "Unknown" ? css("--s0") : cols(k);
+      h += `<path d="${d}" fill="${c}" stroke="var(--bg)" stroke-width="1.2"/>`;
+      up.forEach((u, i) => base[i] = u);
+    });
+    h += `<line class="xh" y1="${T}" y2="${H - B}" stroke="var(--ink)" style="display:none"/><rect x="${L}" y="0" width="${W - L - R}" height="${H}" fill="transparent" style="cursor:crosshair"/>`;
+    svg.innerHTML = h;
+    const hit = svg.lastElementChild, xh = svg.querySelector(".xh");
+    hit.onmousemove = e => { const bx = svg.getBoundingClientRect(), px = (e.clientX - bx.left) * W / bx.width;
+      let i = 0; for (let j = 1; j < n; j++) if (Math.abs(X(j) - px) < Math.abs(X(i) - px)) i = j;
+      xh.style.display = ""; xh.setAttribute("x1", X(i)); xh.setAttribute("x2", X(i));
+      tipAt(e.clientX, bx.top + 10, `<b>${ys[i]}</b>` + ks.map((k, j) => `<br><span style="color:${k === "Other fields" || k === "Unknown" ? css("--s0") : cols(k)}">■</span> ${esc(k)} <b>${share ? pct(data[j][i]) : fmt(vals[j][i])}</b>${share ? "" : ` (${pct(100 * vals[j][i] / (tot[i] || 1))})`}`).reverse().join("")); };
+    hit.onmouseleave = () => { xh.style.display = "none"; hideTip(); };
+  });
+}
+
+/* Horizontal bars (HTML): rows [{n, v, c, t}] */
+function bars(el, rows, {fmt = nf, max} = {}) {
+  if (!rows.length) { el.innerHTML = `<p class="empty">No data reported.</p>`; return; }
+  const m = max || Math.max(...rows.map(r => Math.abs(r.v))) || 1;
+  el.innerHTML = `<div class="bars">${rows.map(r => `<div class="bar${instId(r.n) ? " inst" : ""}"${instId(r.n) ? ` data-uid="${instId(r.n)}" role="button" tabindex="0"` : ""} title="${esc(r.t || r.n)}${instId(r.n) ? " (click for details)" : ""}"><span class="nm">${esc(r.n)}</span><span class="tr"><i style="width:${(100 * Math.abs(r.v) / m).toFixed(1)}%;--c:${r.c || "var(--accent)"}"></i></span><span class="vv">${fmt(r.v)}</span></div>`).join("")}</div>`;
+}
+
+/* Dumbbell: state dot vs U.S. dot per row: rows [{name, st, us, n}] */
+function dumbbell(el, rows, {fmt = pct, H, lo = 0, hi} = {}) {
+  if (!rows.length) { el.innerHTML = `<p class="empty">Too few degrees to compare.</p>`; return; }
+  const box = document.createElement("div"); el.innerHTML = legendHTML([{n: NAME, c: css("--state")}, {n: "United States", c: css("--us")}]); el.appendChild(box);
+  chart(box, b => {
+    const rh = 24, Hh = H || rows.length * rh + 28, [svg, W] = svgOf(b, Hh), L = Math.min(190, W * .38), R = 46;
+    const mx = hi ?? Math.max(...rows.flatMap(r => [r.st, r.us]).filter(v => v != null)) * 1.05;
+    const X = v => L + (v - lo) / (mx - lo) * (W - L - R);
+    let h = ticks(lo, mx).map(t => `<line x1="${X(t)}" x2="${X(t)}" y1="0" y2="${Hh - 20}" stroke="var(--rule-2)"/><text x="${X(t)}" y="${Hh - 6}" text-anchor="middle">${fmt(t, true)}</text>`).join("");
+    rows.forEach((r, i) => { const y = 12 + i * rh;
+      h += `<g data-i="${i}"><rect x="0" y="${y - 11}" width="${W}" height="${rh}" fill="transparent"/><text x="${L - 10}" y="${y + 4}" text-anchor="end" style="fill:var(--ink)">${esc(r.name)}</text>` +
+        (r.us != null && r.st != null ? `<line x1="${X(r.us)}" x2="${X(r.st)}" y1="${y}" y2="${y}" stroke="var(--ink-3)" stroke-width="2"/>` : "") +
+        (r.us != null ? `<circle cx="${X(r.us)}" cy="${y}" r="5" fill="var(--bg)" stroke="var(--us)" stroke-width="2"/>` : "") +
+        (r.st != null ? `<circle cx="${X(r.st)}" cy="${y}" r="6" fill="var(--state)"/><text class="dl" x="${Math.max(X(r.st), X(r.us ?? r.st)) + 10}" y="${y + 4}">${fmt(r.st)}</text>` : "") + "</g>"; });
+    svg.innerHTML = h;
+    svg.querySelectorAll("g[data-i]").forEach(g => { const r = rows[+g.dataset.i];
+      g.onmousemove = e => tipAt(e.clientX, e.clientY - 6, `<b>${esc(r.name)}</b><br>${esc(NAME)} <b>${fmt(r.st)}</b><br>United States <b>${fmt(r.us)}</b>${r.n ? `<br>${nf(r.n)} ${r.unit || "degrees"} in ${esc(NAME)}` : ""}`);
+      g.onmouseleave = hideTip; });
+  });
+}
+
+/* Bubble / scatter: pts [{x,y,r,c,n,t,hl}] */
+function bubble(el, {pts, xlab, ylab, xfmt = nf, yfmt = nf, xlog = false, H = 360, rmax = 26, sizeLab, colorKeys, ylo, yhi, xlo, xhi, trail, onPick}) {
+  const box = document.createElement("div");
+  el.innerHTML = (colorKeys ? legendHTML(colorKeys.map(k => ({n: k[0], c: k[1]}))) : "") + (sizeLab ? `<div class="legend" style="margin-top:-2px"><span>Circle area = ${esc(sizeLab)}</span></div>` : ""); el.appendChild(box);
+  return chart(box, b => {
+    const P0 = (typeof pts === "function" ? pts() : pts).filter(p => p.x != null && p.y != null && (!xlog || p.x > 0));
+    const [svg, W] = svgOf(b, H), L = 56, R = 18, T = 30 + rmax * .6, B = 40;
+    if (!P0.length) { svg.innerHTML = `<text x="0" y="40">No institutions report both values.</text>`; return; }
+    const fx = xlog ? Math.log10 : (v => v);
+    let a = xlo ?? Math.min(...P0.map(p => p.x)), z = xhi ?? Math.max(...P0.map(p => p.x));
+    if (xlog) { a = 10 ** Math.floor(Math.log10(a)); z = 10 ** Math.ceil(Math.log10(z * 1.6)); } else { const t = ticks(a, z); a = Math.min(a, t[0]); z = Math.max(z, t[t.length - 1]); if (xhi == null || xhi < 100) z += (z - a) * .06; }
+    let c = ylo ?? Math.min(0, ...P0.map(p => p.y)), d = yhi ?? Math.max(...P0.map(p => p.y)); const yt = ticks(c, d); c = Math.min(c, yt[0]); d = Math.max(d, yt[yt.length - 1]);
+    const X = v => L + (fx(v) - fx(a)) / ((fx(z) - fx(a)) || 1) * (W - L - R), Y = v => T + (1 - (v - c) / ((d - c) || 1)) * (H - T - B);
+    const rm = Math.max(...P0.map(p => p.r || 1)), Rr = r => 3 + Math.sqrt((r || 1) / rm) * rmax;
+    let h = yt.map(t => `<line x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--rule-2)"/><text x="${L - 6}" y="${Y(t) + 4}" text-anchor="end">${yfmt(t, true)}</text>`).join("");
+    const xt = xlog ? (() => { const o = []; for (let e = Math.log10(a); e <= Math.log10(z) + 1e-9; e++) o.push(10 ** e); return o; })() : ticks(a, z);
+    h += xt.map(t => `<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${H - B}" stroke="var(--rule-2)"/><text x="${X(t)}" y="${H - B + 15}" text-anchor="middle">${xfmt(t, true)}</text>`).join("");
+    h += `<text x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle" style="fill:var(--ink-2);font-weight:600">${esc(xlab)}</text>`;
+    h += `<text x="${L}" y="12" style="fill:var(--ink-2);font-weight:600">${esc(ylab)}</text>`;
+    if (trail && trail.length > 1) h += `<path d="M${trail.filter(p => p.x != null && p.y != null && (!xlog || p.x > 0)).map(p => X(p.x).toFixed(1) + " " + Y(p.y).toFixed(1)).join("L")}" fill="none" stroke="var(--state)" stroke-width="1.5" stroke-dasharray="2 3"/>`;
+    const ord = [...P0].sort((p, q) => (q.r || 0) - (p.r || 0));
+    h += ord.map((p, i) => `<circle data-i="${P0.indexOf(p)}" cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${Rr(p.r).toFixed(1)}" fill="${p.c}" fill-opacity="${p.hl ? 1 : .72}" stroke="${p.hl ? "var(--state)" : "var(--bg)"}" stroke-width="${p.hl ? 3 : 1}" style="cursor:pointer"/>`).join("");
+    const boxes = [], lab = [...P0].filter(p => p.lab).sort((p, q) => (q.r || 0) - (p.r || 0)).slice(0, Math.max(3, Math.floor(W / 70)));
+    for (const p of lab) {
+      const w = p.lab.length * 6.3, cx = X(p.x), cy = Y(p.y), rr = Rr(p.r), end = cx + rr + 4 + w > W - R;
+      const x = end ? cx - rr - 4 - w : cx + rr + 4, bx = {x, y: cy - 8, w, h: 14};
+      if (boxes.some(o => !(bx.x > o.x + o.w || bx.x + bx.w < o.x || bx.y > o.y + o.h || bx.y + bx.h < o.y))) continue;
+      boxes.push(bx);
+      h += `<text class="dl" x="${end ? cx - rr - 4 : cx + rr + 4}" y="${cy + 4}" text-anchor="${end ? "end" : "start"}" style="paint-order:stroke;stroke:var(--bg);stroke-width:3px">${esc(p.lab)}</text>`;
+    }
+    svg.innerHTML = h;
+    svg.querySelectorAll("circle[data-i]").forEach(ci => { const p = P0[+ci.dataset.i];
+      ci.onmousemove = e => tipAt(e.clientX, e.clientY - 8, `<b>${esc(p.n)}</b>${p.t ? "<br>" + p.t : ""}<br>${esc(xlab)}: <b>${xfmt(p.x)}</b><br>${esc(ylab)}: <b>${yfmt(p.y)}</b>`);
+      ci.onmouseleave = hideTip; if (onPick) ci.onclick = () => onPick(p); else if (instId(p.n)) ci.onclick = () => { hideTip(); openInst(instId(p.n)); }; });
+  });
+}
+
+const shortName = n => n.replace("University of California-", "UC ").replace("California State University-", "CSU ").replace("University of ", "U. of ");
+/* Change since a base year, domestic vs international, diverging from zero: rows [{name, dom, intl}] */
+function growthBars(el, rows) {
+  if (!rows.length) { el.innerHTML = `<p class="empty">No comparison year available.</p>`; return; }
+  const box = document.createElement("div"); el.innerHTML = legendHTML([{n: "Domestic graduates", c: css("--s3")}, {n: "International graduates", c: css("--s1")}]); el.appendChild(box);
+  chart(box, b => {
+    const rh = 36, H = rows.length * rh + 26, [svg, W] = svgOf(b, H), L = Math.min(210, W * .36), R = 56;
+    const mx = Math.max(1, ...rows.flatMap(r => [Math.abs(r.dom), Math.abs(r.intl)])), lo = Math.min(0, ...rows.flatMap(r => [r.dom, r.intl]));
+    const X = v => L + (v - lo) / (mx - lo) * (W - L - R);
+    let h = ticks(lo, mx).map(t => `<line x1="${X(t)}" x2="${X(t)}" y1="0" y2="${H - 20}" stroke="${t === 0 ? "var(--ink-3)" : "var(--rule-2)"}"/><text x="${X(t)}" y="${H - 6}" text-anchor="middle">${t > 0 ? "+" : ""}${compact(t)}</text>`).join("");
+    rows.forEach((r, i) => { const y = 6 + i * rh;
+      h += `<text x="${L - 10}" y="${y + 18}" text-anchor="end" style="fill:var(--ink)">${esc(r.name)}</text>`;
+      [["dom", "--s3", 0], ["intl", "--s1", 14]].forEach(([k, c, o]) => { const v = r[k], x0 = X(Math.min(0, v)), w = Math.abs(X(v) - X(0));
+        h += `<rect x="${x0}" y="${y + o}" width="${Math.max(1, w)}" height="12" rx="2" fill="var(${c})"><title>${esc(r.name)}, ${k === "dom" ? "domestic" : "international"}: ${v >= 0 ? "+" : ""}${nf(v)}</title></rect>` +
+          `<text class="dl" x="${v >= 0 ? X(v) + 5 : X(v) - 5}" y="${y + o + 10}" text-anchor="${v >= 0 ? "start" : "end"}">${v >= 0 ? "+" : ""}${nf(v)}</text>`; }); });
+    svg.innerHTML = h;
+  });
+}
+/* Field x level table of international shares (HTML). */
+function matrix(el, rows) {
+  const lv = [["bach", "Bachelor's"], ["master", "Master's"], ["doc_res", "Research doctorates"]];
+  const dark = theme() === "dark", ramp = dark ? ["#2a2d3b", "#e1e4f2"] : ["#ecebe4", "#20223d"];
+  const mix = (a, b, f) => "#" + [1, 3, 5].map(i => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - f) + parseInt(b.slice(i, i + 2), 16) * f).toString(16).padStart(2, "0")).join("");
+  el.innerHTML = `<div style="overflow-x:auto"><table class="mat"><thead><tr><th>Field</th>${lv.map(l => `<th>${l[1]}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${esc(r.name)}${r.stem ? ' <span class="tag">STEM</span>' : ""}</td>` + lv.map(([k]) => { const c = r[k];
+      if (!c || c.st == null) return `<td class="na">–</td>`;
+      const f = Math.min(1, c.st / 75), bg = mix(ramp[0], ramp[1], f), ink = f > .45 ? (dark ? "#14162a" : "#ffffff") : "var(--ink)";
+      const dlt = c.us != null ? c.st - c.us : null;
+      return `<td style="background:${bg};color:${ink}" title="${esc(r.name)}, ${k}: ${pct(c.st)} in ${esc(NAME)} (${nf(c.n)} degrees), U.S. ${pct(c.us)}"><b>${pct(c.st)}</b><small>${dlt == null ? "" : (dlt >= 0 ? "+" : "−") + nf(Math.abs(dlt), 0) + " vs U.S."}</small></td>`; }).join("") + "</tr>").join("") +
+    `</tbody></table></div>`;
+}
+/* ---------- page assembly helpers ---------- */
+/* ---------- institution detail ---------- */
+let NAME2ID = null, INSTD = null;
+const ordn = n => n + (["th","st","nd","rd"][(n % 100 - 20) % 10] || ["th","st","nd","rd"][n % 100] || "th");
+function instId(n) { if (!NAME2ID) { NAME2ID = {}; (D.inst.rows || []).forEach(r => { NAME2ID[r.name] = r.id; NAME2ID[shortName(r.name)] = r.id; }); } return NAME2ID[n]; }
+document.addEventListener("click", e => { const b = e.target.closest(".bar.inst"); if (b) openInst(+b.dataset.uid); });
+document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".bar.inst")) { e.preventDefault(); openInst(+e.target.dataset.uid); } });
+function instList(el) {
+  const cols = [["name", "Institution"], ["enroll", "Enrollment"], ["intl_grad", "Intl % grad"], ["intl_ug", "Intl % undergrad"], ["ms_stem_intl", "Intl STEM master's"], ["phd_stem_intl", "Intl STEM doctorates"], ["grad6", "6-yr grad rate"]];
+  let key = "enroll", dir = -1, q = "";
+  el.innerHTML = `<div class="ilist"><input type="search" placeholder="Search ${nf(D.inst.rows.length)} institutions by name or city" aria-label="Search institutions"><div class="scroll"><table><thead><tr>${cols.map(([k, l]) => `<th data-k="${k}">${l}</th>`).join("")}</tr></thead><tbody></tbody></table></div></div>`;
+  const tb = el.querySelector("tbody"), fmt = (k, v) => v == null ? "–" : k.startsWith("intl_") || k === "grad6" ? pct(v) : nf(v);
+  const draw = () => { const rs = D.inst.rows.filter(r => !q || (r.name + " " + (r.city || "")).toLowerCase().includes(q)).sort((a, b) => key === "name" ? dir * a.name.localeCompare(b.name) : dir * ((a[key] ?? -1) - (b[key] ?? -1)));
+    tb.innerHTML = rs.map(r => `<tr data-uid="${r.id}" tabindex="0"><td>${esc(r.name)}<small>${esc(r.city || "")} · ${esc(r.sector || "")}</small></td>${cols.slice(1).map(([k]) => `<td>${fmt(k, r[k])}</td>`).join("")}</tr>`).join("") || `<tr><td colspan="7">No match.</td></tr>`;
+    el.querySelectorAll("th").forEach(th => th.textContent = cols.find(c => c[0] === th.dataset.k)[1] + (th.dataset.k === key ? (dir < 0 ? " ↓" : " ↑") : "")); };
+  el.querySelector("input").oninput = e => { q = e.target.value.trim().toLowerCase(); draw(); };
+  el.querySelectorAll("th").forEach(th => th.onclick = () => { if (key === th.dataset.k) dir = -dir; else { key = th.dataset.k; dir = key === "name" ? 1 : -1; } draw(); });
+  tb.onclick = e => { const tr = e.target.closest("tr[data-uid]"); if (tr) openInst(+tr.dataset.uid); };
+  tb.onkeydown = e => { if (e.key === "Enter") { const tr = e.target.closest("tr[data-uid]"); if (tr) openInst(+tr.dataset.uid); } };
+  draw();
+}
+function spark(s, {fmt = nf, color = "var(--accent)"} = {}) {
+  if (!s || !s.y || s.y.length < 2) return `<p class="note">Not enough years reported.</p>`;
+  const W = 240, H = 70, L = 2, R = 44, vs = s.v.filter(v => v != null), lo = Math.min(0, ...vs), hi = Math.max(...vs) || 1;
+  const X = y => L + (y - s.y[0]) / ((s.y[s.y.length - 1] - s.y[0]) || 1) * (W - L - R), Y = v => 6 + (1 - (v - lo) / ((hi - lo) || 1)) * (H - 20);
+  let d = "", pen = false; s.y.forEach((y, i) => { const v = s.v[i]; if (v == null || (i && y - s.y[i - 1] > 2)) pen = false; if (v != null) { d += (pen ? "L" : "M") + X(y).toFixed(1) + " " + Y(v).toFixed(1); pen = true; } });
+  const lv = s.v[s.v.length - 1];
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="${L}" x2="${W - R}" y1="${Y(lo)}" y2="${Y(lo)}" stroke="var(--rule-2)"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/><circle cx="${X(s.y[s.y.length - 1])}" cy="${Y(lv)}" r="3" fill="${color}"/>
+    <text x="${W - R + 6}" y="${Y(lv) + 3}" style="fill:var(--ink);font-weight:600">${fmt(lv)}</text><text x="${L}" y="${H - 2}">${s.y[0]}</text><text x="${W - R}" y="${H - 2}" text-anchor="end">${s.y[s.y.length - 1]}</text></svg>`;
+}
+async function openInst(uid) {
+  if (!uid) return;
+  if (!INSTD) { try { INSTD = await (await fetch(`data/inst/${ST}.json`)).json(); } catch (e) { INSTD = {}; } }
+  const x = INSTD[uid] || (D.inst.rows || []).find(r => r.id === uid); if (!x) return;
+  closeInst();
+  const usd = v => v == null ? "–" : "$" + nf(v), kv = (v, l) => `<div><b>${v}</b><span>${l}</span></div>`;
+  const dg = x.degrees || {}, LV = [["bach", "Bachelor's"], ["master", "Master's"], ["doc_res", "Research doctorates"]];
+  const fin = x.finance || {}, perF = v => v != null && x.fte ? usd(v / x.fte) : "–";
+  const flds = lv => (x.fields && x.fields[lv] || []).filter(f => f.n).map(f => { const s = 100 * (f.intl || 0) / f.n;
+    return `<div class="fbar"><span>${esc(f.name)}${f.stem ? " <small style=\"color:var(--accent-ink)\">STEM</small>" : ""}</span><span style="text-align:right">${nf(f.n)}</span><span style="text-align:right">${pct(s)}</span></div>`; }).join("");
+  const bg = document.createElement("div"); bg.className = "ipanel-bg"; bg.onclick = closeInst;
+  const pn = document.createElement("aside"); pn.className = "ipanel"; pn.setAttribute("role", "dialog"); pn.setAttribute("aria-label", x.name); pn.tabIndex = -1;
+  pn.innerHTML = `<button class="btn x" aria-label="Close">${'<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M7 7l10 10M17 7 7 17"/></svg>'}</button>
+    <h2>${esc(x.name)}</h2><div class="sub">${esc(x.city || "")}, ${esc(NAME)} · ${esc(x.sector || "")}</div>
+    <div class="badges">${x.carnegie ? `<span>Carnegie ${x.carnegie_year}: ${esc(x.carnegie)}</span>` : ""}${x.research_tier ? `<span>${esc(x.research_tier)}</span>` : ""}${x.hbcu ? "<span>HBCU</span>" : ""}${x.tribal ? "<span>Tribal college</span>" : ""}</div>
+    <div class="ids">IPEDS ID ${x.id}${x.opeid ? ` · OPEID ${esc(x.opeid)}` : ""}${x.first_year ? ` · in IPEDS since ${x.first_year}` : ""} · ${ordn(x.rank_enroll)} of ${x.n_state} in ${esc(NAME)} by enrollment${x.rank_ms_intl ? ` · ${ordn(x.rank_ms_intl)} for international STEM master's` : ""}</div>
+    <h3>Students${x.enroll_year ? `, fall ${x.enroll_year}` : ""}</h3><div class="kv">${kv(nf(x.enroll), "Students enrolled")}${kv(nf(x.ug), "Undergraduates")}${kv(nf(x.grad), "Graduate students")}
+      ${kv(pct(x.intl_grad), "International share, graduate")}${kv(pct(x.intl_ug), "International share, undergraduate")}${kv(pct(x.online_excl), "Exclusively online")}
+      ${kv(nf(x.fte), "Full-time equivalent")}${kv(pct(x.pell_share), "Undergraduates with Pell grants")}${kv(x.stufac != null ? nf(x.stufac) + " : 1" : "–", "Student–faculty ratio")}</div>
+    <h3>Admissions, price and outcomes</h3><div class="kv">${kv(nf(x.apps), `Applications${x.adm_year ? ", " + x.adm_year : ""}`)}${kv(pct(x.admit), "Admit rate")}${kv(pct(x.yield), "Yield")}
+      ${kv(usd(x.tuition_in), `In-state tuition & fees${x.price_year ? ", " + x.price_year : ""}`)}${kv(usd(x.tuition_out), "Out-of-state tuition & fees")}${kv(usd(x.grant_avg), "Average grant, first-time students")}
+      ${kv(pct(x.retention), "First-year retention, full-time")}${kv(pct(x.grad6), "Six-year bachelor's graduation rate")}${kv(pct(x.loan_share), "First-time students with loans")}</div>
+    <h3>Degrees awarded, ${x.degrees_year || ""}</h3><table><tr><th>Level</th><th>All</th><th>International</th><th>STEM</th><th>Intl STEM</th></tr>${LV.map(([k, l]) => dg[k] ? `<tr><td>${l}</td><td>${nf(dg[k].n)}</td><td>${nf(dg[k].intl)} <small>(${pct(100 * (dg[k].intl || 0) / dg[k].n)})</small></td><td>${nf(dg[k].stem)}</td><td>${nf(dg[k].stem_intl)}</td></tr>` : "").join("")}</table>
+    <h3>Trends</h3><div class="spark"><figure>${spark(x.enroll_series)}<figcaption>Fall enrollment</figcaption></figure><figure>${spark(x.intl_grad_series, {fmt: v => pct(v)})}<figcaption>International share of graduate students</figcaption></figure>
+      <figure>${spark(x.intl_stem_ms_series)}<figcaption>International STEM master's awarded</figcaption></figure><figure>${spark(x.grad6_series, {fmt: v => pct(v)})}<figcaption>Six-year graduation rate</figcaption></figure></div>
+    ${flds("master") ? `<h3>Largest master's fields</h3><div class="fbar" style="color:var(--ink-3);font-size:12px"><span>Field</span><span style="text-align:right">Degrees</span><span style="text-align:right">Intl</span></div>${flds("master")}` : ""}
+    ${flds("bach") ? `<h3>Largest bachelor's fields</h3><div class="fbar" style="color:var(--ink-3);font-size:12px"><span>Field</span><span style="text-align:right">Degrees</span><span style="text-align:right">Intl</span></div>${flds("bach")}` : ""}
+    ${x.faculty_n ? `<h3>Faculty, ${x.faculty_year}</h3><div class="kv">${kv(nf(x.faculty_n), "Full-time instructional faculty")}${kv(usd(x.faculty_salary), "Average salary (9-month equivalent)")}</div>` : ""}
+    ${x.finance ? `<h3>Finance, fiscal ${x.finance_year}</h3><table><tr><th></th><th>Total</th><th>Per FTE student</th></tr>${[["tuition_net", "Net tuition revenue"], ["state_approp", "State appropriations"], ["local_approp", "Local appropriations"], ["fed_grants", "Federal grants & contracts"], ["private_gifts_grants", "Private gifts & grants"], ["instruction", "Instruction spending"], ["research", "Research spending"], ["total_expenses", "Total expenses"]].filter(([k]) => fin[k]).map(([k, l]) => `<tr><td>${l}</td><td>${usd(fin[k])}</td><td>${perF(fin[k])}</td></tr>`).join("")}</table>` : ""}
+    <p class="note">Source: NCES, IPEDS. Dollars are in each year's own dollars. <a href="https://nces.ed.gov/collegenavigator/?id=${x.id}" target="_blank" rel="noopener">College Navigator entry</a></p>`;
+  document.body.append(bg, pn); pn.querySelector(".x").onclick = closeInst; pn.focus();
+  openInst.prev = document.activeElement;
+}
+function closeInst() { document.querySelectorAll(".ipanel, .ipanel-bg").forEach(n => n.remove()); }
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeInst(); });
+
+function section(id, title, meta, lede) {
+  const s = document.createElement("section"); s.className = "sec"; s.id = id;
+  s.innerHTML = `<div class="sec-h"><h2>${title}</h2><span>${meta || ""}</span></div>` + (lede ? `<p class="lede">${lede}</p>` : "") + `<div class="grid"></div>`;
+  $("main").appendChild(s); return s.querySelector(".grid");
+}
+const SRC_IPEDS = "Source: NCES, IPEDS.";
+function fig(grid, title, note, wide, src = SRC_IPEDS) {
+  const f = document.createElement("figure"); f.className = "fig" + (wide ? " wide" : ""); f.style.margin = 0;
+  f.innerHTML = `<h3>${title}</h3>${note ? `<p class="note">${note}</p>` : ""}<div class="body"></div>${src ? `<p class="src">${src}</p>` : ""}`;
+  grid.appendChild(f); return f.querySelector(".body");
+}
+function seg(el, opts, cur, on) {
+  const w = document.createElement("div"); w.className = "ctrl";
+  w.innerHTML = `<div class="seg" role="group">${opts.map(([k, l]) => `<button data-k="${k}" aria-pressed="${k === cur}">${l}</button>`).join("")}</div>`;
+  el.appendChild(w); const body = document.createElement("div"); el.appendChild(body);
+  const go = k => { w.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k)); CHARTS.splice(0, CHARTS.length, ...CHARTS.filter(c => !body.contains(c.el))); body.innerHTML = ""; on(body, k); };
+  w.querySelectorAll("button").forEach(b => b.onclick = () => go(b.dataset.k)); go(cur);
+}
+/* competitor set: shared with the sheet through the URL and local storage */
+let PEERS = [], PD = {}, PEER_NOTE = "", PS = "size";
+const SLOTS = {};
+const colour = s => s === ST ? css("--s1") : s === "US" ? css("--us") : css("--s" + (SLOTS[s] || 2));
+function assignSlots() { const used = new Set(PEERS.map(p => SLOTS[p]).filter(Boolean)); for (const p of PEERS) if (!SLOTS[p]) for (let k = 2; k <= 8; k++) if (!used.has(k)) { SLOTS[p] = k; used.add(k); break; } }
+function similarStates() { const m = "enroll_total", y = pLast(m), me = pv(m, y); return P.states.filter(x => x !== ST && pv(m, y, x) != null).sort((a, b) => Math.abs(Math.log(pv(m, y, a) / me)) - Math.abs(Math.log(pv(m, y, b) / me))).slice(0, 4); }
+function peerSeries(getSt, getUs) {
+  const out = [{n: NAME, s: getSt(D), c: colour(ST), w: 3}];
+  for (const p of PEERS) if (PD[p]) { try { out.push({n: STATE_NAMES[p] || p, s: getSt(PD[p]), c: colour(p), w: 1.7}); } catch (e) {} }
+  out.push({n: "United States", s: getUs(D), c: css("--us"), dash: true});
+  return out;
+}
+async function loadPeers() {
+  PEER_NOTE = ""; const need = PEERS.filter(p => !PD[p]);
+  await Promise.all(need.map(p => fetch(`data/${p}.json`).then(r => r.ok ? r.json() : Promise.reject()).then(j => PD[p] = j).catch(() => { PEER_NOTE = "Competitor lines need the local server (python -m http.server); the at-a-glance table works without it."; })));
+}
+const stLine = (n, s, extra = {}) => ({n, s, c: css("--state"), w: 2.5, ...extra});
+const usLine = s => ({n: "United States", s, c: css("--us"), dash: true});
+const cagr = (s, y0, y1) => { const a = at(s, y0), b = at(s, y1); return a && b ? 100 * ((b / a) ** (1 / (y1 - y0)) - 1) : null; };
+function frameLast(fr) { const i = fr.y.length - 1; return Object.fromEntries(fr.k.map((k, j) => [k, fr.v[j][i]])); }
+function frameAt(fr, y) { const i = fr.y.indexOf(y); return i < 0 ? null : Object.fromEntries(fr.k.map((k, j) => [k, fr.v[j][i]])); }
+
+/* state panel lookups */
+const PI = Object.fromEntries(P.states.map((s, i) => [s, i])), PUS = P.states.length;
+const pv = (m, y, s = ST) => { const d = P.data[m]; if (!d) return null; const i = d.y.indexOf(y); return i < 0 ? null : d.v[i][s === "US" ? PUS : PI[s]]; };
+const pLast = m => P.data[m] ? P.data[m].y[P.data[m].y.length - 1] : null;
+function pRank(m, y, s = ST) { const d = P.data[m]; if (!d) return [null, 0]; const i = d.y.indexOf(y); if (i < 0) return [null, 0];
+  const r = d.v[i].slice(0, PUS), mine = r[PI[s]]; if (mine == null) return [null, r.filter(v => v != null).length]; return [1 + r.filter(v => v != null && v > mine).length, r.filter(v => v != null).length]; }
+function pSeries(m, s = ST) { const d = P.data[m]; return d ? {y: d.y, v: d.v.map(r => r[s === "US" ? PUS : PI[s]])} : null; }
+function pfmt(m, x) { if (x == null) return "–"; const f = P.meta[m].fmt; const s = Math.abs(x).toLocaleString("en-US", {minimumFractionDigits: f.d, maximumFractionDigits: f.d, useGrouping: f.comma}); return (x < 0 ? "−" : f.sign && x > 0 ? "+" : "") + f.pre + s + f.suf; }
+
+
+/* ---------- outside sources: one line chart per panel measure, state + competitors + U.S. ---------- */
+const srcOf = m => (P.srcLines && P.srcLines[P.meta[m].src] || "Data from NCES, IPEDS") + ".";
+const trim = sr => { if (!sr) return null; let i = sr.v.length - 1; while (i >= 0 && sr.v[i] == null) i--; let j = 0; while (j <= i && sr.v[j] == null) j++; return i < 0 ? null : {y: sr.y.slice(j, i + 1), v: sr.v.slice(j, i + 1)}; };
+const lastSt = (m, s = ST) => { const sr = trim(pSeries(m, s)); return sr ? sr.y[sr.y.length - 1] : null; };
+const short = t => t.replace(/ \((ACS|NAEP|NSF GSS|NSF SED|USCIS|DOL|DOL LCA|DOL PERM|USPTO)\)$/, "");
+// The U.S. line is drawn only where it is comparable with a state (shares, scores, wages); for counts and
+// "share of U.S." measures it would flatten every state line, so the U.S. value is given in the note instead.
+const usComparable = m => { const u = P.meta[m]; return !/share_of_us/.test(m) && (u.unit === "%" || u.unit === "score" || u.fmt.pre === "$"); };
+function mSeries(m) { return [{n: NAME, s: trim(pSeries(m)), c: colour(ST), w: 3}, ...PEERS.map(p => ({n: STATE_NAMES[p] || p, s: trim(pSeries(m, p)), c: colour(p), w: 1.7})),
+  ...(usComparable(m) ? [{n: "United States", s: trim(pSeries(m, "US")), c: css("--us"), dash: true}] : [])]; }
+function mFact(m) { const y = lastSt(m); if (y == null) return ""; const [r, n] = pRank(m, y), us = pv(m, y, "US"); return `${esc(NAME)}: ${pfmt(m, pv(m, y))} in ${ylabP(m, y)}${r ? ` (rank ${r} of ${n})` : ""}${us != null ? `; U.S. ${pfmt(m, us)}` : ""}.`; }
+function mFig(g, m, note, wide) { if (!P.data[m] || lastSt(m) == null) return false; const u = P.meta[m];
+  if (P.data[m].y.length === 1) {   // single-release measure (College Scorecard): compare states as bars
+    const y = P.data[m].y[0], who = [ST, ...PEERS, "US"].filter(s => pv(m, y, s) != null);
+    bars(fig(g, esc(short(u.title)), `${note ? note + " " : ""}${mFact(m)}`, wide, srcOf(m)),
+      who.map(s => ({n: s === "US" ? "United States" : (STATE_NAMES[s] || s), v: pv(m, y, s), c: colour(s)})), {fmt: v => pfmt(m, v)});
+    return true; }
+  line(fig(g, esc(short(u.title)), `${note ? note + " " : ""}${mFact(m)}`, wide, srcOf(m)), {series: mSeries(m), fmt: v => pfmt(m, v), zero: u.unit !== "score" && u.fmt.pre !== "$", gap: u.gap || 2}); return true; }
+const ylabP = (m, y) => (P.meta[m] && P.meta[m].months && P.meta[m].months[y]) || y;
+const vAt = m => { const y = lastSt(m); return y == null ? null : {y, v: pv(m, y), us: pv(m, y, "US"), r: pRank(m, y)[0], n: pRank(m, y)[1], f: x => pfmt(m, x)}; };
+const ord = r => r + (["th", "st", "nd", "rd"][(r % 100 - 20) % 10] || ["th", "st", "nd", "rd"][r % 100] || "th");
+function buildOutside() {
+  let g, a, b, c;
+  /* ---- K-12 preparation (NAEP) */
+  a = vAt("naep_math8"); b = vAt("naep_math8_prof");
+  if (a) {
+    g = section("k12", "K-12 preparation", `NAEP ${P.data.naep_math8.y[0]}–${a.y}, public schools`,
+      `The pipeline starts in school. ${esc(NAME)}'s eighth graders averaged <b>${a.f(a.v)}</b> in mathematics on the ${a.y} NAEP (U.S. public schools ${a.f(a.us)}), ${a.r ? ord(a.r) + " of " + a.n : ""}` +
+      (b ? `; <b>${b.f(b.v)}</b> scored at or above Proficient (U.S. ${b.f(b.us)}).` : "."));
+    mFig(g, "naep_math8", "Average score, 0–500 scale.");
+    mFig(g, "naep_math8_prof", "Share of students at or above the Proficient level.");
+    mFig(g, "naep_math8_adv", "Share at the Advanced level: the top of the talent pool.");
+    mFig(g, "naep_math8_p90", "Score of the student at the 90th percentile.");
+    mFig(g, "naep_math4", "Average score, 0–500 scale.");
+    mFig(g, "naep_read8", "Average score, 0–500 scale.");
+    mFig(g, "naep_sci8", "Average score on the 2009 science framework (state results 2009, 2011, 2015).");
+    mFig(g, "crdc_calc", "Share of public high schools offering at least one calculus class.");
+    mFig(g, "crdc_csci", "Share of public high schools offering computer science (collected from 2020-21).");
+    mFig(g, "crdc_ap_per100", "AP course enrollments per 100 high-school students.");
+    mFig(g, "k12_ppe", "Current spending per pupil in fall enrollment, constant 2024 dollars.");
+    mFig(g, "k12_acgr", "Share of a ninth-grade cohort graduating in four years.");
+  }
+  /* ---- graduate research: NSF GSS and SED */
+  a = vAt("gss_grad_se_tv_share"); b = vAt("gss_postdoc_se_tv_share");
+  const sedMs = Object.keys(P.meta).filter(m => P.meta[m].src === "sed");
+  if (a || sedMs.length || P.data.rd_herd) {
+    g = section("research", "Graduate research", "NSF surveys of graduate students, postdocs and doctorates",
+      (a ? `In ${a.y}, the last year NSF published state tables, <b>${a.f(a.v)}</b> of ${esc(NAME)}'s science and engineering graduate students held temporary visas (U.S. ${a.f(a.us)})` : "") +
+      (b ? `, as did <b>${b.f(b.v)}</b> of its S&E postdocs (U.S. ${b.f(b.us)}).` : a ? "." : "") +
+      " Counts are at the institution's state." +
+      (vAt("sed_doctorates") ? ` The state's institutions awarded <b>${vAt("sed_doctorates").f(vAt("sed_doctorates").v)}</b> research doctorates in ${vAt("sed_doctorates").y}, ${vAt("sed_share_of_us").f(vAt("sed_share_of_us").v)} of the U.S. total (NSF publishes doctorates by citizenship only for the nation).` : ""));
+    mFig(g, "gss_grad_se_tv_share", "Share of S&E graduate students on temporary visas. The dashed U.S. line continues past 2016, when NSF stopped publishing state tables.");
+    mFig(g, "gss_grad_se_tv", "S&E graduate students on temporary visas.");
+    mFig(g, "gss_grad_eng_tv_share", "Engineering only.");
+    mFig(g, "gss_postdoc_se_tv_share", "Share of S&E postdoctoral appointees on temporary visas, 2010–2016.");
+    sedMs.slice(0, 6).forEach(m => mFig(g, m, ""));
+    mFig(g, "rd_herd", "Research and development spending by the state's universities, nominal dollars (FY2003-09 from the predecessor survey).");
+    mFig(g, "rd_herd_share_of_us", "The state's share of all U.S. university R&D.");
+    mFig(g, "rd_herd_fed_share", "Share of university R&D paid for by the federal government.");
+    mFig(g, "rd_herd_personnel", "People working on university R&D (headcount).");
+    mFig(g, "rd_ffs", "Federal R&D obligations for work performed in the state, all performers.");
+    mFig(g, "rd_usa_rd", "NSF, NIH, NASA and DOE Science grants plus R&D contracts performed in the state.");
+    mFig(g, "iie_econ_value", "International students' spending in the state on tuition and living costs (NAFSA), academic year.");
+    mFig(g, "iie_jobs", "Jobs supported by that spending (NAFSA).");
+  }
+  /* ---- do graduates stay? PSEO, OPT, ACS migration, College Scorecard */
+  a = vAt("pseo_instate_bach_y1"); b = vAt("mig_net_ba_plus_per_1000"); c = vAt("opt_retention");
+  if (a || b || c) {
+    g = section("stay", "Do graduates stay?", "graduates' first jobs, migration of degree holders, and earnings",
+      (a ? `Of ${esc(NAME)}'s bachelor's graduates who finished in ${String(ylabP("pseo_instate_bach_y1", a.y)).replace(" grads", "")} and were working a year later, <b>${a.f(a.v)}</b> worked in the state (participating states ${a.f(a.us)}). ` : "") +
+      (c ? `Among international graduates on Optional Practical Training in ${c.y}, <b>${c.f(c.v)}</b> worked in the state where they studied (U.S. ${c.f(c.us)}). ` : "") +
+      (b ? `Through migration between states, ${esc(NAME)} ${b.v >= 0 ? "gained" : "lost"} <b>${Math.abs(b.v).toFixed(1)}</b> bachelor's-plus adults per 1,000 such residents in ${b.y}.` : ""));
+    mFig(g, "pseo_instate_bach_y1", "Bachelor's graduates employed in the state 1 year after graduating, of all employed graduates, by graduating cohort. Participating institutions only.");
+    mFig(g, "pseo_instate_bach_y5", "The same share 5 years after graduating.");
+    mFig(g, "pseo_instate_bach_stem_y1", "STEM bachelor's graduates only.");
+    mFig(g, "pseo_instate_master_y1", "Master's graduates, 1 year after graduating.");
+    mFig(g, "opt_retention", "International graduates' OPT jobs at employers in the state where they studied, of records with a known employer state. Shares only: the OPT file is cut off at Excel's row limit.");
+    mFig(g, "opt_stem_approved", "STEM OPT extensions approved, by the state of the school.");
+    mFig(g, "mig_net_ba_plus_per_1000", "Movers in from other states minus movers out, adults 25+ with a bachelor's degree or more, per 1,000 such residents.");
+    mFig(g, "mig_abroad_ba_plus", "Bachelor's-plus adults who arrived from abroad in the past year.");
+    mFig(g, "sc_earn1_bach_stem", "Median earnings 1 year after completing a STEM bachelor's program at an institution in the state (latest release).");
+    mFig(g, "sc_earn10", "Median earnings 10 years after entering college, institutions in the state, by the years earned (2024 dollars).");
+  }
+  /* ---- H-1B and green cards: DOL and USCIS */
+  a = vAt("dol_h1b_positions"); b = vAt("dol_perm_cert"); c = vAt("dol_perm_f1_share");
+  if (a || b) {
+    g = section("visas", "H-1B jobs and green cards", "DOL labor certifications and USCIS petitions, by fiscal year",
+      (a ? `Employers were certified for <b>${a.f(a.v)}</b> H-1B positions at ${esc(NAME)} worksites in FY${a.y}${a.r ? ", " + ord(a.r) + " among the states" : ""}. ` : "") +
+      (b ? `DOL certified <b>${b.f(b.v)}</b> green-card (PERM) applications for jobs in the state in FY${b.y}` : "") +
+      (c ? `; <b>${c.f(c.v)}</b> of those in FY${c.y} were for workers still on F-1 student visas (U.S. ${c.f(c.us)}), the most direct link from the state's classrooms to permanent residence.` : b ? "." : ""));
+    mFig(g, "dol_h1b_positions", "Positions on certified labor condition applications at worksites in the state. An LCA comes before the H-1B petition, so this overstates hires.");
+    mFig(g, "dol_h1b_share_of_us", "");
+    mFig(g, "dol_h1b_stem_share", "STEM occupations: computer, math, engineering, science and STEM managers.");
+    mFig(g, "dol_h1b_median_wage", "Median offered wage on certified H-1B applications, not adjusted for inflation.");
+    mFig(g, "h1b_initial", "New H-1B approvals by the petitioning employer's address, which is often headquarters rather than the worksite.");
+    if (D.h1b_top) bars(fig(g, `Largest H-1B employers, FY${D.h1b_top.fy}`, "New (initial) H-1B approvals by petitioner filing from the state.", false, "Data from USCIS, H-1B Employer Data Hub."),
+      D.h1b_top.rows.map(r => ({n: r.n, v: r.v, t: `${nf(r.v)} new and ${nf(r.c)} continuing approvals`})));
+    mFig(g, "dol_perm_cert", "Certified PERM applications, the employer's step toward an employment-based green card, by worksite.");
+    mFig(g, "dol_perm_f1_share", "Share of PERM certifications for workers on F-1 student visas. The question was dropped from the form after FY2024.");
+    mFig(g, "dol_perm_india_share", "Indian citizens face the longest green-card waits under per-country caps. Not reported after FY2024.");
+    mFig(g, "dol_perm_grad_share", "Workers holding a master's or doctorate. Not reported after FY2024.");
+    mFig(g, "dhs_lpr", "New lawful permanent residents living in the state, all classes of admission (DHS does not publish employment-based green cards by state).");
+    mFig(g, "dhs_naturalized", "People naturalized as U.S. citizens, by state of residence.");
+  }
+  /* ---- STEM workforce: ACS */
+  a = vAt("acs_stem_fb_share"); b = vAt("acs_stem_grad_fb_share");
+  if (a) {
+    g = section("workforce", "STEM workforce", `ACS ${P.data.acs_stem_fb_share.y[0]}–${a.y}, workers by state of residence`,
+      `In ${a.y}, <b>${a.f(a.v)}</b> of the people working in STEM occupations in ${esc(NAME)} were born abroad (U.S. ${a.f(a.us)})` +
+      (b && b.v != null ? `, rising to <b>${b.f(b.v)}</b> among STEM workers with a graduate degree (U.S. ${b.f(b.us)}).` : ".") +
+      " Shares resting on fewer than 100 survey records are left blank.");
+    ["acs_stem_fb_share", "acs_stem_grad_fb_share", "acs_stem_phd_fb_share", "acs_stem_noncit_share", "acs_stem_fb_recent_share", "acs_stem_fb_india_share", "acs_stem_share_of_workers", "acs_stem_workers"].forEach(m => mFig(g, m, ""));
+    mFig(g, "oews_stem_share", "STEM jobs at employers in the state, as a share of all jobs (employer survey; counts jobs where they are).");
+    mFig(g, "oews_stem_lq", "STEM job concentration relative to the U.S. (1 = the national share).");
+    mFig(g, "oews_softdev_median", "Median annual wage of software developers, not adjusted for inflation.");
+  }
+  /* ---- patents: USPTO */
+  a = vAt("pat_patents"); b = vAt("pat_share_of_us");
+  if (a) {
+    g = section("patents", "Patents", `USPTO grants ${P.data.pat_patents.y[0]}–${a.y}, by owner's state`,
+      `Organizations and people in ${esc(NAME)} were granted <b>${a.f(a.v)}</b> U.S. patents in ${a.y}` + (b ? `, <b>${b.f(b.v)}</b> of all patents with a U.S. owner` : "") + `${a.r ? " (" + ord(a.r) + ")" : ""}. Counts are by the owner's location, split across co-owners.`);
+    ["pat_patents", "pat_share_of_us", "pat_share_digital", "pat_share_life", "pat_share_semis", "pat_women_share"].forEach(m => mFig(g, m, ""));
+  }
+}
+/* ======================================================================== sections */
+function build() {
+  CHARTS.length = 0; $("main").innerHTML = "";
+  const I = D.institutions, Sd = D.students, In = D.international, Dg = D.degrees, Pr = D.prices, Fi = D.finance, O = D.outcomes, F = D.faculty, Mg = D.migration, T = D.inst;
+  const yE = lastY(Sd.share_of_us), totE = frameLast(Sd.level), enr = (totE.Undergraduate || 0) + (totE.Graduate || 0);
+  const nInst = Object.values(frameLast(I.sectors.y ? I.sectors : {y: [], k: [], v: []})).reduce((a, b) => a + (b || 0), 0);
+
+  /* ---- at a glance: hero + fact sheet */
+  const hero = document.createElement("section"); hero.className = "hero"; hero.id = "glance";
+  const FACTS = ["enroll_total", "intl_share_enroll_grad", "intl_share_stem_master", "intl_stem_master_count", "share_of_us_intl_stem_master",
+    "stem_share_bach", "stem_share_master", "field_share_cs_bach", "tuition_pub4_instate", "approp_per_fte", "grad_rate_bach6", "faculty_salary", "net_migration_ft"].filter(m => P.meta[m]);
+  const COLS = [ST, ...PEERS, "US"];
+  hero.innerHTML = `<h1>${esc(NAME)}</h1><p class="lede">${esc(NAME)} has <b>${nf(nInst)}</b> degree-granting institutions enrolling <b>${big(enr)}</b> students in fall ${yE}, ${pct(last(Sd.share_of_us), 1)} of the country. ` +
+    `In ${lastY(In.deg_master_st)} its institutions awarded <b>${nf(last(In.stem_master_n))}</b> STEM master's degrees to international students. Below, ${esc(NAME)} against ${PEERS.length ? PEERS.map(p => esc(STATE_NAMES[p])).join(", ") : "the U.S."}; change the competitors at the top.</p>` +
+    `<div style="overflow-x:auto"><table class="facts"><thead><tr><th>Measure (latest year)</th>${COLS.map(s => `<th class="${s === ST ? "fc" : ""}"><span class="cdot" style="background:${colour(s)}"></span>${s === "US" ? "U.S." : s === ST ? esc(NAME) : `<a href="${s}.html#p=${[ST, ...PEERS.filter(x => x !== s)].join(",")}">${esc(STATE_NAMES[s])}</a>`}</th>`).join("")}</tr></thead><tbody>` +
+    FACTS.map(m => { const y = pLast(m), vals = COLS.slice(0, -1).map(s => pv(m, y, s)).filter(v => v != null), best = vals.length > 1 ? Math.max(...vals) : null;
+      return `<tr class="r" data-m="${m}" title="Chart this measure in All measures"><td>${esc(P.meta[m].title)} <span class="lab">${y}</span></td>` + COLS.map(s => { const v = pv(m, y, s), [r] = s === "US" ? [null] : pRank(m, y, s);
+        return `<td class="${s === ST ? "fc" : ""}">${m.startsWith("share_of_us") && s === "US" ? "–" : pfmt(m, v)}${s !== "US" && v != null && v === best ? '<span class="best" title="Highest among the states shown">●</span>' : ""}<span class="cs">${r ? "#" + r : s === "US" ? "U.S." : ""}</span></td>`; }).join("") + `</tr>`; }).join("") +
+    `</tbody></table></div>` + (PEER_NOTE ? `<p class="lab" style="margin-top:8px">${esc(PEER_NOTE)}</p>` : "");
+  $("main").appendChild(hero);
+  hero.querySelectorAll("tr[data-m]").forEach(tr => tr.onclick = () => { measureFocus = tr.dataset.m; drawFocus(); $("measures").scrollIntoView({behavior: "auto"}); });
+  if (D.online) { const e = document.createElement("p"); e.className = "errata"; e.innerHTML = `<b>Read with care</b>${esc(D.online)}`; hero.insertBefore(e, hero.children[2]); }
+
+  /* ---- institutions */
+  const inst = frameLast(I.sectors), biggest = Object.entries(inst).sort((a, b) => b[1] - a[1])[0];
+  let g = section("institutions", "Institutions", `directory ${I.sectors.y[0]}–${lastY({y: I.sectors.y})}`,
+    `There are <b>${nf(nInst)}</b> degree-granting institutions in ${esc(NAME)} today; the largest group is <b>${biggest[0].toLowerCase()}</b> (${nf(biggest[1])}).`);
+  area(fig(g, "Institutions by sector", "Count of degree-granting institutions each year."), {fr: I.sectors, colors: k => css(SECTOR_C[k]), fmt: nf});
+  bars(fig(g, "Largest institutions", `Fall ${T.years.enroll} headcount, coloured by sector.`), T.rows.slice(0, 15).map(r => ({n: r.name, v: r.enroll, c: `var(${SECTOR_C[r.sector]})`, t: `${r.name} (${r.sector}), ${r.city}`})), {fmt: nf});
+  instList(fig(g, "Every institution", `All ${nf(T.rows.length)} degree-granting institutions. Search, sort by a column, or click a row for its full profile.`, true));
+  bubble(fig(g, "Every institution, by size and sector", "Each circle is one institution: graduate share of enrollment against total enrollment. Hover for names.", true),
+    {pts: T.rows.map(r => ({x: r.enroll, y: r.ms != null || r.phd != null ? 100 * ((r.ms || 0) + (r.phd || 0)) / Math.max(1, (r.ba || 0) + (r.ms || 0) + (r.phd || 0)) : null, r: r.enroll, c: `var(${SECTOR_C[r.sector]})`, n: r.name, t: `${r.sector}, ${r.city}`, lab: r.enroll > 35000 ? r.name.replace("University of California-", "UC ").replace("California State University-", "CSU ") : null})),
+     xlab: `Fall ${T.years.enroll} enrollment (log scale)`, ylab: "Graduate degrees as share of bachelor's + graduate degrees", xlog: true, xfmt: (v, ax) => ax ? compact(v) : nf(v), yfmt: v => pct(v), sizeLab: "enrollment", colorKeys: Object.entries(SECTOR_C).map(([k, v]) => [k, css(v)]), H: 420});
+
+  /* ---- students */
+  const rc = frameLast(Sd.race), rUS = frameLast(Sd.race_us), rcT = Object.values(rc).reduce((a, b) => a + b, 0), usT = Object.values(rUS).reduce((a, b) => a + b, 0);
+  const topRace = Object.entries(rc).sort((a, b) => b[1] - a[1])[0];
+  g = section("students", "Students", `fall enrollment ${Sd.level.y[0]}–${yE}`,
+    `${esc(NAME)} enrolled <b>${big(enr)}</b> students in fall ${yE}, ${pct(100 * (totE.Graduate || 0) / enr)} of them graduate students. The largest group is <b>${topRace[0]}</b> students at ${pct(100 * topRace[1] / rcT)} (U.S. ${pct(100 * (rUS[topRace[0]] || 0) / usT)}).`);
+  area(fig(g, "Enrollment by level", "Fall headcount, undergraduate and graduate (including first-professional)."), {fr: Sd.level, colors: k => css(k === "Undergraduate" ? "--s1" : "--s2")});
+  area(fig(g, "Enrollment by sector", "Fall headcount by institution sector."), {fr: Sd.sector, colors: k => css(SECTOR_C[k])});
+  seg(fig(g, "Who enrolls: race and ethnicity", "Share of fall headcount. Categories changed in 2010 (two or more races added).", true), [["st", NAME], ["us", "United States"]], "st",
+    (b, k) => area(b, {fr: k === "st" ? Sd.race : Sd.race_us, share: true}));
+  line(fig(g, "Part-time share of students"), {series: peerSeries(d => d.students.parttime, d => d.students.parttime_us), fmt: v => pct(v)});
+  line(fig(g, `${esc(NAME)}'s share of all U.S. students`), {series: [stLine(NAME, Sd.share_of_us)], fmt: v => pct(v, 1)});
+
+  /* ---- international */
+  const gS = last(In.enroll_grad_st), gU = last(In.enroll_grad_us), msS = last(In.deg_master_st), msU = last(In.deg_master_us);
+  g = section("international", "International talent", `enrollment ${yE}, degrees ${lastY(In.deg_master_st)}`,
+    `International students are <b>${pct(gS)}</b> of graduate enrollment in ${esc(NAME)} (U.S. ${pct(gU)}) and earned <b>${pct(msS)}</b> of its master's degrees (U.S. ${pct(msU)}): ${nf(last(In.stem_master_n))} STEM master's and ${nf(last(In.stem_doc_res_n))} STEM research doctorates.`);
+  line(fig(g, "International share of graduate enrollment"), {series: peerSeries(d => d.international.enroll_grad_st, d => d.international.enroll_grad_us), fmt: v => pct(v)});
+  line(fig(g, "International share of undergraduate enrollment"), {series: peerSeries(d => d.international.enroll_unde_st, d => d.international.enroll_unde_us), fmt: v => pct(v)});
+  if (D.sevis) { const V = D.sevis, tr = V.trend, SV = `Source: DHS, SEVIS by the Numbers, ${V.month}.`, PALS = ["--s1", "--s2", "--s3", "--s4", "--s5"];
+    line(fig(g, "Where international students come from", `Active F-1 and M-1 students from the state's five largest source countries, all levels; the latest monthly snapshot in each year. ${esc(NAME)} had ${nf(V.total)} in ${V.month} (${V.rank}${["th","st","nd","rd"][(V.rank % 100 - 20) % 10] || ["th","st","nd","rd"][V.rank % 100] || "th"} of ${V.n_ranked}), from ${V.countries} countries.`, false, `Source: DHS, SEVIS by the Numbers, ${tr.first_month}–${V.month}.`),
+      {series: tr.lines.map((l, i) => ({n: l.country, s: {y: l.y, v: l.v}, c: css(PALS[i]), w: 2.5})), fmt: (v, ax) => ax ? compact(v) : nf(v)});
+    dumbbell(fig(g, "Countries of citizenship against the nation", `Share of the state's international students from each of its twelve largest source countries, against that country's share nationally.`, false, SV),
+      V.top.map(r => ({name: r.country, st: r.share, us: r.us_share})));
+    const LVN = {bachelors: "Bachelor's", masters: "Master's", doctorate: "Doctorate", other: "Other levels"}, LVC = {bachelors: "--s4", masters: "--s6", doctorate: "--s5", other: "--s0"};
+    const levs = ["masters", "doctorate", "bachelors", "other"].filter(k => V.stem.levels[k] && V.stem.levels[k].n > 0);
+    sankey(fig(g, "Which countries supply the state's international STEM students", `Active F-1 and M-1 students in STEM fields, ${V.stem.month}: the eight largest countries of citizenship and the level they study at. ${nf(V.stem.total)} STEM students in all${V.stem.share != null ? `, ${pct(V.stem.share)} of the state's international students (U.S. ${pct(V.stem.us_share)})` : ""}. Hover any ribbon.`, true, `Source: DHS, SEVIS by the Numbers, ${V.stem.month}.`),
+      {nodes: [...V.stem.order.map((c, i) => ({id: "c" + i, label: c, col: 0, color: css(c === "All other countries" ? "--s0" : "--s2")})), ...levs.map(k => ({id: k, label: LVN[k], col: 1, color: css(LVC[k])}))],
+       links: V.stem.flows.filter(f => levs.includes(f.lev)).map(f => ({s: "c" + V.stem.order.indexOf(f.c), t: f.lev, v: f.n, color: css(LVC[f.lev])})),
+       H: 420, labelW: 200, unit: "students", tip: (html, e) => html ? tipAt(e.clientX, e.clientY - 8, html) : hideTip(), colLabels: ["Country of citizenship", "Level of study"]});
+  }
+  seg(fig(g, "International share of degrees", "Share of all degrees at each level earned by U.S. nonresidents."), [["master", "Master's"], ["doc_res", "Doctorates"], ["bach", "Bachelor's"]], "master",
+    (b, k) => line(b, {series: peerSeries(d => d.international[`deg_${k}_st`], d => d.international[`deg_${k}_us`]), fmt: v => pct(v)}));
+  line(fig(g, "STEM degrees earned by international students", "Count of degrees by level."), {series: [
+    {n: "Master's", s: In.stem_master_n, c: css("--s1"), w: 2.5}, {n: "Research doctorates", s: In.stem_doc_res_n, c: css("--s2"), w: 2.5}, {n: "Bachelor's", s: In.stem_bach_n, c: css("--s3"), w: 2.5}], fmt: (v, ax) => ax ? compact(v) : nf(v)});
+  seg(fig(g, "Which fields rely most on international students", `International share by field in ${In.by_field_year}, ${esc(NAME)} against the U.S. Fields with at least 50 degrees in the state.`, true),
+    [["master", "Master's"], ["doc_res", "Research doctorates"]], "master", (b, k) => dumbbell(b, In.by_field[k], {hi: 100}));
+  const msPts = () => T.rows.filter(r => r.ms >= 20).map(r => ({x: r.ms, y: 100 * (r.ms_intl || 0) / r.ms, r: r.ms_stem_intl || 0.5, c: `var(${SECTOR_C[r.sector]})`, n: r.name, t: `${nf(r.ms_intl || 0)} international master's, ${nf(r.ms_stem_intl || 0)} in STEM`,
+    lab: (r.ms_stem_intl || 0) > 250 ? r.name.replace("University of California-", "UC ").replace("California State University-", "CSU ") : null}));
+  bubble(fig(g, "Where international master's students graduate", `Institutions with 20+ master's degrees in ${T.years.completions}. Up = more international; right = more master's; bigger = more international STEM master's.`, true),
+    {pts: msPts, xlab: `Master's degrees awarded, ${T.years.completions} (log scale)`, ylab: "International share of master's", xlog: true, xfmt: (v, ax) => ax ? compact(v) : nf(v), yfmt: v => pct(v), ylo: 0, yhi: 100, sizeLab: "international STEM master's", colorKeys: Object.entries(SECTOR_C).map(([k, v]) => [k, css(v)]), H: 440});
+  bars(fig(g, "Top institutions for international STEM master's", `Degrees in ${T.years.completions}.`),
+    T.rows.filter(r => r.ms_stem_intl).sort((a, b) => b.ms_stem_intl - a.ms_stem_intl).slice(0, 15).map(r => ({n: r.name, v: r.ms_stem_intl, c: `var(${SECTOR_C[r.sector]})`})));
+  bars(fig(g, "Top institutions for international STEM doctorates", `Research doctorates in ${T.years.completions}.`),
+    T.rows.filter(r => r.phd_stem_intl).sort((a, b) => b.phd_stem_intl - a.phd_stem_intl).slice(0, 15).map(r => ({n: r.name, v: r.phd_stem_intl, c: `var(${SECTOR_C[r.sector]})`})));
+
+  /* ---- international: deeper cuts */
+  const TL = D.talent, LVS = [["master", "Master's"], ["doc_res", "Research doctorates"], ["bach", "Bachelor's"]];
+  const LVN = {master: "master's", doc_res: "research doctorates", bach: "bachelor's"};
+  seg(fig(g, "International share: STEM against other fields", "Solid = " + esc(NAME) + ", dashed = U.S. STEM = CIP 03, 04, 11, 14, 15, 26, 27, 40."), LVS, "master",
+    (b, k) => { const L = TL.levels[k]; line(b, {series: [
+      {n: `${NAME}, STEM`, s: L.intl_stem_st, c: css("--s1"), w: 2.5}, {n: `${NAME}, other fields`, s: L.intl_other_st, c: css("--s2"), w: 2.5},
+      {n: "U.S., STEM", s: L.intl_stem_us, c: css("--s1"), dash: true}, {n: "U.S., other fields", s: L.intl_other_us, c: css("--s2"), dash: true}], fmt: v => pct(v)}); });
+  seg(fig(g, "International STEM degrees by field", "Degrees earned by international students in each STEM field group."), LVS, "master",
+    (b, k) => area(b, {fr: TL.levels[k].intl_stem_fields, fmt: nf}));
+  seg(fig(g, `${esc(NAME)}'s share of the nation's STEM graduates`, "Share of all U.S. STEM degrees at each level awarded in the state, international and domestic graduates separately."), LVS, "master",
+    (b, k) => { const L = TL.levels[k]; line(b, {series: [{n: "International STEM graduates", s: L.share_of_us_intl_stem, c: css("--s1"), w: 2.5}, {n: "Domestic STEM graduates", s: L.share_of_us_dom_stem, c: css("--s3"), w: 2.5}], fmt: v => pct(v, 1)}); });
+  seg(fig(g, "International STEM degrees by sector", "Which kinds of institutions award them."), LVS, "master",
+    (b, k) => area(b, {fr: TL.levels[k].intl_stem_sector, colors: kk => css(SECTOR_C[kk]), fmt: nf}));
+  {
+    const conc = key => { const v = T.rows.map(r => r[key] || 0).sort((a, b) => b - a), tot = v.reduce((a, b) => a + b, 0) || 1;
+      return [1, 3, 5, 10, 25].map(n => ({n: `Top ${n} institution${n > 1 ? "s" : ""}`, v: 100 * v.slice(0, n).reduce((a, b) => a + b, 0) / tot})); };
+    seg(fig(g, "How concentrated international STEM training is", `Share of the state's international STEM degrees (${T.years.completions}) awarded by its largest institutions.`), [["ms_stem_intl", "Master's"], ["phd_stem_intl", "Research doctorates"], ["ba_stem_intl", "Bachelor's"]], "ms_stem_intl",
+      (b, k) => bars(b, conc(k).map(r => ({...r, c: "var(--s1)"})), {fmt: v => pct(v), max: 100}));
+  }
+  /* ---- STEM talent */
+  {
+    const M_ = TL.levels.master, B_ = TL.levels.bach, P_ = TL.levels.doc_res;
+    g = section("stem", "STEM talent", `completions ${M_.stem_n_st.y[0]}–${TL.y1}`,
+      `${esc(NAME)} awarded <b>${nf(last(B_.stem_n_st))}</b> STEM bachelor's, <b>${nf(last(M_.stem_n_st))}</b> STEM master's and <b>${nf(last(P_.stem_n_st))}</b> STEM research doctorates in ${TL.y1}: ` +
+      `${pct(last(B_.share_of_us_stem), 1)}, ${pct(last(M_.share_of_us_stem), 1)} and ${pct(last(P_.share_of_us_stem), 1)} of the nation's. STEM is <b>${pct(last(B_.stem_share_st))}</b> of its bachelor's degrees (U.S. ${pct(last(B_.stem_share_us))}).`);
+    line(fig(g, "STEM degrees awarded", "All students, by level."), {series: [{n: "Bachelor's", s: B_.stem_n_st, c: css("--s1"), w: 2.5}, {n: "Master's", s: M_.stem_n_st, c: css("--s2"), w: 2.5}, {n: "Research doctorates", s: P_.stem_n_st, c: css("--s3"), w: 2.5}], fmt: (v, ax) => ax ? compact(v) : nf(v)});
+    seg(fig(g, "STEM share of all degrees"), LVS, "bach", (b, k) => line(b, {series: peerSeries(d => d.talent.levels[k].stem_share_st, d => d.talent.levels[k].stem_share_us), fmt: v => pct(v)}));
+    seg(fig(g, "STEM degrees by field", "Counts by STEM field group, all students.", true), LVS, "bach", (b, k) => area(b, {fr: TL.levels[k].stem_fields, fmt: nf}));
+    line(fig(g, "The STEM pipeline", "Graduate STEM degrees per 100 STEM bachelor's awarded the same year. Solid = " + esc(NAME) + ", dashed = U.S."), {series: [
+      {n: `Master's per 100 bachelor's, ${NAME}`, s: TL.ms_per_ba_st, c: css("--s2"), w: 2.5}, {n: "Master's, U.S.", s: TL.ms_per_ba_us, c: css("--s2"), dash: true},
+      {n: `Doctorates per 100 bachelor's, ${NAME}`, s: TL.phd_per_ba_st, c: css("--s3"), w: 2.5}, {n: "Doctorates, U.S.", s: TL.phd_per_ba_us, c: css("--s3"), dash: true}], fmt: v => nf(v, 1)});
+    seg(fig(g, "Who earns STEM degrees", `Race and ethnicity of STEM graduates in ${TL.y1}; international students are counted separately regardless of race.`), LVS, "bach",
+      (b, k) => dumbbell(b, TL.levels[k].stem_race));
+    const KEYS = {bach: ["ba", "ba_stem"], master: ["ms", "ms_stem"], doc_res: ["phd", "phd_stem"]};
+    seg(fig(g, "Top institutions for STEM degrees", `Degrees in ${T.years.completions}.`), LVS, "bach",
+      (b, k) => bars(b, T.rows.filter(r => r[KEYS[k][1]]).sort((a, z) => z[KEYS[k][1]] - a[KEYS[k][1]]).slice(0, 15).map(r => ({n: r.name, v: r[KEYS[k][1]], c: `var(${SECTOR_C[r.sector]})`}))));
+    seg(fig(g, "STEM focus of every institution", `Each circle is an institution with 20+ degrees at the level in ${T.years.completions}: total degrees against the STEM share. Bigger = more STEM degrees.`, true), LVS, "bach",
+      (b, k) => bubble(b, {pts: T.rows.filter(r => r[KEYS[k][0]] >= 20).map(r => ({x: r[KEYS[k][0]], y: 100 * (r[KEYS[k][1]] || 0) / r[KEYS[k][0]], r: r[KEYS[k][1]] || 0.5, c: `var(${SECTOR_C[r.sector]})`, n: r.name, t: `${nf(r[KEYS[k][1]] || 0)} STEM of ${nf(r[KEYS[k][0]])} ${LVN[k]}`, lab: (r[KEYS[k][1]] || 0) > (k === "bach" ? 2500 : k === "master" ? 900 : 200) ? shortName(r.name) : null})),
+        xlab: `${LVN[k].charAt(0).toUpperCase() + LVN[k].slice(1)} awarded (log scale)`, ylab: "STEM share", xlog: true, xfmt: (v, a) => a ? compact(v) : nf(v), yfmt: v => pct(v), ylo: 0, yhi: 100, sizeLab: "STEM degrees", colorKeys: Object.entries(SECTOR_C).map(([kk, v]) => [kk, css(v)]), H: 420}));
+  }
+
+  /* ---- international x STEM */
+  {
+    const gm = TL.levels.master.growth;
+    const dS = gm ? gm["Domestic STEM"] : 0, iS = gm ? gm["International STEM"] : 0, tS = dS + iS;
+    g = section("cross", "International × STEM", `${TL.y0}–${TL.y1}`,
+      gm ? `Since ${TL.y0}, STEM master's degrees in ${esc(NAME)} went from <b>${nf(gm["Domestic STEM_0"] + gm["International STEM_0"])}</b> to <b>${nf(gm["Domestic STEM_1"] + gm["International STEM_1"])}</b>. ` +
+        `International students account for <b>${tS ? pct(100 * iS / tS) : "–"}</b> of that change (${iS >= 0 ? "+" : ""}${nf(iS)}), domestic students ${dS >= 0 ? "+" : ""}${nf(dS)}. Outside STEM, international master's changed by ${gm["International, other fields"] >= 0 ? "+" : ""}${nf(gm["International, other fields"])}.` : "");
+    {
+      const sankTip = (html, e) => html ? tipAt(e.clientX, e.clientY - 8, html) : hideTip();
+      const LV3 = [["bach", "Bachelor's", "--s4"], ["master", "Master's", "--s6"], ["doc_res", "Research doctorates", "--s5"]];
+      const lastOf = (fr, k) => { const j = fr.k.indexOf(k); return j < 0 ? 0 : fr.v[j][fr.v[j].length - 1] || 0; };
+      const nodes = [...LV3.map(([k, l, c]) => ({id: k, label: l, col: 0, color: css(c)})), {id: "dom", label: "Domestic graduates", col: 1, color: css("--s3")}, {id: "intl", label: "International graduates", col: 1, color: css("--s2")},
+        ...TL.levels.master.stem_fields.k.map((k, i) => ({id: "g" + i, label: k, col: 2, color: css("--s1"), sub: "STEM"})), {id: "oth", label: "Fields outside STEM", col: 2, color: css("--s0")}];
+      const links = [];
+      LV3.forEach(([k]) => { const f = TL.levels[k].four; links.push({s: k, t: "dom", v: lastOf(f, "Domestic STEM") + lastOf(f, "Domestic, other fields")}, {s: k, t: "intl", v: lastOf(f, "International STEM") + lastOf(f, "International, other fields")}); });
+      TL.levels.master.stem_fields.k.forEach((gk, i) => { let dv = 0, iv = 0; LV3.forEach(([k]) => { const all = lastOf(TL.levels[k].stem_fields, gk), it = lastOf(TL.levels[k].intl_stem_fields, gk); dv += all - it; iv += it; });
+        links.push({s: "dom", t: "g" + i, v: dv, color: css("--s3")}, {s: "intl", t: "g" + i, v: iv, color: css("--s2")}); });
+      let od = 0, oi = 0; LV3.forEach(([k]) => { const f = TL.levels[k].four; od += lastOf(f, "Domestic, other fields"); oi += lastOf(f, "International, other fields"); });
+      links.push({s: "dom", t: "oth", v: od, color: css("--s3")}, {s: "intl", t: "oth", v: oi, color: css("--s2")});
+      sankey(fig(g, `Who earns ${esc(NAME)}'s degrees, and in what`, `Bachelor's, master's and research doctorates awarded in ${TL.y1}: by level, by who earned them, and by STEM field group. Dots travel left to right; hover any ribbon or bar.`, true),
+        {nodes, links, H: 460, labelW: 230, unit: "degrees", tip: sankTip, colLabels: ["Degree level", "Who earned it", "Field"]});
+    }
+    seg(fig(g, "Domestic and international STEM graduates", "STEM degrees split by who earned them."), LVS, "master",
+      (b, k) => area(b, {fr: TL.levels[k].four, keys: ["Domestic STEM", "International STEM"], colors: kk => css(kk.startsWith("Int") ? "--s1" : "--s3"), fmt: nf}));
+    seg(fig(g, `Where STEM growth came from, ${TL.y0}–${TL.y1}`, "Change in STEM degrees by field, domestic and international graduates."), LVS, "master",
+      (b, k) => growthBars(b, TL.levels[k].growth_fields || []));
+    seg(fig(g, "Field map: size against international reliance", `Every field with 50+ degrees in ${TL.y1}. Right = bigger share of the state's degrees; up = more international. Blue = STEM.`, true), LVS, "master",
+      (b, k) => bubble(b, {pts: TL.levels[k].field_map.map(f => ({x: f.share, y: f.intl, r: f.n, c: f.stem ? css("--s1") : css("--s0"), n: f.name, t: `${nf(f.n)} degrees; U.S. international share ${pct(f.us)}${f.growth != null ? `; ${f.growth >= 0 ? "+" : ""}${nf(f.growth)}% since ${TL.y0}` : ""}`, lab: f.n > 400 || f.intl > 30 ? f.name : null})),
+        xlab: "Share of the state's degrees at this level (log scale)", ylab: "International share", xlog: true, xfmt: v => pct(v, v < 1 ? 1 : 0), yfmt: v => pct(v), ylo: 0, sizeLab: "degrees", colorKeys: [["STEM", css("--s1")], ["Other fields", css("--s0")]], H: 440}));
+    matrix(fig(g, "Dependency matrix", `International share of degrees by field and level, ${TL.y1}. Darker = more international. Hover for the U.S. value; cells with under 20 degrees are left blank.`, true), TL.matrix);
+    seg(fig(g, "Women among STEM graduates", "Share of STEM degrees earned by women, international against domestic graduates. Solid = " + esc(NAME) + ", dashed = U.S."), LVS, "master",
+      (b, k) => { const L = TL.levels[k]; line(b, {series: [{n: `International, ${NAME}`, s: L.women_intl_st, c: css("--s1"), w: 2.5}, {n: `Domestic, ${NAME}`, s: L.women_dom_st, c: css("--s3"), w: 2.5},
+        {n: "International, U.S.", s: L.women_intl_us, c: css("--s1"), dash: true}, {n: "Domestic, U.S.", s: L.women_dom_us, c: css("--s3"), dash: true}], fmt: v => pct(v)}); });
+    bubble(fig(g, "Institutions: STEM focus against international reliance", `Institutions with 20+ STEM master's in ${T.years.completions}. Right = more of their master's are STEM; up = more of their STEM master's go to international students.`),
+      {pts: T.rows.filter(r => r.ms_stem >= 20).map(r => ({x: 100 * r.ms_stem / r.ms, y: 100 * (r.ms_stem_intl || 0) / r.ms_stem, r: r.ms_stem, c: `var(${SECTOR_C[r.sector]})`, n: r.name, t: `${nf(r.ms_stem_intl || 0)} international of ${nf(r.ms_stem)} STEM master's`, lab: r.ms_stem > 1200 ? shortName(r.name) : null})),
+       xlab: "STEM share of master's", ylab: "International share of STEM master's", xfmt: v => pct(v), yfmt: v => pct(v), xlo: 0, xhi: 100, ylo: 0, yhi: 100, sizeLab: "STEM master's", colorKeys: Object.entries(SECTOR_C).map(([kk, v]) => [kk, css(v)]), H: 400});
+    const yy = pLast("intl_share_stem_master");
+    bubble(fig(g, `Every state: STEM focus against international reliance, ${yy}`, "Each circle is a state; bigger = more international STEM master's. Click a state to open its profile.", true),
+      {pts: P.states.map(s => ({x: pv("stem_share_master", yy, s), y: pv("intl_share_stem_master", yy, s), r: pv("intl_stem_master_count", yy, s) || 1, s, c: s === ST ? "var(--accent)" : css("--s0"), hl: s === ST, n: STATE_NAMES[s] || s, lab: s, t: `${nf(pv("intl_stem_master_count", yy, s))} international STEM master's`})),
+       xlab: "STEM share of master's", ylab: "International share of STEM master's", xfmt: v => pct(v), yfmt: v => pct(v), ylo: 0, sizeLab: "international STEM master's", H: 400, onPick: p => { if (p.s !== ST) location.href = p.s + ".html"; }});
+  }
+
+  /* ---- fields */
+  const fm = frameLast(Dg.fields.bach), topF = Object.entries(fm).filter(e => e[0] !== "Other fields").sort((a, b) => b[1] - a[1])[0];
+  const lqTop = Dg.lq.bach[0];
+  g = section("fields", "Degrees and fields", `completions ${Dg.awards.y[0]}–${lastY({y: Dg.awards.y})}`,
+    `The most common bachelor's field is <b>${topF[0]}</b> at ${pct(topF[1])} of degrees. Relative to the U.S., ${esc(NAME)} is most concentrated in <b>${lqTop ? lqTop.name : "–"}</b> (${lqTop ? nf(lqTop.lq, 1) + "×" : ""} the national share).`);
+  area(fig(g, "Degrees by level", "Degrees awarded each year.", true), {fr: Dg.awards});
+  seg(fig(g, "Field mix over time", "Share of degrees in the state's eight largest fields (latest year), CIP-2020 families harmonized back to 1985.", true), [["bach", "Bachelor's"], ["master", "Master's"], ["doc_res", "Research doctorates"]], "bach",
+    (b, k) => area(b, {fr: Dg.fields[k], share: true}));
+  seg(fig(g, "Concentration relative to the U.S.", `Location quotient, ${Dg.lq_year}: the field's share of the state's degrees divided by its share nationally. Above 1 means more concentrated than the U.S. Fields with 100+ degrees.`, true),
+    [["bach", "Bachelor's"], ["master", "Master's"], ["doc_res", "Research doctorates"]], "bach", (b, k) => {
+      const rows = Dg.lq[k].slice(0, 10).concat(Dg.lq[k].slice(-6).filter(r => !Dg.lq[k].slice(0, 10).includes(r)));
+      bars(b, rows.map(r => ({n: r.name, v: r.lq, c: r.lq >= 1 ? "var(--s1)" : "var(--s2)", t: `${r.name}: ${pct(r.st, 1)} of ${NAME}'s degrees vs ${pct(r.us, 1)} nationally (${nf(r.n)} degrees)`})), {fmt: v => nf(v, 2) + "×"});
+    });
+
+  /* ---- money */
+  const tin = frameLast(Pr.ug_tf_in_state_st), yP = lastY({y: Pr.ug_tf_in_state_st.y});
+  const fin = frameLast(Fi.st), finUS = frameLast(Fi.us);
+  g = section("money", "Prices and money", `prices ${yP}, finance FY${lastY({y: Fi.st.y})}, ${D.realBase} dollars`,
+    `In-state tuition and fees average <b>${usd(tin["Public 4-year"])}</b> at public 4-year institutions and <b>${usd(tin["Public 2-year"])}</b> at public 2-year colleges. Public institutions receive <b>${usd(fin["State appropriations"])}</b> per student from the state (U.S. ${usd(finUS["State appropriations"])}).`);
+  const sectorLines = (fr, frUS) => SECTORS_ORDER.filter(k => fr.k.includes(k)).flatMap(k => [{n: k, s: {y: fr.y, v: fr.v[fr.k.indexOf(k)]}, c: css(SECTOR_C[k]), w: 2.5}]);
+  seg(fig(g, "Published tuition and fees", "Undergraduate, enrollment-weighted average by sector, constant dollars."), [["in", "In-state"], ["out", "Out-of-state"]], "in",
+    (b, k) => line(b, {series: sectorLines(Pr[k === "in" ? "ug_tf_in_state_st" : "ug_tf_out_state_st"]), fmt: (v, ax) => ax ? "$" + compact(v) : usd(v)}));
+  line(fig(g, "Public 4-year in-state tuition against the U.S."), {series: peerSeries(d => frSeries(d.prices.ug_tf_in_state_st, "Public 4-year"), d => frSeries(d.prices.ug_tf_in_state_us, "Public 4-year")), fmt: (v, ax) => ax ? "$" + compact(v) : usd(v)});
+  seg(fig(g, "Where public institutions' money comes from", "Revenue per full-time-equivalent student, public institutions, constant dollars.", true), [["st", NAME], ["us", "United States"]], "st",
+    (b, k) => area(b, {fr: Fi[k], fmt: (v, ax) => ax ? "$" + compact(v) : usd(v)}));
+  bubble(fig(g, "Price against graduation rate", `Each circle is a 4-year institution: published in-state tuition (${T.years.prices}) and six-year graduation rate (${T.years.grad}).`, true),
+    {pts: T.rows.filter(r => r.ug_tf_in_state && r.grad6 != null).map(r => ({x: r.ug_tf_in_state, y: r.grad6, r: r.enroll, c: `var(${SECTOR_C[r.sector]})`, n: r.name, t: `${r.sector}, ${nf(r.enroll)} students`, lab: r.enroll > 40000 ? r.name.replace("University of California-", "UC ") : null})),
+     xlab: "In-state tuition and fees", ylab: "Bachelor's graduation rate within 6 years", xfmt: (v, ax) => ax ? "$" + compact(v) : usd(v), yfmt: v => pct(v), ylo: 0, yhi: 100, sizeLab: "enrollment", colorKeys: Object.entries(SECTOR_C).map(([k, v]) => [k, css(v)]), H: 420});
+
+  /* ---- outcomes */
+  g = section("outcomes", "Outcomes", `graduation cohorts reported ${O.bach6_st.y[0]}–${lastY(O.bach6_st)}`,
+    `<b>${pct(last(O.bach6_st))}</b> of first-time, full-time bachelor's students in ${esc(NAME)} finish within six years (U.S. ${pct(last(O.bach6_us))}). At 2-year colleges <b>${pct(last(O.two_st))}</b> complete within 150% of normal time (U.S. ${pct(last(O.two_us))}).`);
+  line(fig(g, "Six-year bachelor's graduation rate", "Year = survey year; the cohort entered six years earlier."), {series: peerSeries(d => d.outcomes.bach6_st, d => d.outcomes.bach6_us), fmt: v => pct(v)});
+  line(fig(g, "Six-year rate by sector"), {series: O.bach6_by_sector.k.map(k => ({n: k, s: {y: O.bach6_by_sector.y, v: O.bach6_by_sector.v[O.bach6_by_sector.k.indexOf(k)].map(v => v || null)}, c: css(SECTOR_C[k]), w: 2.5})), fmt: v => pct(v)});
+  dumbbell(fig(g, "Six-year rate by race and ethnicity", `Cohort reported in ${O.race_year}; groups with 100+ students.`), O.bach6_race.map(r => ({...r, unit: "students in the cohort"})), {hi: 100});
+  line(fig(g, "2-year colleges: completion within 150% of normal time"), {series: peerSeries(d => d.outcomes.two_st, d => d.outcomes.two_us), fmt: v => pct(v)});
+  bubble(fig(g, "How selective, and how many enroll", `Each circle is an institution with 200+ applicants in ${T.years.admissions}: share of applicants admitted against share of admitted students who enroll.`, true),
+    {pts: T.rows.filter(r => r.admit != null && r.yield != null).map(r => ({x: r.admit, y: r.yield, r: r.apps, c: `var(${SECTOR_C[r.sector]})`, n: r.name, t: `${nf(r.apps)} applicants`, lab: r.admit < 20 || r.apps > 90000 ? r.name.replace("University of California-", "UC ") : null})),
+     xlab: "Admission rate", ylab: "Yield (admitted students who enroll)", xfmt: v => pct(v), yfmt: v => pct(v), xlo: 0, xhi: 100, ylo: 0, sizeLab: "applicants", colorKeys: Object.entries(SECTOR_C).map(([k, v]) => [k, css(v)]), H: 420});
+
+  /* ---- faculty */
+  const fr = frameLast(F.by_rank);
+  g = section("faculty", "Faculty", `salaries ${F.by_rank.y[0]}–${lastY({y: F.by_rank.y})}, ${D.realBase} dollars`,
+    `Full-time instructional faculty on 9/10-month contracts average <b>${usd(last(F.avg_st))}</b> (U.S. ${usd(last(F.avg_us))}); full professors average <b>${usd(fr.Professor)}</b>.`);
+  line(fig(g, "Average salary by rank", "Full-time instructional faculty, 9/10-month contracts, constant dollars."), {series: F.by_rank.k.map((k, j) => ({n: k, s: {y: F.by_rank.y, v: F.by_rank.v[j].map(v => v || null)}, c: S8()[j], w: 2.5})), fmt: (v, ax) => ax ? "$" + compact(v) : usd(v), zero: false});
+  line(fig(g, "Average salary against the U.S."), {series: peerSeries(d => d.faculty.avg_st, d => d.faculty.avg_us), fmt: (v, ax) => ax ? "$" + compact(v) : usd(v), zero: false});
+  area(fig(g, "Instructional staff by tenure status", "Full-time instructional staff headcount.", true), {fr: F.tenure, fmt: nf});
+
+  /* ---- migration */
+  const fl = frameLast(Mg.flows);
+  g = section("migration", "Student migration", `first-time students, fall ${Mg.year}`,
+    `In fall ${Mg.year}, <b>${nf(Mg.stay)}</b> first-time students from ${esc(NAME)} enrolled at home, <b>${nf(Mg.in_total)}</b> arrived from elsewhere (including ${nf((Mg.in.find(r => r.k === "Abroad") || {n: 0}).n)} from abroad) and <b>${nf(Mg.out_total)}</b> residents left for other states.`);
+  line(fig(g, "Arrivals and departures", "First-time students. Only years with near-complete reporting are shown: since 2001 residence is required only in even years.", true), {series: [
+    {n: "Arrived from other states", s: frSeries(Mg.flows, "Arrived from other states"), c: css("--s3"), w: 2.5}, {n: "Left for other states", s: frSeries(Mg.flows, "Left for other states"), c: css("--s2"), w: 2.5}], fmt: (v, ax) => ax ? compact(v) : nf(v)});
+  {
+    const sankTip = (html, e) => html ? tipAt(e.clientX, e.clientY - 8, html) : hideTip();
+    const others = Mg.in_total - Mg.in.reduce((a, r) => a + r.n, 0), othOut = Mg.out_total - Mg.out.reduce((a, r) => a + r.n, 0);
+    const pc = k => k === "Abroad" ? css("--s2") : PEERS.includes(k) ? colour(k) : css("--s0");
+    sankey(fig(g, `Who enrolls at ${esc(NAME)} institutions from elsewhere`, `First-time students from outside the state, fall ${Mg.year}. Dots travel toward the state; competitor states keep their colours.`), {
+      nodes: [...Mg.in.map(r => ({id: r.k, label: r.name, col: 0, color: pc(r.k)})), {id: "oth", label: "Other states", col: 0, color: css("--s0")}, {id: "in", label: `${NAME} institutions`, col: 1, color: colour(ST)}],
+      links: [...Mg.in.map(r => ({s: r.k, t: "in", v: r.n})), {s: "oth", t: "in", v: Math.max(0, others)}], H: 400, labelW: 150, gap: 5, unit: "students", tip: sankTip, colLabels: ["Home", "Enrolled in"]});
+    sankey(fig(g, `Where ${esc(NAME)}'s residents go`, `First-time students from ${esc(NAME)} enrolling in other states, fall ${Mg.year}; ${nf(Mg.stay)} more stayed home.`), {
+      nodes: [{id: "res", label: `${NAME} residents leaving`, col: 0, color: colour(ST)}, ...Mg.out.map(r => ({id: r.k, label: r.name, col: 1, color: pc(r.k)})), {id: "oth", label: "Other states", col: 1, color: css("--s0")}],
+      links: [...Mg.out.map(r => ({s: "res", t: r.k, v: r.n})), {s: "res", t: "oth", v: Math.max(0, othOut)}], H: 400, labelW: 150, gap: 5, unit: "students", tip: sankTip, colLabels: ["Residents", "Enrolled in"]});
+  }
+
+  /* ---- outside sources: K-12, graduate research, visas, workforce, patents */
+  buildOutside();
+  /* ---- all measures: rank over time */
+  buildMeasures();
+  /* ---- compare states: animated bubbles */
+  buildCompare();
+  observe();
+}
+const SECTORS_ORDER = ["Public 4-year", "Public 2-year", "Private nonprofit", "For-profit"];
+function frSeries(fr, k) { const j = fr.k.indexOf(k); return j < 0 ? null : {y: fr.y, v: fr.v[j].map(v => v || null)}; }
+
+/* ---------- all 61 measures: rank heatmap + focus chart ---------- */
+let measureFocus = "intl_share_stem_master";
+function drawFocus() {
+  const box = $("focus"); if (!box) return; CHARTS.splice(0, CHARTS.length, ...CHARTS.filter(c => !box.contains(c.el))); box.innerHTML = "";
+  const m = measureFocus, u = P.meta[m], y = pLast(m), [r, n] = pRank(m, y);
+  box.insertAdjacentHTML("beforeend", `<h3>${esc(u.title)}</h3><p class="note">${esc(NAME)} ${pfmt(m, pv(m, y))} in ${y}, rank ${r || "–"} of ${n}; U.S. ${pfmt(m, pv(m, y, "US"))}.${u.note ? " " + esc(u.note) : ""}</p>`);
+  const b = document.createElement("div"); box.appendChild(b);
+  line(b, {series: peerSeries(d => pSeries(m), d => pSeries(m, "US")), fmt: v => pfmt(m, v), zero: u.unit === "%" || u.unit === "students" || u.unit === "degrees"});
+  document.querySelectorAll("#heat g[data-m]").forEach(gr => gr.querySelector("rect.rowbg").setAttribute("fill", gr.dataset.m === m ? "var(--hover)" : "transparent"));
+}
+function buildMeasures() {
+  const sec = document.createElement("section"); sec.className = "sec"; sec.id = "measures"; $("main").appendChild(sec);
+  const ms = Object.keys(P.meta).sort((a, b) => P.groups.indexOf(P.meta[a].group) - P.groups.indexOf(P.meta[b].group));
+  const yrs = [...new Set(ms.flatMap(m => P.data[m].y))].sort((a, b) => a - b);
+  const best = ms.map(m => { const y = pLast(m), [r] = pRank(m, y); return [m, r]; }).filter(x => x[1]).sort((a, b) => a[1] - b[1]);
+  sec.innerHTML = `<div class="sec-h"><h2>All ${ms.length} state measures</h2><span>rank among 50 states + DC, ${yrs[0]}–${yrs[yrs.length - 1]}</span></div>
+    <p class="lede">Each row is one measure from the state panel; each cell is ${esc(NAME)}'s rank that year (dark = near the top, light = near the bottom; rank 1 = highest value, which is not always better). ${esc(NAME)} ranks highest on <b>${esc(P.meta[best[0][0]].title.toLowerCase())}</b> (#${best[0][1]}). Click a row to chart it.</p>
+    <div class="grid"><div class="fig wide"><div class="heatwrap"><svg id="heat"></svg></div></div><div class="fig wide" id="focus"></div></div>`;
+  const svg = $("heat"), cw = 13, rh = 17, L = 330, T = 22, W = L + yrs.length * cw + 60;
+  const t = theme(), ramp = t === "dark" ? ["#e1e4f2", "#52566f"] : ["#20223d", "#c9cbd8"];
+  const mix = (a, b, f) => "#" + [1, 3, 5].map(i => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - f) + parseInt(b.slice(i, i + 2), 16) * f).toString(16).padStart(2, "0")).join("");
+  let h = yrs.filter(y => y % 5 === 0 && (y !== 1980 || !yrs.includes(1984) || true) && (yrs.indexOf(y) === 0 || yrs.indexOf(y) - yrs.indexOf(yrs.filter(z => z % 5 === 0 && z < y).pop() ?? -99) >= 3)).map(y => `<text x="${L + yrs.indexOf(y) * cw + cw / 2}" y="${T - 8}" text-anchor="middle" style="fill:var(--ink-3)">${y}</text>`).join("");
+  let grp = null, row = 0;
+  for (const m of ms) {
+    if (P.meta[m].group !== grp) { grp = P.meta[m].group; h += `<text x="0" y="${T + row * rh + 13}" style="font-weight:800;fill:var(--ink)">${esc(grp)}</text>`; row++; }
+    const y0 = T + row * rh, d = P.data[m];
+    h += `<g data-m="${m}" style="cursor:pointer"><rect class="rowbg" x="0" y="${y0}" width="${W}" height="${rh}" fill="transparent"/><text x="12" y="${y0 + 12}" style="fill:var(--ink-2)">${esc(P.meta[m].title.length > 52 ? P.meta[m].title.slice(0, 50) + "…" : P.meta[m].title)}</text>`;
+    d.y.forEach((y, i) => { const [r, n] = pRank(m, y); if (!r) return; const f = (r - 1) / Math.max(1, n - 1);
+      h += `<rect x="${L + yrs.indexOf(y) * cw}" y="${y0 + 2}" width="${cw - 1.5}" height="${rh - 4}" rx="1.5" fill="${mix(ramp[0], ramp[1], f)}" data-y="${y}" data-r="${r}" data-n="${n}"/>`; });
+    const [rl] = pRank(m, pLast(m)); h += `<text x="${L + yrs.length * cw + 8}" y="${y0 + 12}" style="font-weight:700;fill:var(--ink)">${rl ? "#" + rl : ""}</text></g>`;
+    row++;
+  }
+  const H = T + row * rh + 6; svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("width", W); svg.setAttribute("height", H); svg.innerHTML = h;
+  svg.querySelectorAll("g[data-m]").forEach(gr => { const m = gr.dataset.m;
+    gr.onclick = () => { measureFocus = m; drawFocus(); };
+    gr.onmousemove = e => { const c = e.target.dataset; if (!c.y) return hideTip(); tipAt(e.clientX, e.clientY - 8, `<b>${esc(P.meta[m].title)}</b><br>${c.y}: ${esc(NAME)} <b>${pfmt(m, pv(m, +c.y))}</b>, rank ${c.r} of ${c.n}<br>U.S. ${pfmt(m, pv(m, +c.y, "US"))}`); };
+    gr.onmouseleave = hideTip; });
+  drawFocus();
+}
+
+/* ---------- compare states: animated bubble chart over time ---------- */
+let cmp = {x: "intl_share_enroll_grad", y: "intl_share_stem_master", r: "enroll_total", year: null, timer: null};
+function buildCompare() {
+  const sec = document.createElement("section"); sec.className = "sec"; sec.id = "compare"; $("main").appendChild(sec);
+  const opts = Object.keys(P.meta).map(m => `<option value="${m}">${esc(P.meta[m].title)}</option>`).join("");
+  sec.innerHTML = `<div class="sec-h"><h2>Compare states</h2><span>all 50 states + DC, any two measures</span></div>
+    <p class="lede">Pick any two measures and a size. Each circle is a state; ${esc(NAME)} is outlined and leaves a trail as the years play. Click a circle to open that state's profile.</p>
+    <div class="ctrl" id="presets"><span class="lab">Start from</span></div>
+    <div class="ctrl"><label for="cx">Across</label><select id="cx">${opts}</select><label for="cy">Up</label><select id="cy">${opts}</select><label for="cr">Size</label><select id="cr">${opts}</select></div>
+    <div class="ctrl"><button class="btn-y" id="cplay"><svg class="i" viewBox="0 0 24 24" id="cplayi"><path d="M8 5.5v13l10.5-6.5Z"/></svg><span id="cplayt">Play</span></button>
+      <label for="cyr">Year</label><input type="range" id="cyr" style="width:260px;accent-color:var(--accent-ink)"><output id="cyo" style="font:800 26px var(--display);font-stretch:90%"></output></div>
+    <div class="fig" id="cbox"></div>`;
+  const PRE = [["STEM focus vs international reliance", "stem_share_master", "intl_share_stem_master", "intl_stem_master_count"],
+    ["International grad students vs international STEM master's", "intl_share_enroll_grad", "intl_share_stem_master", "enroll_total"],
+    ["Computer science: master's vs doctorates", "intl_share_cs_master", "intl_share_cs_doc", "intl_stem_master_count"],
+    ["Engineering: master's vs doctorates", "intl_share_eng_master", "intl_share_eng_doc", "intl_stem_master_count"],
+    ["STEM bachelor's vs STEM master's share", "stem_share_bach", "stem_share_master", "enroll_total"],
+    ["Master's per doctorate vs international reliance", "stem_master_per_doc", "intl_share_stem_master", "intl_stem_master_count"]].filter(r => r.slice(1).every(m => P.meta[m]));
+  $("presets").insertAdjacentHTML("beforeend", `<div class="seg">${PRE.map((r, i) => `<button data-i="${i}" aria-pressed="false">${esc(r[0])}</button>`).join("")}</div>`);
+  $("presets").querySelectorAll("button").forEach(b => b.onclick = () => { const r = PRE[+b.dataset.i]; [cmp.x, cmp.y, cmp.r] = r.slice(1); $("cx").value = cmp.x; $("cy").value = cmp.y; $("cr").value = cmp.r;
+    $("presets").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); stopC(); drawCompare(true); });
+  $("cx").value = cmp.x; $("cy").value = cmp.y; $("cr").value = cmp.r;
+  ["cx", "cy", "cr"].forEach(id => $(id).onchange = () => { cmp[id[1]] = $(id).value; drawCompare(true); });
+  $("cyr").oninput = () => { stopC(); cmp.year = years()[+$("cyr").value]; drawCompare(); };
+  $("cplay").onclick = () => { if (cmp.timer) return stopC(); const ys = years(); if (cmp.year === ys[ys.length - 1]) cmp.year = ys[0];
+    $("cplayt").textContent = "Pause"; $("cplayi").innerHTML = '<path d="M8.5 5.5v13M15.5 5.5v13"/>';
+    cmp.timer = setInterval(() => { const ys = years(), i = ys.indexOf(cmp.year); if (i >= ys.length - 1) return stopC(); cmp.year = ys[i + 1]; drawCompare(); }, 650); };
+  drawCompare(true);
+}
+const years = () => P.data[cmp.x].y.filter(y => P.data[cmp.y].y.includes(y));
+function stopC() { clearInterval(cmp.timer); cmp.timer = null; $("cplayt").textContent = "Play"; $("cplayi").innerHTML = '<path d="M8 5.5v13l10.5-6.5Z"/>'; }
+let cChart = null;
+function drawCompare(reset) {
+  const ys = years(); if (!ys.length) { $("cbox").innerHTML = `<p class="empty">These two measures never share a year. Pick another pair.</p>`; return; }
+  if (reset || !ys.includes(cmp.year)) cmp.year = ys[ys.length - 1];
+  $("cyr").max = ys.length - 1; $("cyr").value = ys.indexOf(cmp.year); $("cyo").textContent = cmp.year;
+  const all = m => P.data[m].v.flatMap(r => r.slice(0, PUS)).filter(v => v != null);
+  const ax = all(cmp.x), ay = all(cmp.y), lo = a => Math.min(...a), hi = a => Math.max(...a);
+  const xlog = P.meta[cmp.x].unit === "students" || P.meta[cmp.x].unit === "degrees";
+  const rY = y => P.data[cmp.r].y.includes(y) ? y : P.data[cmp.r].y.reduce((a, b) => Math.abs(b - y) < Math.abs(a - y) ? b : a);
+  const pts = P.states.map(s => ({x: pv(cmp.x, cmp.year, s), y: pv(cmp.y, cmp.year, s), r: pv(cmp.r, rY(cmp.year), s) ?? 1, s,
+    c: s === ST ? "var(--accent)" : css("--s0"), hl: s === ST, n: D.names?.[s] || s, lab: s === ST || null,
+    t: `${P.meta[cmp.r].title}: ${pfmt(cmp.r, pv(cmp.r, rY(cmp.year), s))}`}));
+  pts.forEach(p => { p.lab = p.s === ST || p.s.length === 2 ? p.s : null; p.n = STATE_NAMES[p.s] || p.s; });
+  const trail = ys.filter(y => y <= cmp.year).map(y => ({x: pv(cmp.x, y), y: pv(cmp.y, y)}));
+  CHARTS.splice(0, CHARTS.length, ...CHARTS.filter(c => !$("cbox").contains(c.el)));
+  bubble($("cbox"), {pts, trail, xlab: P.meta[cmp.x].title, ylab: P.meta[cmp.y].title, xlog, xfmt: (v, a) => a && xlog ? compact(v) : pfmt(cmp.x, v), yfmt: v => pfmt(cmp.y, v),
+    xlo: xlog ? lo(ax.filter(v => v > 0)) : Math.min(0, lo(ax)), xhi: hi(ax), ylo: Math.min(0, lo(ay)), yhi: hi(ay), sizeLab: P.meta[cmp.r].title.toLowerCase(), H: 480, rmax: 30,
+    onPick: p => { if (p.s !== ST) location.href = p.s + ".html"; }});
+}
+const STATE_NAMES = {"AL":"Alabama","AK":"Alaska","AZ":"Arizona","AR":"Arkansas","CA":"California","CO":"Colorado","CT":"Connecticut","DE":"Delaware","DC":"District of Columbia","FL":"Florida","GA":"Georgia","HI":"Hawaii","ID":"Idaho","IL":"Illinois","IN":"Indiana","IA":"Iowa","KS":"Kansas","KY":"Kentucky","LA":"Louisiana","ME":"Maine","MD":"Maryland","MA":"Massachusetts","MI":"Michigan","MN":"Minnesota","MS":"Mississippi","MO":"Missouri","MT":"Montana","NE":"Nebraska","NV":"Nevada","NH":"New Hampshire","NJ":"New Jersey","NM":"New Mexico","NY":"New York","NC":"North Carolina","ND":"North Dakota","OH":"Ohio","OK":"Oklahoma","OR":"Oregon","PA":"Pennsylvania","RI":"Rhode Island","SC":"South Carolina","SD":"South Dakota","TN":"Tennessee","TX":"Texas","UT":"Utah","VT":"Vermont","VA":"Virginia","WA":"Washington","WV":"West Virginia","WI":"Wisconsin","WY":"Wyoming"};
+
+/* ---------- section list follows the scroll ---------- */
+let curSec = "glance";
+function setBoard(id) { curSec = id; document.querySelectorAll("nav.toc a").forEach(t => t.setAttribute("aria-current", t.dataset.s === id)); }
+function renderRail() {
+  $("rail").innerHTML = `<a class="tlink" id="sheetlink" href="../sheet.html#s=${ST}&p=${PEERS.join(",")}&ps=${PS}">Open in the sheet</a><a class="tlink" href="index.html">All states</a>` + SECTIONS.map(s => `<a href="#${s[0]}" data-s="${s[0]}" aria-current="${s[0] === curSec}">${s[1]}</a>`).join("") + `<p class="peerinfo">Competitor lines appear on every time-series chart.</p>`;
+  $("rail").querySelectorAll("a[data-s]").forEach(b => b.onclick = e => { e.preventDefault(); $(b.dataset.s).scrollIntoView({block: "start"}); setBoard(b.dataset.s); });
+}
+let io;
+function observe() {
+  io && io.disconnect();
+  io = new IntersectionObserver(es => { const v = es.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]; if (v) setBoard(v.target.id); }, {rootMargin: "-30% 0px -65% 0px"});
+  document.querySelectorAll("#main > section").forEach(s => io.observe(s));
+}
+function renderPeers() {
+  assignSlots();
+  $("chips").innerHTML = (PEERS.length ? "" : `<span class="lab">no states yet</span>`) + PEERS.map(p => `<span class="chip"><i style="background:${colour(p)}"></i>${esc(STATE_NAMES[p])}<button data-p="${p}" aria-label="Remove ${esc(STATE_NAMES[p])}"><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M7 7l10 10M17 7 7 17"/></svg></button></span>`).join("");
+  $("chips").querySelectorAll("button").forEach(b => b.onclick = () => { PS = "custom"; setPeers(PEERS.filter(x => x !== b.dataset.p)); });
+  peerMenu({btn: $("psbtn"), label: $("pslab"), menu: $("psmenu"), presets: P.presets, names: STATE_NAMES, current: () => PS, focus: () => ST,
+    onPick: (k, list) => { PS = k; setPeers(list); }});
+  $("addpeer").innerHTML = `<option value="">+ Add state</option>` + Object.entries(STATE_NAMES).sort((a, b) => a[1].localeCompare(b[1])).filter(([k]) => k !== ST && !PEERS.includes(k)).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+  $("addpeer").disabled = PEERS.length >= 7;
+  if ($("sheetlink")) $("sheetlink").href = `../sheet.html#s=${ST}&p=${PEERS.join(",")}&ps=${PS}`;
+  try { history.replaceState(null, "", location.pathname + "#p=" + PEERS.join(",") + "&ps=" + PS); localStorage.setItem("sheet-peers", JSON.stringify({s: ST, p: PEERS, ps: PS})); } catch (e) {}
+  document.documentElement.style.setProperty("--top-h", $("top").offsetHeight + "px");
+}
+async function setPeers(list) { PEERS = list.filter((x, i) => x !== ST && STATE_NAMES[x] && list.indexOf(x) === i).slice(0, 7); renderPeers(); await loadPeers(); redraw(); }
+/* ---------- wiring ---------- */
+try { const t = localStorage.getItem("se-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+$("built").textContent = "Built " + D.built + "."; $("rb").textContent = D.realBase;
+$("pick").innerHTML = Object.entries(STATE_NAMES).sort((a, b) => a[1].localeCompare(b[1])).map(([k, v]) => `<option value="${k}" ${k === ST ? "selected" : ""}>${v}</option>`).join("");
+$("pick").onchange = e => { const n = e.target.value, pr = P.presets[PS]; location.href = n + ".html" + (pr ? "#ps=" + PS : "#p=" + PEERS.filter(x => x !== n).join(",") + "&ps=custom"); };
+$("theme").onclick = () => { document.documentElement.dataset.theme = theme() === "dark" ? "light" : "dark"; try { localStorage.setItem("se-theme", document.documentElement.dataset.theme); } catch (e) {} renderPeers(); redraw(); };
+function redraw() { const y = scrollY; build(); scrollTo(0, y); setBoard(curSec); document.documentElement.style.setProperty("--top-h", $("top").offsetHeight + "px"); }
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { renderRail(); redraw(); });
+let rz, lastW = innerWidth; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (Math.abs(innerWidth - lastW) > 30) { lastW = innerWidth; CHARTS.forEach(c => c.draw(c.el)); } }, 150); });
+{ const hq = new URLSearchParams(location.hash.slice(1)), hp = hq.get("p");
+  if (P.presets[hq.get("ps")] || hq.get("ps") === "custom") PS = hq.get("ps");
+  if (hp != null) PEERS = hp.split(",").filter(x => STATE_NAMES[x] && x !== ST);
+  else if (!P.presets[hq.get("ps")]) { try { const sv = JSON.parse(localStorage.getItem("sheet-peers") || "null"); if (sv && sv.s === ST) { PEERS = sv.p; if (sv.ps) PS = sv.ps; } } catch (e) {} }
+  if (hp == null && !PEERS.length) PEERS = (P.presets[PS] || P.presets.size).peers[ST].slice(); }
+$("addpeer").onchange = e => { if (e.target.value) { PS = "custom"; setPeers([...PEERS, e.target.value]); } };
+$("pdflink").href = "viewer.html#" + ST;
+renderPeers(); renderRail(); build(); setBoard("glance");
+loadPeers().then(() => { if (PEERS.some(p => PD[p]) || PEER_NOTE) redraw(); });
+const jump = () => { const id = location.hash.slice(1); const el = id && !id.includes("=") && document.getElementById(id); if (el) { el.scrollIntoView({block: "start"}); setBoard(el.id); } };
+jump(); addEventListener("hashchange", jump);
+</script>
+</body>
+</html>

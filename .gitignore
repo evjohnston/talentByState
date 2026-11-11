@@ -1,0 +1,21 @@
+# secrets
+.env
+.env.*
+
+# inputs (30 GB; tracked by manifests/sources_manifest.csv instead)
+sources/
+reference/digest/
+reference/survey_forms/
+
+# rebuildable outputs and caches
+data/
+cache/
+
+# environment and editor
+.venv
+.venv.nosync/
+__pycache__/
+*.pyc
+.DS_Store
+.impeccable/
+.vscode/
