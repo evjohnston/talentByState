@@ -1512,7 +1512,7 @@ writes `profiles/data/inst/<ST>.json`.
 
 | Format | File | Pages | Use |
 |---|---|---|---|
-| Digital | `profiles/pdf/<ST>.pdf` | an 8.5×11 cover, then 17×11 two-page spreads (pages 2–3, 4–5, …) | reading on screen |
+| Digital | `profiles/pdf/<ST>.pdf` | an 8.5×11 cover, 17×11 two-page spreads (pages 2–3, 4–5, …), then 11×8.5 landscape By the Numbers pages | reading on screen |
 | Print | `profiles/pdf/<ST>_print.pdf` | every page 8.5×11 | printing as a booklet |
 
 **Contents.** At a glance, International dependence, STEM, Where students come from, Migration, then the
@@ -1520,6 +1520,17 @@ outside sources (K-12 preparation, Graduate research, H-1B jobs and green cards,
 These are followed by Competitors, Fields, Students and money, Outcomes and faculty, Institutions with data
 notes, and By the Numbers. Layouts are measured so nothing overruns a page, and small states get extra
 figures where there is room.
+
+**Single-page figures** (two figures on facing pages, rather than one chart across the spread) follow one
+layout: the figure at the top, then "About this figure", which says what the chart shows and how its measure
+is defined, and "The numbers", a list of values with their change from the previous report and since 2015,
+the U.S. figure and the state's rank. The text reports the data; it does not interpret it. Each chart is drawn
+as large as the page allows once the text fits inside the 1-inch margins.
+
+**By the Numbers** has one landscape page per group of measures (a group that runs long continues on the next
+page). Columns: the 2015 value, the previous value, the latest value (superscripts give each year observed),
+the change from the previous value, the change since 2015, the latest U.S. value, the U.S. change since 2015,
+the state's rank, and the source of each measure.
 
 **The print version** is made from the digital PDF, in order for double-sided printing on 8.5×11 sheets:
 
@@ -1533,8 +1544,10 @@ figures where there is room.
 
 - Each spread is cut at the gutter into its left and right pages. The printed folios and the table of
   contents are unchanged.
+- The landscape By the Numbers pages are turned a quarter turn onto 8.5×11 pages, top of the table toward
+  the left edge, so every page of the booklet is the same size; turn the booklet to read them.
 - If the page count is odd, a final "intentionally left blank" page completes the last sheet.
-- A page with nothing on it, such as the right side of the last By the Numbers spread, also carries the
+- A page with nothing on it, such as a page with no figure for a small state, also carries the
   "intentionally left blank" line, in both formats.
 - Print double-sided, flipping on the long edge.
 - The two halves of each spread share one copy of its content, so a print PDF is no larger than the digital

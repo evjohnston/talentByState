@@ -119,6 +119,15 @@ class Panel:
         s = s[s.index >= y]
         return int(s.index.min()) if len(s) else None
 
+    def prev_year(self, m, st, y):
+        """The latest year before y with a value (the previous report, for year-over-year change)."""
+        t = self.w.get(m)
+        if t is None or y is None or st not in t:
+            return None
+        s = t[st].dropna()
+        s = s[s.index < y]
+        return int(s.index.max()) if len(s) else None
+
     def rank(self, m, st, y):
         row = self.w[m].loc[y].drop(labels=["US"], errors="ignore").dropna()
         return (int((row > row[st]).sum() + 1), len(row)) if st in row else (None, len(row))
@@ -136,9 +145,11 @@ def measure_row(Pn: Panel, m: str, st: str) -> dict:
     meta = Pn.meta[m]
     y1 = Pn.last_year(m, st)
     y0 = Pn.first_from(m, st, BASE)
+    yp = Pn.prev_year(m, st, y1)
     r, n = Pn.rank(m, st, y1) if y1 else (None, 51)
     return {"m": m, "title": meta["title"], "unit": meta["unit"], "fmt": meta["fmt"], "change": meta["change"],
             "group": meta["group"], "y0": y0, "y1": y1, "v0": Pn.at(m, st, y0), "v1": Pn.at(m, st, y1),
+            "yp": yp, "vp": Pn.at(m, st, yp),
             "us0": Pn.at(m, "US", y0), "us1": Pn.at(m, "US", y1), "rank": r, "n": n, "src": meta["src"]}
 
 
@@ -352,18 +363,25 @@ def print_version(digital: Path, page=None) -> Path:
     there each sheet carries two consecutive folios: sheet 2 is folio 2 (front) and 3 (back), sheet 3 is 4 and 5,
     and so on. Each 17 x 11 in spread is cut at the gutter into its left and right pages. A blank page is added at
     the end if needed so the last sheet is complete. Charts that ran across a spread continue on the back of
-    the same sheet."""
+    the same sheet. The landscape By the Numbers pages (11 x 8.5 in) are turned a quarter turn onto 8.5 x 11 in
+    pages, top of the table toward the left edge, so every page of the booklet has the same size."""
     from pypdf import PdfReader, PdfWriter
+    from pypdf import PageObject, Transformation
     from pypdf.generic import RectangleObject
     left, right, w = PdfReader(str(digital)), PdfReader(str(digital)), PdfWriter()   # two readers: independent page objects
     blank = PdfReader(str(blank_page(page))).pages[0]
     for i, (pl, pr) in enumerate(zip(left.pages, right.pages)):
         x0, y0, x1, y1 = (float(v) for v in pl.mediabox)
-        if x1 - x0 > (y1 - y0) * 1.2:                       # a spread: split at the gutter
+        wd, ht = x1 - x0, y1 - y0
+        if wd > ht * 1.4:                                   # a 17 x 11 in spread: split at the gutter
             mid = (x0 + x1) / 2
             for pg, box in ((pl, (x0, y0, mid, y1)), (pr, (mid, y0, x1, y1))):
                 pg.mediabox = pg.cropbox = RectangleObject(box)
                 w.add_page(pg)
+        elif wd > ht:                                       # an 11 x 8.5 in landscape page (By the Numbers):
+            pg = PageObject.create_blank_page(width=ht, height=wd)   # turned onto an 8.5 x 11 in page, top toward the spine side
+            pg.merge_transformed_page(pl, Transformation().translate(-x0, -y0).rotate(90).translate(ht, 0))
+            w.add_page(pg)
         else:
             w.add_page(pl)
             if i == 0:                                      # back of the cover
