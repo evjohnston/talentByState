@@ -49,7 +49,7 @@ JS = r"""(() => {
   const instMismatch = nInst == null ? [] : instBox.filter(v => v !== nf(nInst)).map(v => `box ${v} vs sectors ${nf(nInst)}`);
   const sv = P.sevis, stemN = sv ? sv.stem.flows.reduce((o, f) => (o[f.c] = (o[f.c] || 0) + f.n, o), {}) : {};
   const stemOver = sv ? Object.entries(stemN).filter(([c, n]) => { const t = sv.top.find(x => x.country === c); return t && n > t.n; }).map(([c]) => c) : [];
-  const sevisNoteMissing = stemOver.length && !/does not draw its STEM pages/.test(txt) ? stemOver : [];
+  const sevisNoteMissing = stemOver.length && /Which Countries Supply/.test(txt) && !/does not draw its STEM pages/.test(txt) ? stemOver : [];
   /* dot plots: a state's value label must sit nearer the state's filled dot than the U.S. open dot (or name the state) */
   const dumbBad = [];
   sel('svg').forEach(s => { const fill = [...s.querySelectorAll('circle')].filter(c => c.getAttribute('fill') === CRIM), open = [...s.querySelectorAll('circle')].filter(c => c.getAttribute('fill') === '#fff');

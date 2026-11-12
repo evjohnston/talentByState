@@ -309,6 +309,8 @@ function chg(r) {
   const d = r.v1 - r.v0, s = Math.sign(Math.round(d * 100));
   if (r.change === "diff") return Math.abs(d) < .05 ? {t: "0.0" + (r.unit === "%" ? " pp" : ""), s: 0} : {t: (d >= 0 ? "+" : "−") + nf(Math.abs(d), 1) + (r.unit === "%" ? " pp" : ""), s};
   if (r.v0 <= 0) return {t: "–", s};
+  /* never a percent change on a count under 50 (a few students either way swings it by hundreds of percent) */
+  if (r.v0 < 50 && r.unit !== "$ millions" && !(r.fmt && r.fmt.pre === "$")) return {t: "–", s: 0};
   const q = r.v1 / r.v0; return {t: q >= 2 ? nf(q, 2) + "×" : (q >= 1 ? "+" : "−") + nf(Math.abs(q - 1) * 100, Math.abs(q - 1) < .1 ? 1 : 0) + "%", s};
 }
 const row = m => R[m] || {};
@@ -940,7 +942,14 @@ function buildSpreads() {
       fitText(pg.querySelector(".plede"), "p", 16, 14); }); };
   /* the same from two one() objects: their "about" text and facts become the prose (facts as run-in paragraphs); with
      no partner page (b blank) the right page carries a facts table of the stat measures and the rest of a's prose */
+  /* thin data: set THIN = [a too thin, b too thin] just before a pairOne call. A spread whose pages are both thin is
+     left out (small states get a shorter book); a thin page gives way to the other figure plus a facts table. */
+  let THIN = null;
   const pairOne = (sec, h, stats, a, b, bTitle) => {
+    const [ta, tb] = THIN || [false, false]; THIN = null;
+    const ok = (o, t) => o && typeof o !== "string" && !t;
+    if (!ok(a, ta) && !ok(b, tb)) return;
+    if (!ok(a, ta)) { a = b; b = null; } else if (!ok(b, tb)) b = null;
     const la = ledeOf(a);
     if (!b || typeof b === "string") { const k = Math.ceil(la.length / 2);
       return pair("", {sec, h, stats, a: {fig: a.fig, lede: la.slice(0, k)}, b: {fig: factsT(bTitle || `${esc(NAME)} at a Glance`, stats.filter(m => typeof m === "string"), "Data from NCES, IPEDS."), lede: la.slice(k)}}); }
@@ -1009,7 +1018,7 @@ function buildSpreads() {
         + `<tr class="s"><td colspan="7">All international students</td></tr>`
         + rs.map(m => { const r = row(m); return `<tr><td>${esc(cleanT(r.title).replace("Active F-1/M-1 students, all levels", "Active F-1 and M-1 students"))}</td><td>${f(m, r.v0)}</td><td>${f(m, r.vp)}</td><td class="focus">${f(m, r.v1)}</td><td>${chg(r).t}</td><td>${m === "sevis_share_of_us" ? "–" : f(m, r.us1)}</td><td>${r.rank ? ord(r.rank) : "–"}</td></tr>`; }).join("")
         + `<tr class="s"><td colspan="5">Largest countries of citizenship (students)</td><td>U.S. share</td><td>State share</td></tr>`
-        + lineP.map(l => `<tr><td>${esc(l.c)}</td><td>${KMB(l.vb)}</td><td>${KMB(l.vp)}</td><td class="focus">${KMB(l.v1)}</td><td>${chgW(l.vb, l.v1, "n").replace(/^up /, "+").replace(/^down /, "−")}</td><td>${pct(share(l.c).us_share)}</td><td>${pct(share(l.c).share)}</td></tr>`).join("") + `</table>`,
+        + lineP.map(l => `<tr><td>${esc(l.c)}</td><td>${KMB(l.vb)}</td><td>${KMB(l.vp)}</td><td class="focus">${KMB(l.v1)}</td><td>${l.vb >= 50 ? chgW(l.vb, l.v1, "n").replace(/^up /, "+").replace(/^down /, "−") : "–"}</td><td>${pct(share(l.c).us_share)}</td><td>${pct(share(l.c).share)}</td></tr>`).join("") + `</table>`,
         `Active F-1 and M-1 students, one fall snapshot per year (the month closest to November; ${tr.y.includes(2019) ? "" : "2019 has none; "}the latest year is ${V.month}). Rank among the 50 states and DC. ${SV.replace(`, ${V.month}`, "")}.`, {table: true}); };
     pair("", {sec: "International students", h: `How Does ${esc(NAME)}'s Mix of Countries Compare With the Nation's?`,
       stats: [{m: "sevis_total", v: KMB(V.total), l: `Active international students, ${V.month}`, c: `<b>${ord(V.rank)}</b> of ${V.n_ranked} · U.S. <b>${KMB(V.us_total)}</b>`},
@@ -1028,7 +1037,7 @@ function buildSpreads() {
     /* countries whose STEM count exceeds their all-level count (DHS's STEM and all-student pages differ in basis) */
     const stemOver = ord8.filter(c => c !== "All other countries").map(c => ({c, s: cn(c), a: (V.top.find(t => t.country === c) || {}).n})).filter(x => x.a != null && x.s > x.a);
     const bigL = levs.filter(k => k !== "other").sort((a, b) => V.stem.levels[b].n - V.stem.levels[a].n)[0], BL = bigL ? V.stem.levels[bigL] : null, rS = row("sevis_stem_total"), rD = row("sevis_stem_doc"), rM = row("sevis_stem_master");
-    rail("", {title: `Which Countries Supply ${esc(NAME)}'s International STEM Students?`,
+    if (V.stem.total >= 200) rail("", {title: `Which Countries Supply ${esc(NAME)}'s International STEM Students?`,
       lede: [`<b>${KMB(V.stem.total)}</b> of ${esc(NAME)}'s international students were in STEM fields in ${V.stem.month}${V.stem.share != null ? `, <b>${pct(V.stem.share)}</b> of the total against ${pct(V.stem.us_share)} nationally` : ""}${rS.v0 != null ? `, ${chgW(rS.v0, rS.v1, "n")} since ${rS.y0}` : ""}.`,
         BL && BL.top && BL.top.length > 1 ? `${LVN[bigL]} students were the largest group, <b>${KMB(BL.n)}</b>. ${esc(BL.top[0].country)} supplied ${pct(100 * BL.top[0].n / BL.n)} of them and ${esc(BL.top[1].country)} ${pct(100 * BL.top[1].n / BL.n)}.` : "",
         rD.v0 != null && rM.v0 != null ? `STEM doctoral students went from ${KMB(rD.v0)} in ${rD.y0} to <b>${KMB(rD.v1)}</b>, and STEM master's students from ${KMB(rM.v0)} to ${KMB(rM.v1)}.` : ""],
@@ -1044,12 +1053,13 @@ function buildSpreads() {
     /* STEM master's degrees by field, all students and international students, first and last year */
     const sF = L.master.stem_fields, iF = L.master.intl_stem_fields, gRows = sF.k.map(k => { const a = kser(sF, k), b = iF && iF.k.includes(k) ? kser(iF, k) : null;
       return {k, a0: at(a, T.y0), a1: at(a, T.y1), i0: b ? at(b, T.y0) : null, i1: b ? at(b, T.y1) : null}; }).filter(r => r.a1 != null);
-    const shr = (i, a) => i != null && a ? pct(100 * i / a) : "–";
-    const t6 = H => fig(`How Many STEM Master's Degrees Does Each Field Award?`, `<table class="dt" style="--pad:${padFor(H, gRows.length)}px;font-size:11.4px"><tr><th>Field</th><th>${T.y0}</th><th>${T.y1}</th><th>Change</th><th>International<br>${T.y1}</th><th>Int. share<br>${T.y0}</th><th>Int. share<br>${T.y1}</th></tr>${gRows.map(r => `<tr><td>${esc(r.k)}</td><td>${nf(r.a0)}</td><td class="focus">${nf(r.a1)}</td><td>${r.a0 ? chgW(r.a0, r.a1, "n").replace(/^up /, "+").replace(/^down /, "−") : "–"}</td><td>${nf(r.i1)}</td><td>${shr(r.i0, r.a0)}</td><td>${shr(r.i1, r.a1)}</td></tr>`).join("")}</table>`, `STEM master's degrees awarded in ${esc(NAME)}, all students and international students, ${T.y0} and ${T.y1}. ${SRCC}`, {table: true});
+    const shr = (i, a) => i != null && a >= 30 ? pct(100 * i / a) : "–";   // no share of fewer than 30 degrees
+    const t6 = H => fig(`How Many STEM Master's Degrees Does Each Field Award?`, `<table class="dt" style="--pad:${padFor(H, gRows.length)}px;font-size:11.4px"><tr><th>Field</th><th>${T.y0}</th><th>${T.y1}</th><th>Change</th><th>International<br>${T.y1}</th><th>Int. share<br>${T.y0}</th><th>Int. share<br>${T.y1}</th></tr>${gRows.map(r => `<tr><td>${esc(r.k)}</td><td>${nf(r.a0)}</td><td class="focus">${nf(r.a1)}</td><td>${r.a0 >= 50 ? chgW(r.a0, r.a1, "n").replace(/^up /, "+").replace(/^down /, "−") : "–"}</td><td>${nf(r.i1)}</td><td>${shr(r.i0, r.a0)}</td><td>${shr(r.i1, r.a1)}</td></tr>`).join("")}</table>`, `STEM master's degrees awarded in ${esc(NAME)}, all students and international students, ${T.y0} and ${T.y1}. ${SRCC}`, {table: true});
+    THIN = [fieldsRows.filter(f => f.st > 0).length < 5, mt.filter(f => f.master && f.master.n).length < 4];
     pairOne("International dependence", `How International Are ${esc(NAME)}'s Master's Fields?`, ["intl_share_master", "intl_share_stem_master", "intl_share_cs_master", "intl_share_eng_master"],
       one(H => F(`Which Master's Fields Depend Most on International Students?`, dumbbell(fieldsRows, {W: PW, Lw: 220, rh: Math.min(48, (H - 40) / Math.max(1, fieldsRows.length)), fs: 1.3}), `International share of master's degrees by field, ${I.by_field_year}; fields with 30+ graduates. ${SRCC}`),
         `Each row is a master's field with at least 30 graduates in ${esc(NAME)} in ${I.by_field_year}, ranked by the share of degrees earned by international students (U.S. nonresidents on temporary visas). The filled dot is the state's share; the open dot is the national share for the same field.`,
-        [fieldsRows.length ? `<b>Highest international shares</b>: ${fieldsRows.slice(0, 3).map(f => `${esc(f.name.toLowerCase())} ${pct(f.st)} (U.S. ${pct(f.us)})`).join("; ")}.` : "",
+        [fieldsRows.some(f => f.st > 0) ? `<b>Highest international shares</b>: ${fieldsRows.filter(f => f.st > 0).slice(0, 3).map(f => `${esc(f.name.toLowerCase())} ${pct(f.st)} (U.S. ${pct(f.us)})`).join("; ")}.` : "",
           rowFact("intl_share_master", "All master's degrees"), rowFact("intl_share_stem_master", "STEM master's degrees"),
           rowFact("intl_share_cs_master", "Computer and information sciences master's"), rowFact("intl_share_eng_master", "Engineering master's")]),
       one(H => t1(H),
@@ -1058,6 +1068,7 @@ function buildSpreads() {
           nMaj ? `<b>STEM fields where international students earn a majority of master's degrees</b>: ${nMaj}.` : "",
           rowFact("intl_share_stem_bach", "International share of STEM bachelor's"), rowFact("intl_share_stem_master", "International share of STEM master's"),
           rowFact("intl_share_stem_doc", "International share of STEM research doctorates")]));
+    THIN = [grw.filter(f => Math.abs(f.a || 0) + Math.abs(f.b || 0) >= 10).length < 3, gRows.filter(r => (r.a1 || 0) >= 30).length < 3];
     pairOne("International dependence", `How Has ${esc(NAME)}'s STEM Master's Output Grown?`, ["intl_stem_master_count", "stem_share_master", "share_of_us_intl_stem_master", "stem_master_per_doc"],
       one(H => f6(H),
         `Each pair of bars is the change in the number of STEM master's degrees awarded in ${esc(NAME)} between ${T.y0} and ${T.y1} in one field: to domestic students (U.S. citizens and permanent residents) and to international students. Bars to the left of the axis are declines.`,
@@ -1247,9 +1258,10 @@ function buildSpreads() {
     const t1 = H => fig(`Where Is ${esc(NAME)} Most Specialized?`, `<table class="dt" style="--pad:${padFor(H, 10)}px;font-size:11.4px"><tr><th>Field</th><th>Location quotient</th><th>State share</th><th>U.S. share</th><th>Degrees</th></tr>${(lq.bach || []).filter(f => f.n >= 50).sort((a, b) => b.lq - a.lq).slice(0, 10).map(f => `<tr><td>${esc(f.name)}</td><td class="focus">${nf(f.lq, 2)}</td><td>${pct(f.st)}</td><td>${pct(f.us)}</td><td>${nf(f.n)}</td></tr>`).join("")}</table>`, `Bachelor's degrees; location quotient = state share ÷ U.S. share; fields with 50+ degrees. Data from NCES, IPEDS.`, {table: true});
     const dd = [...(lq.doc_res || [])].filter(f => f.n >= 20).sort((a, b) => b.st - a.st).slice(0, 10).map(f => ({name: f.name, st: f.st, us: f.us}));
     const lqTop = (lq.bach || []).filter(f => f.n >= 50).sort((a, b) => b.lq - a.lq).slice(0, 3);
+    THIN = [(lq.bach || []).filter(f => f.n >= 50).length < 5, dd.length < 3];
     pairOne("Fields of study", dd.length >= 3 ? `Where Is ${esc(NAME)} Specialized, and What Do Its Doctoral Graduates Study?` : `Where Is ${esc(NAME)} Most Specialized?`, ["stem_share_bach", "field_share_cs_bach", "field_share_eng_bach", "field_share_business_bach"],
       one(H => eq(t1(H), 220),
-        `The location quotient divides a field's share of ${esc(NAME)}'s bachelor's degrees by its share of all U.S. bachelor's degrees in ${P.degrees.lq_year}. A quotient of 1.00 means the same share as the nation; 2.00 means twice the national share. The table lists the ten fields with the highest quotients among fields with at least 50 degrees.`,
+        `The location quotient divides a field's share of ${esc(NAME)}'s bachelor's degrees by its share of all U.S. bachelor's degrees in ${P.degrees.lq_year}. A quotient of 1.00 means the same share as the nation; 2.00 means twice the national share. The table lists the ${Math.min(10, (lq.bach || []).filter(f => f.n >= 50).length)} fields with the highest quotients among fields with at least 50 degrees.`,
         [lqTop.length ? `<b>Highest location quotients</b>: ${lqTop.map(f => `${esc(f.name.toLowerCase())} ${nf(f.lq, 2)} (${pct(f.st)} of the state's bachelor's degrees; U.S. ${pct(f.us)})`).join("; ")}.` : "",
           rowFact("stem_share_bach", "STEM share of bachelor's degrees"), rowFact("field_share_cs_bach", "Computer and information sciences"), rowFact("field_share_eng_bach", "Engineering"),
           rowFact("field_share_health_bach", "Health professions"), rowFact("field_share_business_bach", "Business")]),
@@ -1320,6 +1332,7 @@ function buildSpreads() {
         `By sector: ${s6.k.map(k => `${esc(k.toLowerCase())} ${pct(last(kser(s6, k)))}`).join(", ")}. At two-year institutions, ${pct(g2.v1)} complete within 150% of normal time (U.S. ${pct(g2.us1)}).`],
       stats: ["grad_rate_bach6", "grad_rate_2yr", "bach_per_100_ug"]});
     const rr = o.bach6_race.filter(r => r.n >= 100).map(r => ({name: r.name, st: r.st, us: r.us}));
+    THIN = [false, rr.length < 3];
     pairOne("Student outcomes", `How Many of ${esc(NAME)}'s Students Graduate?`, ["grad_rate_bach6", "grad_rate_2yr", "bach_per_100_ug"],
       one(H => F(`Six-Year Bachelor's Graduation Rate`, lineSVG({series: pairs([{name: ST, st: o.bach6_st, us: o.bach6_us, c: CRIM}]), W: PW, H, right: 96, zero: false, fs: 1.3}), `Four-year institutions; state solid, U.S. dashed. Data from NCES, IPEDS Graduation Rates.`),
         `The line follows the share of first-time, full-time bachelor's-degree students at ${esc(NAME)}'s four-year institutions who graduated from the institution where they started within six years (150% of normal time). Each year is the cohort that entered six years earlier. The state is solid and the United States dashed.`,
@@ -1364,6 +1377,7 @@ function buildSpreads() {
     const t1 = (k = ti.length, H = 500) => fig(`Which Institutions Train the Most International STEM Graduates?`, `<table class="dt" style="--pad:${Math.min(+padFor(H, k), 9)}px;font-size:11px"><tr><th>Institution</th><th>Intl STEM master's</th><th>Int. share</th><th>Intl STEM doctorates</th><th>Int. share</th></tr>${ti.slice(0, k).map(r => `<tr><td>${esc(r.name)}<small>${esc(r.city || "")} · ${esc(r.sector || "")}</small></td><td class="focus">${nf(r.ms_stem_intl)}</td><td>${sh(r.ms_stem_intl, r.ms_stem)}</td><td>${nf(r.phd_stem_intl)}</td><td>${sh(r.phd_stem_intl, r.phd_stem)}</td></tr>`).join("")}</table>`, `Degrees awarded in ${yrs.completions}. Data from NCES, IPEDS.`, {table: true});
     const t2 = (k = te.length, H = 500) => fig(`What Are ${esc(NAME)}'s Largest Institutions?`, `<table class="dt" style="--pad:${padFor(H, k)}px;font-size:11px"><tr><th>Institution</th><th>Enrollment</th><th>Int. share, grad</th><th>STEM bachelor's</th><th>Six-year grad rate</th><th>Admit rate</th></tr>${te.slice(0, k).map(r => `<tr><td>${esc(r.name)}</td><td class="focus">${nf(r.enroll)}</td><td>${pct(r.intl_grad)}</td><td>${nf(r.ba_stem)}</td><td>${pct(r.grad6)}</td><td>${r.admit != null ? pct(r.admit) : "–"}</td></tr>`).join("")}</table>`, `Fall ${yrs.enroll} enrollment; degrees ${yrs.completions}. Data from NCES, IPEDS.`, {table: true});
     const kRows = H => Math.max(5, Math.floor((H - 70) / 31));
+    THIN = [ti.length < 3, te.length < 3];
     pairOne("Institutions", `Which Institutions Lead in ${esc(NAME)}?`, [{v: nf(last(tot)), l: `Degree-granting institutions, ${lastY(tot)}`, c: ""}, "share_public", "share_forprofit", "share_online_only"],
       one(H => eq(t1(Math.min(ti.length, kRows(H)), H), 260),
         `Institutions in ${esc(NAME)} ranked by the STEM master's and research doctorates they awarded to international students in ${yrs.completions}. The share columns give international students' share of each institution's STEM degrees at that level.`,
