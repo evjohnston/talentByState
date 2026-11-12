@@ -1172,17 +1172,27 @@ function buildSpreads() {
         + `<td class="chg">${cP.t} ${arrow(cP)}</td><td class="chg">${cB.t} ${arrow(cB)}</td><td class="num">${f(r.us1)}</td><td class="chg">${cU.t} ${arrow(cU)}</td>`
         + `<td class="rk">${r.rank ? "#" + r.rank : "–"}</td><td class="src">${esc(srcS(r))}</td></tr>`; };
     const note = `<div class="tnote">Superscript years mark the year observed. “Previous” is the most recent earlier year with data, so the change from previous can span more than one year; changes since ${D.base} start from ${D.base} or the first later year with data. Rank is among the 50 states and DC (1 = highest). “pp” is percentage points. Dollars are 2024 dollars (CPI-U) unless the measure is labeled nominal. Counts and dollars are rounded to three significant figures (K, M, B). Arrow colors show direction only.</div>`;
+    /* groups flow one after another; each starts with its own header row, and a group cut by a page break
+       repeats its header, marked (continued), at the top of the next page */
     let firstPg = true;
-    const landPage = (title, cont) => { const n = FOL++; if (firstPg) TOC.push([n, "By the Numbers"]); firstPg = false;
+    const landPage = () => { const n = FOL++; if (firstPg) TOC.push([n, "By the Numbers"]);
       doc.insertAdjacentHTML("beforeend", `<section class="land"><div class="rh2" style="left:96px"><b>${esc(NAME)}</b> · State Talent Profile · By the Numbers</div><div class="fol" style="right:96px">${n}</div>`
-        + `<div class="abs" style="left:96px;right:96px;top:84px"><div class="kick">${esc(NAME)} – By the Numbers</div><div class="land-h">${esc(title)}${cont ? " (continued)" : ""}</div>`
+        + `<div class="abs" style="left:96px;right:96px;top:84px">${firstPg ? `<div class="land-h">${esc(NAME)} – By the Numbers</div>` : `<div class="kick" style="margin-bottom:10px">${esc(NAME)} – By the Numbers (continued)</div>`}`
         + `<div class="btn-panel"><table class="btn" style="width:${W}px">${head}</table></div>${note}</div></section>`);
-      return doc.lastElementChild; };
-    groups.forEach(([g, rs]) => { let i = 0, cont = false;
-      while (i < rs.length) { const sec = landPage(g, cont), tb = sec.querySelector("table"), box = sec.querySelector(".abs"), top = sec.getBoundingClientRect().top;
-        const over = () => box.getBoundingClientRect().bottom - top > 816 - 64;
-        let k = 0; while (i < rs.length) { tb.insertAdjacentHTML("beforeend", tr(rs[i])); if (over() && k > 0) { tb.lastElementChild.remove(); break; } i++; k++; }
-        cont = true; } });
+      firstPg = false; return doc.lastElementChild; };
+    const secRow = (g, cont) => `<tr class="s"><td colspan="10">${esc(g.toUpperCase())}${cont ? " (CONTINUED)" : ""}</td></tr>`;
+    const lines = []; groups.forEach(([g, rs]) => { lines.push({section: g}); rs.forEach(r => lines.push({r, g})); });
+    let i = 0, cur = null;
+    while (i < lines.length) {
+      const sec = landPage(), tb = sec.querySelector("table"), box = sec.querySelector(".abs"), top = sec.getBoundingClientRect().top;
+      const over = () => box.getBoundingClientRect().bottom - top > 816 - 64;
+      if (!lines[i].section && cur) tb.insertAdjacentHTML("beforeend", secRow(cur, true));
+      let k = 0;
+      while (i < lines.length) { const L0 = lines[i]; tb.insertAdjacentHTML("beforeend", L0.section ? secRow(L0.section) : tr(L0.r));
+        if (over() && k > 0) { tb.lastElementChild.remove(); break; } if (L0.section) cur = L0.section; i++; k++; }
+      // never end a page on a group header with no rows under it
+      if (tb.lastElementChild.classList.contains("s") && i < lines.length && lines[i - 1] && lines[i - 1].section) { tb.lastElementChild.remove(); i--; }
+    }
   }
   /* optional figures that go in only where they fit */
   const mix = () => { const o = P.degrees.fields.bach; return [`<div style="height:14px"></div>` + F(`How Has ${esc(NAME)}'s Bachelor's Field Mix Changed?`, legendHTML(o.k.map((k, i) => ({n: k, c: PAL[i % PAL.length]}))) + lineSVG({series: multi(o), W: 660, H: 230, right: 150}), `Share of bachelor's degrees in the largest fields. Data from NCES, IPEDS Completions.`)]; };

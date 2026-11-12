@@ -1527,8 +1527,9 @@ is defined, and "The numbers", a list of values with their change from the previ
 the U.S. figure and the state's rank. The text reports the data; it does not interpret it. Each chart is drawn
 as large as the page allows once the text fits inside the 1-inch margins.
 
-**By the Numbers** has one landscape page per group of measures (a group that runs long continues on the next
-page). Columns: the 2015 value, the previous value, the latest value (superscripts give each year observed),
+**By the Numbers** is a table on landscape pages. The groups of measures follow one another, each starting
+with its own header row; a group cut by a page break repeats its header, marked "continued", on the next page,
+and no page ends on a header with no rows under it. Columns: the 2015 value, the previous value, the latest value (superscripts give each year observed),
 the change from the previous value, the change since 2015, the latest U.S. value, the U.S. change since 2015,
 the state's rank, and the source of each measure.
 
