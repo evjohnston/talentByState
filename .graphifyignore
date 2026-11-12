@@ -1,0 +1,10 @@
+sources/
+data/
+cache/
+reference/
+manifests/
+.venv*/
+graphify-out/
+*.csv
+*.zip
+*.pdf

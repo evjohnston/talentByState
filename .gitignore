@@ -30,3 +30,6 @@ __pycache__/
 
 # local pointer to RULES.md for the editor assistant (not tracked)
 CLAUDE.md
+
+# knowledge graph (graphify)
+graphify-out/
