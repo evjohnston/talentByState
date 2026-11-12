@@ -8,8 +8,16 @@ reference/digest/
 reference/survey_forms/
 
 # rebuildable outputs and caches
-data/
+data/*
 cache/
+# except the PDF profiles, which are committed with every rebuild (the zips stay out: rebuildable, near 50 MB)
+!data/states/
+data/states/*
+!data/states/profiles/
+data/states/profiles/*
+!data/states/profiles/pdf/
+data/states/profiles/pdf/*
+!data/states/profiles/pdf/*.pdf
 
 # environment and editor
 .venv

@@ -13,6 +13,8 @@ README.md documents every source; read the relevant section before changing a mo
   `reference/digest/` and `reference/survey_forms/` with `manifests/sources_manifest.csv` (size and MD5).
   After adding or moving inputs on purpose, run `python -m ipeds_clean.manifest --update` and commit the manifest.
 - **`data/` and `cache/` are rebuilt by code.** Fix the module, not the output file.
+- **Commit the PDF profiles with every commit.** `data/states/profiles/pdf/*.pdf` is the one tracked part of
+  `data/` (the zips are not); rebuild the PDFs first when a change affects them, so each commit carries current PDFs.
 - Corrections to published numbers (for example a misprint) go in the module, with the printed value, the
   corrected value and the reason in the output's note column and the docstring.
 
