@@ -212,7 +212,7 @@ The system is a white working sheet. Each chosen state gets a column, the U.S. g
 
 Density is high but calm. Type is 11 to 15 px in one family (IBM Plex Sans, embedded so files work offline), set with tabular figures so columns align. Hierarchy comes from weight and 2 px ink rules, not from size jumps or boxes. Ornament is limited to the data. Charts are drawn in SVG, sit directly on the sheet with no card frame, and use the same series colours as the sheet header dots. Motion is functional. Sankey dots travel in the direction of flow, a disclosure caret rotates, and under reduced motion all of it stops.
 
-The world replaces the earlier "Tabbed Reference Manual" (archived in `ipeds_clean/templates/old_manual/`), including its per-section colour boards. None of that vocabulary belongs to this system.
+The world replaces the earlier "Tabbed Reference Manual" (archived in `archive/templates/old_manual/`), including its per-section colour boards. None of that vocabulary belongs to this system.
 
 **Key Characteristics:**
 - One working blue, reserved for the focus state and links.

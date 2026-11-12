@@ -31,6 +31,18 @@ README.md documents every source; read the relevant section before changing a mo
   stage `.env`, or add files over 50 MB.
 - Commit messages describe the change; no tool or assistant attribution lines.
 
+## Finding your way
+
+- **Start from the knowledge graph** in `graphify-out/` (built by graphify; not committed). `GRAPH_REPORT.md`
+  lists the communities (one per source module, template or doc topic), the most connected code and the
+  cross-file links; `graph.html` is the clickable map. Ask it before grepping:
+  `graphify query "how does the PDF fit a figure to 65% of the page?"`, `graphify explain "full_panel"`,
+  `graphify path "external.py" "state_pdf.html"`.
+- **Keep it current**: after code changes run `graphify update .` (code only, free, keeps community names).
+  After README, DESIGN or template changes, run `/graphify . --update` in Claude Code to re-read the changed docs.
+  `.graphifyignore` keeps `sources/`, `data/`, `cache/`, `reference/`, `archive/` and the PDFs out of the graph.
+- `archive/` holds retired code (old templates, the spread mockups). Nothing imports it; don't build on it.
+
 ## Secrets
 
 API keys live in `.env` (`CENSUS_API_KEY`, `COLLEGE_SCORECARD_API_KEY`), which git ignores. Read them in code;

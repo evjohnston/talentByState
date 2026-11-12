@@ -8,3 +8,6 @@ graphify-out/
 *.csv
 *.zip
 *.pdf
+archive/
+docs/
+.ruff_cache/

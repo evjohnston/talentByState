@@ -33,3 +33,4 @@ CLAUDE.md
 
 # knowledge graph (graphify)
 graphify-out/
+.ruff_cache/

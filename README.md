@@ -24,8 +24,10 @@ built site and is replaced by one fresh commit on each deploy (so the ~500 MB of
 code history). Deploy only after a rebuild has passed its checks; `--dry` builds the site folder without pushing.
 
 **Repository and data integrity.** Git (github.com/evjohnston/talentByState) tracks the code, templates, docs,
-crosswalks and small reference files. The inputs (`sources/`, `reference/digest/`, `reference/survey_forms/`, about
-34 GB), the rebuildable outputs (`data/`), `cache/` and `.env` are not tracked.
+crosswalks and small reference files, plus the PDF profiles (`data/states/profiles/pdf/*.pdf`), which are committed
+with every change so each commit carries the PDFs that match its code. The inputs (`sources/`, `reference/digest/`,
+`reference/survey_forms/`, about 34 GB), the rest of the rebuildable outputs (`data/`), `cache/` and `.env` are not
+tracked.
 - **Inputs:** `manifests/sources_manifest.csv` (tracked) records every input file's size and MD5.
   `python -m ipeds_clean.manifest` reports missing, new or changed inputs; after adding or moving files on
   purpose, run it with `--update` and commit the manifest. Input files are only ever moved, never edited, and
@@ -127,8 +129,19 @@ data/                      everything the pipeline writes (safe to delete and re
                            the web profiles and the PDF profiles
 ipeds_clean/               the code (the package keeps its original name); every path is set in
                            ipeds_clean/config.py (SOURCES, CACHE, DATA, OUT = data/ipeds, ...)
+  templates/               the live page templates: sheet, profile, international, explorer, state_pdf;
+                           kit.css (design system), sankey.js, peers.js
+manifests/                 sources_manifest.csv: size and MD5 of every untracked input (python -m ipeds_clean.manifest)
+archive/                   retired code kept for reference, not imported by the pipeline: the earlier "manual"
+                           page templates (templates/old_manual/) and the two-page-spread mockup script
+docs/images/               screenshots for the docs (pdf_viewer.png: the PDF viewer page)
+.githooks/                 pre-commit checks (enabled with git config core.hooksPath .githooks)
+graphify-out/              knowledge graph of the code and docs, not committed (see RULES.md):
+                           GRAPH_REPORT.md, graph.html, graph.json; rebuild with `graphify update .`
+RULES.md                   working rules for anyone editing the project (CLAUDE.md, untracked, points to it)
+DESIGN.md, PRODUCT.md      design system and product principles for the sheet, profiles and PDFs
 .env                       API keys, not committed: CENSUS_API_KEY (and any CENSUS_API_KEY_* backups; the ACS
-                           module uses the first key the Census API accepts)
+                           module uses the first key the Census API accepts), COLLEGE_SCORECARD_API_KEY
 ```
 
 Build order: `python -m ipeds_clean` (clean) → `python -m ipeds_clean.digest` (parse Digest, ~5 min)
@@ -1609,8 +1622,8 @@ as a rank heatmap, and an animated all-state bubble chart.
 
 Both pages are self-contained files with data and fonts embedded (IBM Plex Sans in
 `reference/fonts/`). The design system is `ipeds_clean/templates/kit.css`, the Sankey component is
-`ipeds_clean/templates/sankey.js`, and the earlier "manual" templates are kept in
-`ipeds_clean/templates/old_manual/`.
+`ipeds_clean/templates/sankey.js`, and the earlier "manual" templates are archived in
+`archive/templates/old_manual/`.
 
 Two collection gaps are handled in the panel: race/ethnicity was not collected in 1985, 1987 and
 1989 (those years are blank, not 0%), and residence of first-time students is voluntary in odd years
