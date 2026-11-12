@@ -160,7 +160,9 @@ def payload(sp: pd.DataFrame, extra: dict | None = None) -> dict:
             "title": title, "unit": unit, "fmt": fmt_spec(f), "group": group,
             "family": fam, "level": lev, "label": family_label(fam) if lev else title,
             "note": extra["notes"].get(m) or note_for(m), "div": m in DIVERGING, "divNote": DIVERGING.get(m, ""),
-            "change": "diff" if unit in ("%", "per 100", "per 1,000", "score", "ratio") else "pct",
+            # a measure that can be negative (net migration) changes by a difference: a percent change across zero
+            # ("-119%" from -5,835 to +2,200) means nothing
+            "change": "diff" if unit in ("%", "per 100", "per 1,000", "score", "ratio") or float(sv.min()) < 0 else "pct",
             "gap": {"naep": 5, "pseo": 6, "crdc": 4, "k12": 10}.get(extra["src"].get(m), 2),   # survey spacing (NAEP 2-4 years, PSEO 3/5-year cohorts, CRDC 2-3 years, Digest's selected years 1970/1980/1990): don't break lines
             "lo": sig(lo), "hi": sig(hi),
             "online": m not in NO_ONLINE_CAVEAT and m not in extra["measures"],
