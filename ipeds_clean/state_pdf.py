@@ -163,7 +163,7 @@ def build_payload(Pn: Panel, st: str, peers: list[str]) -> dict:
                          "vals": {s: Pn.at(m, s, y) for s in [st] + peers + ["US"]},
                          "ranks": {s: Pn.rank(m, s, y)[0] if Pn.at(m, s, y) is not None else None for s in [st] + peers}})
     peer_lines = {m: {s: Pn.series(m, s, 1995) for s in [st] + peers + ["US"]}
-                  for m in ["intl_share_stem_master", "intl_share_enroll_grad", "stem_share_master", "grad_rate_bach6"]}
+                  for m in ["intl_share_stem_master", "intl_share_enroll_grad", "stem_share_master", "grad_rate_bach6", "intl_share_stem_doc"]}
     panel_lines = {m: {s: Pn.series(m, s) for s in [st, "US"]}
                    for m in ["approp_per_fte", "tuition_reliance_pub", "share_online_only", "bach_per_100_ug", "stem_master_per_doc",
                              "instate_share_ft", "foreign_share_ft", "net_migration_ft", "share_of_us_intl_stem_master", "intl_stem_master_count"]}
@@ -175,7 +175,40 @@ def build_payload(Pn: Panel, st: str, peers: list[str]) -> dict:
     del prof["inst"]["rows"]
     return {"st": st, "name": NAMES[st], "peers": peers, "names": NAMES, "base": BASE, "built": pd.Timestamp.now().strftime("%B %Y"),
             "groups": Pn.groups, "rows": rows, "peer_tab": peer_tab, "peer_lines": peer_lines, "panel_lines": panel_lines, "prof": prof,
-            "ext_lines": ext_lines, "srcLines": Pn.src_lines}
+            "ext_lines": ext_lines, "srcLines": Pn.src_lines, "reclass": reclass().get(st)}
+
+
+_RECLASS: dict | None = None
+
+
+def reclass() -> dict:
+    """{state: {...}} for the colleges IPEDS counted as public 2-year in BASE and as public 4-year in the latest year.
+
+    IPEDS moves a whole institution to "public, 4-year or above" once it awards any bachelor's degree, so community
+    colleges that began offering applied bachelor's degrees (Texas, California, Washington, Florida and others) carry
+    all of their students into the public 4-year sector. The sector shares in the profiles keep the IPEDS sectors,
+    and this summary lets the text say how much of a shift is relabeling: n institutions, their enrollment, and
+    that enrollment as a share of the state's total and of its public 4-year enrollment, plus the three largest."""
+    global _RECLASS
+    if _RECLASS is None:
+        from . import state_profile as SPR
+        u = SPR.universe()
+        e = pd.read_parquet(ROOT / "data" / "ipeds" / "harmonized" / "enrollment.parquet", columns=["year", "unitid", "n"]).groupby(["year", "unitid"]).n.sum()
+        y1 = int(e.index.get_level_values("year").max())
+        a, b = u[u.year == y1].set_index("unitid"), u[u.year == BASE].set_index("unitid")
+        moved = a[a.sector == "Public 4-year"].index.intersection(b[b.sector == "Public 2-year"].index)
+        ey = e.xs(y1)
+        nm = pd.read_parquet(ROOT / "data" / "ipeds" / "harmonized" / "directory.parquet", columns=["year", "unitid", "instnm"])
+        nm = nm[nm.year == y1].set_index("unitid").instnm
+        _RECLASS = {}
+        for st, g in a.loc[moved].groupby("state"):
+            ids = list(g.index); n = float(ey.reindex(ids).fillna(0).sum())
+            tot = float(ey.reindex(a[a.state == st].index).fillna(0).sum())
+            p4 = float(ey.reindex(a[(a.state == st) & (a.sector == "Public 4-year")].index).fillna(0).sum())
+            top = ey.reindex(ids).fillna(0).sort_values(ascending=False).head(3)
+            _RECLASS[st] = {"inst": len(ids), "n": n, "share": 100 * n / tot if tot else None, "share_p4": 100 * n / p4 if p4 else None,
+                            "y0": BASE, "y1": y1, "names": [str(nm.get(i, "")) for i in top.index]}
+    return _RECLASS
 
 
 COVER = "G"   # cover art: postal code in caps, bright share scattered (mockups in pdf/_covers)

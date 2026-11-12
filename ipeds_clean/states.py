@@ -94,7 +94,7 @@ MEASURES = {   # name: (title, unit, format)
     "bach_per_100_ug": ("Bachelor's degrees per 100 undergraduates", "per 100", "{:.1f}"),
     "tuition_pub4_instate": ("In-state tuition & fees, public 4-year", f"{REAL_BASE} $", "${:,.0f}"),
     "approp_per_fte": ("State & local appropriations per FTE, public institutions", f"{REAL_BASE} $", "${:,.0f}"),
-    "tuition_reliance_pub": ("Tuition share of core revenue, public institutions", "%", "{:.0f}%"),
+    "tuition_reliance_pub": ("Net tuition share of tuition plus state and local appropriations, public institutions", "%", "{:.0f}%"),
     "grad_rate_bach6": ("Six-year bachelor's graduation rate, 4-year institutions", "%", "{:.0f}%"),
     "grad_rate_2yr": ("Completion within 150% of normal time, 2-year institutions", "%", "{:.0f}%"),
     "faculty_salary": ("Average full-time faculty salary (9/10-month)", f"{REAL_BASE} $", "${:,.0f}"),

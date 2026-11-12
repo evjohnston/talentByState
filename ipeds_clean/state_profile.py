@@ -39,10 +39,10 @@ CIP2 = {"01": "Agriculture", "03": "Natural resources", "04": "Architecture", "0
         "46": "Construction trades", "47": "Mechanic & repair", "48": "Precision production", "49": "Transportation",
         "50": "Visual & performing arts", "51": "Health professions", "52": "Business", "53": "High school diplomas",
         "54": "History", "60": "Residency programs", "61": "Medical residencies"}
-STEM_GROUP = {"11": "Computer & info sciences", "14": "Engineering", "15": "Engineering", "27": "Math & statistics",
+STEM_GROUP = {"11": "Computer & info sciences", "14": "Engineering & eng. technology", "15": "Engineering & eng. technology", "27": "Math & statistics",
               "26": "Biological sciences", "40": "Physical sciences", "03": "Natural resources & architecture",
               "04": "Natural resources & architecture"}
-STEM_GROUPS = ["Computer & info sciences", "Engineering", "Math & statistics", "Biological sciences",
+STEM_GROUPS = ["Computer & info sciences", "Engineering & eng. technology", "Math & statistics", "Biological sciences",
                "Physical sciences", "Natural resources & architecture"]
 STEM_MATRIX = ["11", "14", "15", "27", "40", "26", "03", "04", "52", "51", "45", "42", "13", "50", "22", "24"]
 SECTORS = ["Public 4-year", "Public 2-year", "Private nonprofit", "For-profit"]

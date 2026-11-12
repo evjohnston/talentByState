@@ -65,6 +65,8 @@ JS = r"""(() => {
     errorsNan: [txt.split('NaN').length - 1, txt.split('undefined').length - 1],
     overflow: {lede: sel('.plede').filter(over).length, head: sel('.phead').filter(over).length, rail: sel('.prail').filter(over).length},
     margin: sel('.pgF').map(rel).filter(v => v > 962).length,
+    heroClash: sel('section').filter(s => { const f = s.querySelector('.heroF'), t = s.querySelector('.htxt'); return f && t && f.getBoundingClientRect().bottom > t.getBoundingClientRect().top - 4; }).length,
+    tableClash: sel('section').filter(s => { const t = s.querySelector('table.dt'), b = s.querySelector('.band'); return t && b && t.getBoundingClientRect().bottom > b.getBoundingClientRect().top + 1; }).length,
     figGaps: [...seqBad(fn), ...seqBad(tn).map(n => 'T' + n)],
     statbox: box, sboxHigh: sbH,
     newSheets: sections.map((s, i) => s.querySelector('.phead, .prail') ? i + 1 : 0).filter(Boolean),
@@ -105,6 +107,8 @@ def flags(r: dict) -> list[str]:
     ov = r.get("overflow", {})
     if any(ov.values()): out.append(f"overflow {ov}")
     if r.get("margin"): out.append(f"{r['margin']} figure(s) past the bottom margin")
+    if r.get("heroClash"): out.append(f"{r['heroClash']} spread chart(s) run into the text block below")
+    if r.get("tableClash"): out.append(f"{r['tableClash']} table(s) run into the shaded band below")
     if r.get("figGaps"): out.append(f"figure numbering {r['figGaps']}")
     if r.get("statbox"): out.append(f"stat box vs table {r['statbox']}")
     if r.get("sboxHigh"): out.append(f"{r['sboxHigh']} stat box(es) reach the prose")
