@@ -207,6 +207,7 @@ ul.facts li b { font-weight: 600; color: var(--ink) }
 .prail .stat .v { color: #fff; font-size: 28px } .prail .stat .l { color: #fff; font-weight: 300 }
 .prail .stat .c { color: #f6dbe2; font-weight: 300 } .prail .stat .c b { color: #fff; font-weight: 600 }
 .railF .legend { margin-bottom: 10px }
+.sec-hl { font: 400 18px/1.35 'EB Garamond', serif; color: var(--body); margin-top: 6px; max-width: 624px }   /* left page only: never across the fold */
 /* thumb tab: section number on the outer edge of every right page in a section, one step lower per section */
 .ttab { position: absolute; right: 18px; width: 26px; height: 40px; background: var(--crim); color: #fff; font: 800 12px/40px Montserrat, sans-serif; text-align: center; border-radius: 2px }
 .fm .ttab, .dark .ttab { display: none }
@@ -790,7 +791,8 @@ function buildSpreads() {
     + (side === "R" && CURSEC && CURSEC.n ? `<div class="ttab" style="top:${110 + (CURSEC.n - 1) * 46}px">${CURSEC.n}</div>` : "");
   let FOL = 2; const TOC = [];
   const spread = (title, L, Rt, over = "", lcls = "", rcls = "") => { const n = FOL; if (title) TOC.push([n, title]); FOL += 2;
-    doc.insertAdjacentHTML("beforeend", `<section class="spread"${title ? ` data-toc="${esc(title)}"` : ""}><div class="pg ${lcls}">${page(n, "L")}${L}</div><div class="pg ${rcls}">${page(n + 1, "R")}${Rt}</div>${over}</section>`); };
+    doc.insertAdjacentHTML("beforeend", `<section class="spread"${title ? ` data-toc="${esc(title)}"` : ""}><div class="pg ${lcls}">${page(n, "L")}${L}</div><div class="pg ${rcls}">${page(n + 1, "R")}${Rt}</div>${over}</section>`);
+    theDC(doc.lastElementChild); };   // before any fitting, so the longer wording is measured
   const tile = m => { const r = row(m), c = chg(r); return `<div class="t9">${r.rank ? `<span class="rk">#${r.rank}</span>` : ""}<div class="v">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l">${esc(SHORT[m] || r.title)}, ${r.y1}</div><div class="c">U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>${c.t !== "–" ? ` · ${c.t} since ${r.y0}` : ""}</div></div>`; };
   const F = (title, body, src) => fig(title, body, src);
 
@@ -993,9 +995,18 @@ function buildSpreads() {
     return fig(title, `<table class="dt" style="--pad:${padFor(H, rs.length)}px;font-size:11.4px"><tr><th>Measure</th><th>${D.base}</th><th>Previous</th><th>Latest</th><th>Change</th><th>U.S.</th><th>Rank</th></tr>${rs.map(m => { const r = row(m), f = v => fmtSpec(v, r.fmt, r.unit);
       return `<tr><td>${esc(cleanT(SHORT[m] || r.title))}</td><td>${f(r.v0)}</td><td>${r.vp != null ? `${f(r.vp)}<small>${r.yp}</small>` : "–"}</td><td class="focus">${f(r.v1)}<small>${r.y1}</small></td><td>${chg(r).t}</td><td>${f(r.us1)}</td><td>${r.rank ? ord(r.rank) : "–"}</td></tr>`; }).join("")}</table>`, src, {table: true}); };
   /* a chart across both pages with text and key numbers beneath, as in the report */
+  /* section headline: one sentence under a section's title reporting where the state stands out most among the
+     section's key measures, the one whose rank is nearest the top or the bottom of the 51 (a fact, not a reading of it) */
+  const lc1 = t => /^[A-Z][a-z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t;
+  const headline = ms => { const c = (ms || []).filter(m => typeof m === "string" && row(m).rank && row(m).v1 != null).map(m => ({m, r: row(m), d: Math.min(row(m).rank, row(m).n + 1 - row(m).rank)}));
+    if (!c.length) return ""; const {m, r} = c.sort((a, b) => a.d - b.d)[0], f = v => fmtSpec(v, r.fmt, r.unit);
+    let t = lc1(r.title.replace(/\s*\([^)]*\)$/, "")).replace(/^(.*), average score$/, "average $1 score");
+    t = r.unit === "%" ? `the ${/share|rate/i.test(t) ? t : `share of ${t}`}` : /^(average|median)\b/i.test(t) ? `the ${t}` : t;   // shares and averages take "the"; counts read bare
+    return `${esc(NAME)} ranks ${ord(r.rank)} of ${r.n} states on ${esc(t)}, at ${f(r.v1)} in ${r.y1}${r.us1 != null ? ` against ${f(r.us1)} for the U.S.` : "."}`; };
   const hero = (toc, o) => {
-    const head = o.head ? `<div class="abs" style="left:96px;top:96px;width:1000px"><div class="kick">${sec(o.head)}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">${o.head}</div></div>` : "";
-    const top = o.head ? 196 : 96, H = (o.H || 500) + (o.head ? 0 : 100);
+    const hl = o.head ? headline(o.stats) : "";
+    const head = o.head ? `<div class="abs" style="left:96px;top:96px;width:1200px"><div class="kick">${sec(o.head)}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">${o.head}</div>${hl ? `<div class="sec-hl">${hl}</div>` : ""}</div>` : "";
+    const top = o.head ? (hl ? 262 : 196) : 96, H = (o.H || 500) + (o.head ? (hl ? -66 : 0) : 100);
     const ps = o.paras.filter(Boolean).map(p => `<p class="sp-p">${p}</p>`).join("");
     const txt = o.stats ? `<div style="display:grid;grid-template-columns:${PW}px ${PW}px;column-gap:192px;align-items:start"><div class="cols2">${ps}</div>${statsH(o.stats)}</div>` : `<div class="cols2" style="column-gap:192px">${ps}</div>`;
     spread(toc, "", "", `${head}<div class="abs heroF" style="left:96px;right:96px;top:${top}px">${F(o.title, (o.legend || "") + o.chart(H), o.src)}</div><div class="abs htxt" style="left:96px;right:96px;bottom:96px"><div class="sp-rule" style="width:100%;margin:0 0 18px"></div>${txt}</div>`); };
@@ -1534,7 +1545,17 @@ function buildSpreads() {
       + grp("SECTIONS", TOC.filter(x => !over.includes(x[1]) && !back.includes(x[1])).map(([n, t]) => [n, `<b>Section ${++k}</b> ${esc(cap(t))}`]))
       + grp("BACK MATTER", TOC.filter(x => back.includes(x[1])).map(([n, t]) => [n, `<b>${esc(cap(t))}</b>`])); }
 }
-document.fonts.ready.then(() => { if (VAR === "spread") buildSpreads(); else buildBTN();
+/* "the District of Columbia" in running text, headings and captions ("in the District of Columbia", "The District
+   of Columbia ranks"); covers, title pages and the state name on its own are left as they are */
+function theDC(root = document) {
+  if (ST !== "DC") return;
+  const sel = ".sp-p, .plede p, .prail p, .prail .rh, .sec-hl, .ph, .mid-h, .ft, .fs, .stat .l, .stat .c, ol.kt li, .notes p, .land-h, .tnote, td";
+  root.querySelectorAll(sel).forEach(el => { const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n, first = true;
+    while ((n = w.nextNode())) { let t = n.nodeValue;
+      t = t.replace(/(^|[.!?]\s+)District of Columbia/g, (m, p) => p === "" && !first ? m : `${p}The District of Columbia`);
+      t = t.replace(/(?<![Tt]he )District of Columbia/g, "the District of Columbia");
+      if (n.nodeValue.trim()) first = false; n.nodeValue = t; } }); }
+document.fonts.ready.then(() => { if (VAR === "spread") buildSpreads(); else buildBTN(); theDC();
   /* PDF bookmarks: one per table-of-contents entry, at its sheet (sections in order are the PDF's sheets) */
   window.__outline = [...document.querySelectorAll("section")].map((s, i) => s.dataset.toc ? {t: s.dataset.toc, i} : null).filter(Boolean);
   window.__ready = true; });

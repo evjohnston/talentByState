@@ -1555,7 +1555,9 @@ it. Figure and table numbers are assigned in reading order after layout, rails i
 **Wayfinding and print.** The left running head names the profile and the right one names the current section
 ("Section 5 · Graduate Research"); every right page in a section carries a crimson thumb tab with the section
 number on its outer edge, one step lower per section; the digital PDF has a bookmark for every table-of-contents
-entry. For greyscale printing, every line end names its series (name above value when both don't fit), U.S. lines
+entry. Each section opener carries one headline sentence under its title, on the left page: where the state ranks
+among the 51 on the section's most distinctive key measure (the one ranked nearest the top or bottom), with its value
+and the U.S. figure. In the District of Columbia's profile, running text says "the District of Columbia". For greyscale printing, every line end names its series (name above value when both don't fit), U.S. lines
 use heavier long dashes, small segments of 100% bars are labelled above the bar, and secondary text and table
 headers meet 4.5:1 contrast on every background. Small states lose spreads whose data is too thin, and no percent
 change is printed on a base under 50.
