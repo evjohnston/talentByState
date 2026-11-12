@@ -17,6 +17,12 @@ and the PDF profiles. They draw on these sources:
 
 Each source has its own section below. The IPEDS pipeline comes first, because it is the largest.
 
+**Live site:** [www.emersonjohnston.org/talentByState](https://www.emersonjohnston.org/talentByState/) (GitHub
+Pages): the profiles index, each state's profile, the State Talent Sheet (`sheet.html`) and the PDF downloads.
+`python -m ipeds_clean.deploy_pages` publishes `data/states/` to the `gh-pages` branch, which holds only the
+built site and is replaced by one fresh commit on each deploy (so the ~500 MB of pages and PDFs never enter the
+code history). Deploy only after a rebuild has passed its checks; `--dry` builds the site folder without pushing.
+
 **Repository and data integrity.** Git (github.com/evjohnston/talentByState) tracks the code, templates, docs,
 crosswalks and small reference files. The inputs (`sources/`, `reference/digest/`, `reference/survey_forms/`, about
 34 GB), the rebuildable outputs (`data/`), `cache/` and `.env` are not tracked.

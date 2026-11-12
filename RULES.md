@@ -36,7 +36,9 @@ never print, log or commit their values.
 
 ## Outputs
 
-- Serve the HTML locally (`cd data/states && python -m http.server 8765`); never publish it elsewhere.
+- Preview the HTML locally (`cd data/states && python -m http.server 8765`). The only public copy is the GitHub
+  Pages site (https://www.emersonjohnston.org/talentByState/), published with `python -m ipeds_clean.deploy_pages`
+  after the checks below pass; publish nowhere else.
 - Every figure carries its own source line ("Data from ...").
 - After a rebuild, check: no browser errors, no NaN/undefined text, all PDF fonts embedded, and even page counts
   for print PDFs.
