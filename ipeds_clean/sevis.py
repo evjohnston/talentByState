@@ -249,21 +249,30 @@ def nice(c: str) -> str:
 
 
 def state_payloads(states: list[str]) -> dict:
-    """{state: {...}} with the latest snapshot, a yearly trend (latest month in each calendar year) and STEM by level.
-    Built from the parquet files written by build()."""
+    """{state: {...}} with the latest snapshot, a yearly trend and STEM by level. Built from the parquet files written
+    by build().
+
+    The yearly trend uses the same fall snapshots as the State Talent Sheet (fall_months: the month closest to
+    November; 2019 has none), plus the latest month when its year has no fall page yet, so a profile's "from 2025"
+    and "since 2015" figures match its By the Numbers table. (Until November 2026 the trend took the last month of
+    each calendar year, so California's 2025 count read 156.7K, December, against 158.6K, November, in the table.)
+    U.S. totals and shares are the 50 states and DC, as on the sheet."""
     l = pd.read_parquet(OUT / "all_state_country.parquet")
     s = pd.read_parquet(OUT / "stem.parquet")
     l, s = l[l.month.isin(usable_months("all"))], s[s.month.isin(usable_months("stem"))]
     m1, sm1 = l.month.max(), s.month.max()
-    yearly = l.groupby(l.month.dt.year).month.max().sort_index()   # one snapshot per year
+    yearly = fall_months(l.month.unique())
+    if m1.year not in yearly.index:
+        yearly[m1.year] = m1
+    yearly = yearly.sort_index()
     ly = l[l.month.isin(yearly.values)].assign(year=lambda d: d.month.dt.year)
     now = l[l.month == m1]
-    us = now.groupby("country").n.sum()
+    us = now[now.state.isin(states)].groupby("country").n.sum()
     us_tot = int(us.sum())
     st_tot = now.groupby("state").n.sum()
     ranked = st_tot[st_tot.index.isin(states)].sort_values(ascending=False)
     snow = s[s.month == sm1]
-    us_stem_tot = int(snow.n.sum())
+    us_stem_tot = int(snow[snow.state.isin(states)].n.sum())
     out = {}
     for st in states:
         x = now[now.state == st].groupby("country").n.sum().sort_values(ascending=False)
