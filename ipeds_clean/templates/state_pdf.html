@@ -907,8 +907,8 @@ function buildSpreads() {
   const ledeOf = o => [o.about, ...(o.facts || []).filter(Boolean).map(runin)].filter(Boolean);
   const cleanT = t => t.replace(/ \((SEVIS|DOL|USCIS|ACS|IPEDS|PSEO|NSF[^)]*|ICE[^)]*|NAEP)\)$/, "");
   const bandStat = m => { if (m && typeof m === "object") return m; const r = row(m); if (r.v1 == null) return null; const c = chg(r), f = v => fmtSpec(v, r.fmt, r.unit);
-    return {v: f(r.v1), l: `${esc(cleanT(SHORT[m] || r.title).replace(/^International share of /, "Int. share of "))}, ${r.y1}`, c: [r.us1 != null && !(r.unit === "%" && Math.abs(r.us1 - 100) < 1e-6) ? `U.S. <b>${f(r.us1)}</b>` : "", r.rank ? `<b>${ord(r.rank)}</b> of ${r.n}` : ""].filter(Boolean).join(" · "), ch: c.t !== "–" ? `${c.t} since ${r.y0}` : ""}; };
-  const statDivs = (st, withCh) => st.map(s => `<div class="stat"><div class="v">${s.v}</div><div class="l">${s.l}</div><div class="c">${s.c || ""}${withCh && s.ch ? (s.c ? " · " : "") + s.ch : ""}</div></div>`).join("");
+    return {m, v: f(r.v1), l: `${esc(cleanT(SHORT[m] || r.title).replace(/^International share of /, "Int. share of "))}, ${r.y1}`, c: [r.us1 != null && !(r.unit === "%" && Math.abs(r.us1 - 100) < 1e-6) ? `U.S. <b>${f(r.us1)}</b>` : "", r.rank ? `<b>${ord(r.rank)}</b> of ${r.n}` : ""].filter(Boolean).join(" · "), ch: c.t !== "–" ? `${c.t} since ${r.y0}` : ""}; };
+  const statDivs = (st, withCh) => st.map(s => `<div class="stat"${s.m ? ` data-m="${s.m}"` : ""}><div class="v">${s.v}</div><div class="l">${s.l}</div><div class="c">${s.c || ""}${withCh && s.ch ? (s.c ? " · " : "") + s.ch : ""}</div></div>`).join("");
   const sbox = ms => { const st = ms.map(bandStat).filter(Boolean).slice(0, 4); return st.length ? `<div class="sbox"><div class="stats" style="--n:${st.length}">${statDivs(st)}</div></div>` : ""; };
   const fitText = (box, sel, f0, f1, minP = 1) => { const over = () => box.scrollHeight > box.clientHeight + 1 || box.scrollWidth > box.clientWidth + 1, ps = () => box.querySelectorAll(sel);
     while (over() && ps().length > minP + 1) ps()[ps().length - 1].remove();
@@ -981,7 +981,7 @@ function buildSpreads() {
       src: `Active F-1 and M-1 students by country of citizenship, the five largest in ${V.month}; one fall snapshot per year (the month closest to November), ${tr.first_month}–${V.month}. All education levels. ${SV.replace(`, ${V.month}`, "")}.`,
       paras: [`In ${V.month}, ${esc(NAME)} had ${KMB(V.total)} active international students in SEVIS, ${ord(V.rank)} of ${V.n_ranked}. ${esc(t0.country)} accounted for ${pct(t0.share)} of them and ${esc(t1.country)} for ${pct(t1.share)}, against ${pct(t0.us_share)} and ${pct(t1.us_share)} nationally.`,
         `Students came from ${V.countries} countries, but the two largest supplied ${pct(V.top2_share)}. The state's total is ${ch(tr.v[0], tr.v[tr.v.length - 1])} since ${tr.y[0]}.`],
-      stats: [{v: KMB(V.total), l: `Active international students, ${V.month}`, c: `<b>${ord(V.rank)}</b> of ${V.n_ranked} · U.S. <b>${KMB(V.us_total)}</b>`},
+      stats: [{m: "sevis_total", v: KMB(V.total), l: `Active international students, ${V.month}`, c: `<b>${ord(V.rank)}</b> of ${V.n_ranked} · U.S. <b>${KMB(V.us_total)}</b>`},
         {v: pct(t0.share), l: `From ${t0.country}`, c: `U.S. <b>${pct(t0.us_share)}</b>`},
         ...(V.stem.share != null ? [{v: pct(V.stem.share), l: "In STEM fields", c: `U.S. <b>${pct(V.stem.us_share)}</b>`}] : [{v: pct(V.top2_share), l: "From the two largest countries", c: ""}])]});
     const LVN = {bachelors: "Bachelor's", masters: "Master's", doctorate: "Doctorate", other: "Other levels"}, LVC = {bachelors: PAL[2], masters: PAL[1], doctorate: PAL[0], other: cssv("--grey")};
@@ -1006,9 +1006,9 @@ function buildSpreads() {
         + lineP.map(l => `<tr><td>${esc(l.c)}</td><td>${KMB(l.vb)}</td><td>${KMB(l.vp)}</td><td class="focus">${KMB(l.v1)}</td><td>${chgW(l.vb, l.v1, "n").replace(/^up /, "+").replace(/^down /, "−")}</td><td>${pct(share(l.c).us_share)}</td><td>${pct(share(l.c).share)}</td></tr>`).join("") + `</table>`,
         `Active F-1 and M-1 students, one fall snapshot per year (the month closest to November; ${tr.y.includes(2019) ? "" : "2019 has none; "}the latest year is ${V.month}). Rank among the 50 states and DC. ${SV.replace(`, ${V.month}`, "")}.`, {table: true}); };
     pair("", {sec: "International students", h: `How Does ${esc(NAME)}'s Mix of Countries Compare With the Nation's?`,
-      stats: [{v: KMB(V.total), l: `Active international students, ${V.month}`, c: `<b>${ord(V.rank)}</b> of ${V.n_ranked} · U.S. <b>${KMB(V.us_total)}</b>`},
+      stats: [{m: "sevis_total", v: KMB(V.total), l: `Active international students, ${V.month}`, c: `<b>${ord(V.rank)}</b> of ${V.n_ranked} · U.S. <b>${KMB(V.us_total)}</b>`},
         {v: pct(t0.share), l: `From ${esc(t0.country)}`, c: `U.S. <b>${pct(t0.us_share)}</b>`}, {v: pct(t1.share), l: `From ${esc(t1.country)}`, c: `U.S. <b>${pct(t1.us_share)}</b>`},
-        {v: nf(V.countries), l: "Countries represented", c: rC.us1 != null ? `U.S. <b>${nf(rC.us1)}</b>` : ""}],
+        {m: "sevis_countries", v: nf(V.countries), l: "Countries represented", c: rC.us1 != null ? `U.S. <b>${nf(rC.us1)}</b>` : ""}],
       a: {fig: H => F(`Is ${esc(NAME)}'s Mix of Countries Like the Nation's?`, dumbCols(V.top.map(r => ({name: r.country, st: r.share, us: r.us_share})), {W: PW, H,
             callout: `${esc(t0.country)} supplies <b style="color:${CRIM}">${pct(t0.share)}</b> of ${esc(NAME)}'s students, ${nf(Math.abs(gap0))} points ${gap0 >= 0 ? "above" : "below"} its U.S. share.`}), `Share of active F-1 and M-1 students, all levels. ${SV}.`),
         lede: [`In ${V.month}, ${esc(NAME)} had <b>${KMB(V.total)}</b> active F-1 and M-1 students, ${ord(V.rank)} of ${V.n_ranked} states and <b>${pct(100 * V.total / V.us_total)}</b> of the U.S. total. They came from ${nf(V.countries)} countries.`,
