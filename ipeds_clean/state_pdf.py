@@ -410,7 +410,7 @@ def zip_all() -> list[Path]:
     out = []
     for name, suffix, kind in ((ZIP_NAME, "", "digital"), (ZIP_PRINT, "_print", "print")):
         z = OUT / name
-        with zipfile.ZipFile(z, "w", zipfile.ZIP_STORED) as f:   # PDFs are already compressed
+        with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as f:   # deflate: the print PDFs shrink by half (stays under GitHub's 100 MB file limit)
             for st in sorted(S.TILES, key=lambda s: NAMES[s]):
                 p = OUT / f"{st}{suffix}.pdf"
                 if p.exists():
