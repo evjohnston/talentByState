@@ -1521,17 +1521,32 @@ These are followed by Competitors, Fields, Students and money, Outcomes and facu
 notes, and By the Numbers. Layouts are measured so nothing overruns a page, and small states get extra
 figures where there is room.
 
-**Single-page figures** (two figures on facing pages, rather than one chart across the spread) follow one
-layout: the figure at the top, then "About this figure", which says what the chart shows and how its measure
-is defined, and "The numbers", a list of values with their change from the previous report and since 2015,
-the U.S. figure and the state's rank. The text reports the data; it does not interpret it. Each chart is drawn
-as large as the page allows once the text fits inside the 1-inch margins.
+**Single-page figures** (facing pages, rather than one chart across the spread) carry exactly one figure or
+one table each, in one layout: the figure or table fills the top 65% of the live area (inside the 1-inch
+margins) and the text the bottom 35%. The text has "About this figure", which says what the figure shows and
+how its measure is defined, and "The numbers", a list of values with their change from the previous report
+and since 2015, the U.S. figure and the state's rank. It reports the data; it does not interpret it. Charts
+are drawn to fill their 65%, and table rows are spaced to fill it; where the text runs long, its last items are
+dropped, then its type steps down, until it fits its 35%.
 
-**By the Numbers** is a table on landscape pages. The groups of measures follow one another, each starting
-with its own header row; a group cut by a page break repeats its header, marked "continued", on the next page,
-and no page ends on a header with no rows under it. Columns: the 2015 value, the previous value, the latest value (superscripts give each year observed),
-the change from the previous value, the change since 2015, the latest U.S. value, the U.S. change since 2015,
-the state's rank, and the source of each measure.
+**By the Numbers** is a table on landscape pages, grouped by topic in pipeline order, not by source: K-12
+preparation; enrollment and institutions; degrees and fields of study; international students; graduate
+education and research; college costs and outcomes; where students and graduates go; work visas and green
+cards; STEM workforce and innovation. Each topic starts with its own header row; a topic cut by a page break
+repeats its header, marked "continued", on the next page, and no page ends on a header with no rows under it.
+- **Columns:** measure, 2015 value, latest value (superscripts give each year observed), change since 2015,
+  latest U.S. value, U.S. change since 2015, the state's rank, and a source number. The measure column is wide
+  enough that nearly every name fits on one line.
+- **Rows left out** because another row already says the same thing: NAEP grade 8 math advanced share and
+  90th percentile; the averaged freshman graduation rate (ACGR kept); Scorecard enrollment, 4-year completion
+  rate and STEM earnings premium (IPEDS enrollment and graduation rate kept; the premium is the difference of
+  two rows shown); SED's S&E share of doctorates (IPEDS STEM share kept); Open Doors' international student
+  count (SEVIS kept); DHS H-1B, F-1 and J-1 admission counts (their shares kept) and the INS F-1/M-1 share
+  (ends 2004); the USAspending total (grants and contracts kept); the 4-year out-of-state share (all-college
+  share kept); the net migration count (per-1,000 rate kept); BLS's approximate STEM median wage and STEM share
+  of jobs (mean wage and the ACS share kept). They stay in the State Talent Sheet and the CSVs.
+- **Sources** follow the tables on one page: every data source as a Chicago-style bibliography entry,
+  alphabetical, numbered [1], [2], … in the order the source column uses.
 
 **The print version** is made from the digital PDF, in order for double-sided printing on 8.5×11 sheets:
 
