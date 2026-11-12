@@ -1534,13 +1534,27 @@ These are followed by Competitors, Fields, Students and money, Outcomes and facu
 notes, and By the Numbers. Layouts are measured so nothing overruns a page, and small states get extra
 figures where there is room.
 
-**Single-page figures** (facing pages, rather than one chart across the spread) carry exactly one figure or
-one table each, in one layout: the figure or table fills the top 65% of the live area (inside the 1-inch
-margins) and the text the bottom 35%. The text has "About this figure", which says what the figure shows and
-how its measure is defined, and "The numbers", a list of values with their change from the previous report
-and since 2015, the U.S. figure and the state's rank. It reports the data; it does not interpret it. Charts
-are drawn to fill their 65%, and table rows are spaced to fill it; where the text runs long, its last items are
-dropped, then its type steps down, until it fits its 35%.
+**Paired spreads** (two facing pages with one figure or table each, rather than one chart across the spread)
+read as one spread. The left page opens with a section label, a question and a crimson rule; the right page
+opens with a crimson box of up to four key numbers (bold white figures, light Montserrat descriptions with the
+U.S. value and rank). Both pages then carry two or three paragraphs of plain reporting (values, the U.S.
+figure, rank, and the change from the previous year and since 2015; no interpretation), and the figure or table
+fills the lower half. Where a page has no natural partner (small states with too few doctoral fields), the
+right page is a facts table of the box's measures. Charts here are drawn for reading: the country mix is a dot
+plot with State / U.S. / Gap columns and a callout; race and ethnicity, and funding by source, are paired bars
+(state over U.S.) with the change or dollars at right; enrollment by sector and faculty by tenure status are
+100% bars for the base, middle and latest years, joined so the shift reads as a shape. Prose drops its last
+paragraphs, then steps its type down from 16 px, until it fits; figures shrink until they fit.
+
+**Rail spreads.** Every Sankey gets a spread of its own (STEM students by country and level; newcomers; residents
+who leave): the figure number, question, prose and up to three key numbers sit in a crimson box inside the
+margins on the outer edge (left page for the first, right page for departures, so the two migration spreads
+mirror), and the Sankey fills the rest of both pages. Bars and labels stay clear of the fold; only ribbons cross
+it. Figure and table numbers are assigned in reading order after layout, rails included.
+
+International-student counts by year (profile text, Table 1, the country lines) use the same fall snapshot as
+the State Talent Sheet (the month closest to November; 2019 has none), and U.S. totals are the 50 states and DC,
+so a profile's "from 2025" and "since 2015" match its By the Numbers table.
 
 **By the Numbers** is a table on landscape pages, grouped by topic in pipeline order, not by source: K-12
 preparation; enrollment and institutions; degrees and fields of study; international students; graduate

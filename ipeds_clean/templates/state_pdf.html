@@ -183,6 +183,32 @@ ul.facts { margin: 0; padding: 0; list-style: none }
 ul.facts li { position: relative; padding-left: 16px; font: 400 var(--fs, 13.2px)/1.4 'EB Garamond', serif; color: var(--body); margin: 0 0 4px }
 ul.facts li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 6px; height: 6px; background: var(--crim) }
 ul.facts li b { font-weight: 600; color: var(--ink) }
+/* paired spreads: section label + question (left page), crimson stat box (right page), prose on both, one figure per page */
+.psec { font: 800 9px Montserrat, sans-serif; color: var(--crim); letter-spacing: .06em; text-transform: uppercase }
+.ph { font: 800 var(--hs, 34px)/1.08 Montserrat, sans-serif; color: var(--ink); margin-top: 8px; text-wrap: balance }
+.plede { overflow: hidden; column-count: 2; column-gap: 26px }
+.plede .sp-p { font-size: var(--fs, 16px); line-height: 1.5; margin: 0 0 9px; break-inside: avoid-column }
+.prule { height: 1px; background: var(--rule) }
+.sbox { background: var(--crim); padding: 20px 22px 18px; border-radius: 2px }
+.sbox .stats { gap: 0; margin: 0 }
+.sbox .stat { padding: 0 16px; border-left: 1px solid rgba(255,255,255,.28) }
+.sbox .stat:first-child { padding-left: 0; border-left: 0 }
+.sbox .stat .v { color: #fff; font-size: 31px }
+.sbox .stat .l { color: #fff; font-weight: 300; line-height: 1.3 }
+.sbox .stat .c { color: #f6dbe2; font-weight: 300 } .sbox .stat .c b { color: #fff; font-weight: 600 }
+/* rail spreads: every Sankey gets a spread, with its question, prose and key numbers in a crimson box on the outer edge */
+.prail { background: var(--crim); padding: 22px 20px; overflow: hidden; color: #fff; border-radius: 2px }
+.prail .fno { font: 700 11px Montserrat, sans-serif; color: #ffc2d1; letter-spacing: .02em }
+.prail .rh { font: 800 var(--hs, 22px)/1.15 Montserrat, sans-serif; margin: 8px 0 14px; text-wrap: balance }
+.prail .rr { width: 60px; height: 2px; background: #fff; margin-bottom: 14px }
+.prail .rp p { font: 400 var(--fs, 15.4px)/1.5 'EB Garamond', serif; margin: 0 0 10px; color: #fff }
+.prail .rp b { font-weight: 600 }
+.prail .stat { border-top: 1px solid rgba(255,255,255,.3); padding: 12px 0 2px }
+.prail .stat .v { color: #fff; font-size: 28px } .prail .stat .l { color: #fff; font-weight: 300 }
+.prail .stat .c { color: #f6dbe2; font-weight: 300 } .prail .stat .c b { color: #fff; font-weight: 600 }
+.railF .legend { margin-bottom: 10px }
+table.dt tr.s td { background: var(--band); color: var(--crim); font-weight: 800; text-transform: uppercase; letter-spacing: .03em; border-top: 1px solid #222; text-align: right }
+table.dt tr.s td:first-child { text-align: left }
 .spread .fig svg text:not(.big), .spread .fig svg tspan, .spread .legend, .spread .fig .fs, .spread table.dt, .spread table.dt th, .spread table.dt td, .spread table.dt small, .spread .stat .l, .spread .stat .c, .spread .t9 .l, .spread .t9 .c, .spread ol.kt li, .spread .notes, .spread .notes p, .spread .bignums span, .spread table.btn, .spread .tnote { font-size: 12px !important }
 .spread .fig svg tspan[style*="font-weight:700"], .spread table.btn td, .spread table.btn th { font-size: 12px !important }
 .spread table.dt.eq { table-layout: fixed; width: 100% } .spread table.dt.eq td:first-child { white-space: normal }
@@ -403,6 +429,55 @@ function bars2(rows, la, lb, {W = FW, Lw = 170, fmt = nf, fs = 1, rh: RH} = {}) 
     [[r.a, CRIM, rh / 2 - bh - 1 * fs], [r.b, TEAL, rh / 2 + 1 * fs]].forEach(([v, c, o]) => { if (v == null) return; const x0 = Math.min(X(0), X(v)), w = Math.abs(X(v) - X(0));
       h += `<rect x="${x0}" y="${y + o}" width="${Math.max(.5, w)}" height="${bh}" fill="${c}"/><text x="${v >= 0 ? X(v) + 4 * fs : X(v) - 4 * fs}" y="${y + o + bh - .5}" text-anchor="${v >= 0 ? "start" : "end"}" style="fill:${c};font-weight:700;font-size:${fz(6.6 * fs).toFixed(1)}px">${v > 0 ? "+" : ""}${fmt(v)}</text>`; }); });
   return legendHTML([{n: la, c: CRIM, kind: "sq"}, {n: lb, c: TEAL, kind: "sq"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
+}
+/* dot plot with value columns: state (filled crimson) vs U.S. (open teal) on a share axis, then State / U.S. / Gap
+   columns, banded rows, and an optional callout under the first row. rows [{name, st, us}] */
+function dumbCols(rows, {W = 624, H = 400, callout} = {}) {
+  const n = rows.length, lw = 112, cw = 176, top = 24, rh = (H - top - 26) / Math.max(1, n), x0 = lw + 10, x1 = W - cw - 18;
+  const mx = Math.max(10, ...rows.flatMap(r => [r.st, r.us].filter(v => v != null))) * 1.12, X = v => x0 + (x1 - x0) * v / mx;
+  const step = mx > 60 ? 20 : mx > 25 ? 10 : 5, cx = W - cw, T = (x, y, s, st = "", a = "end") => `<text x="${x}" y="${y}" text-anchor="${a}" dominant-baseline="middle" style="${st}">${s}</text>`;
+  let h = "";
+  for (let t = 0; t <= mx; t += step) h += `<line x1="${X(t)}" x2="${X(t)}" y1="${top - 6}" y2="${H - 22}" stroke="#e6e2dc"/><text x="${X(t)}" y="${H - 6}" text-anchor="middle">${t}%</text>`;
+  h += T(cx + 56, 10, esc(ST), `fill:${CRIM};font-weight:700`) + T(cx + 114, 10, "U.S.", `fill:${TEAL};font-weight:600`) + T(cx + 174, 10, "Gap", "fill:#111;font-weight:600");
+  rows.forEach((r, i) => { const y = top + rh * (i + .5), a = r.st == null ? null : X(r.st), b = r.us == null ? null : X(r.us);
+    if (i % 2 === 0) h += `<rect x="0" y="${y - rh / 2}" width="${W}" height="${rh}" fill="#f7f5f2"/>`;
+    h += T(lw, y, esc(r.name), "fill:#111;font-weight:500");
+    if (a != null && b != null) h += `<line x1="${Math.min(a, b)}" x2="${Math.max(a, b)}" y1="${y}" y2="${y}" stroke="${r.st > r.us ? "#dba3b3" : "#9cc3ca"}" stroke-width="5" stroke-linecap="round"/>`;
+    if (b != null) h += `<circle cx="${b}" cy="${y}" r="6" fill="#fff" stroke="${TEAL}" stroke-width="2.4"/>`;
+    if (a != null) h += `<circle cx="${a}" cy="${y}" r="6.6" fill="${CRIM}"/>`;
+    const gap = r.st != null && r.us != null ? r.st - r.us : null;
+    h += T(cx + 56, y, pct(r.st), `fill:${CRIM};font-weight:800`) + T(cx + 114, y, pct(r.us), `fill:${TEAL}`) + T(cx + 174, y, gap == null ? "–" : (gap >= 0 ? "+" : "−") + nf(Math.abs(gap), 1), "fill:#111;font-weight:600"); });
+  if (callout && n > 3 && rows[0].st != null) { const y = top + rh * .5, a = X(rows[0].st), bx = X(mx * .32), by = top + rh * 2.6;
+    if (a - bx > 150) h += `<path d="M${a},${y + 7} L${a},${by - 4}" stroke="#111" fill="none"/><circle cx="${a}" cy="${by - 4}" r="1.8" fill="#111"/><foreignObject x="${bx}" y="${by}" width="${a - bx + 14}" height="${rh * 2.2}"><div xmlns="http://www.w3.org/1999/xhtml" style="font:500 11px/1.35 Montserrat,sans-serif;color:#111;background:#fff;padding:2px 0">${callout}</div></foreignObject>`; }
+  return legendHTML([{n: NAME, c: CRIM, kind: "dot"}, {n: "United States", c: TEAL, kind: "ring"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
+}
+/* paired bars: state (crimson) over U.S. (grey) per row, with the state's change at the right. rows [{name, st, us, d}] */
+function pairBars(rows, {W = 624, H = 400, dHead = "Change", dFmt = d => (d >= 0 ? "+" : "−") + nf(Math.abs(d), 1) + " pts", stName = NAME} = {}) {
+  const n = rows.length, lw = 160, cw = 90, top = 22, rh = (H - top - 4) / Math.max(1, n), x0 = lw + 10, x1 = W - cw - 56;
+  const mx = Math.max(10, ...rows.flatMap(r => [r.st, r.us].filter(v => v != null))) * 1.05, X = v => x0 + (x1 - x0) * v / mx;
+  let h = `<text x="${W}" y="8" text-anchor="end" style="fill:#111;font-weight:600">${esc(dHead)}</text>`;
+  rows.forEach((r, i) => { const y = top + rh * i + rh / 2 - 8;
+    h += `<text x="${lw}" y="${y + 6}" text-anchor="end" dominant-baseline="middle" style="fill:#111;font-weight:500">${esc(r.name)}</text>`;
+    if (r.st != null) h += `<rect x="${x0}" y="${y - 3}" width="${Math.max(X(r.st) - x0, 1)}" height="13" fill="${CRIM}" rx="1"/><text x="${X(r.st) + 6}" y="${y + 4}" dominant-baseline="middle" style="fill:${CRIM};font-weight:800">${pct(r.st)}</text>`;
+    if (r.us != null) h += `<rect x="${x0}" y="${y + 13}" width="${Math.max(X(r.us) - x0, 1)}" height="7" fill="#b9b3aa" rx="1"/><text x="${X(r.us) + 6}" y="${y + 17}" dominant-baseline="middle" style="fill:#6f6a64">U.S. ${pct(r.us)}</text>`;
+    if (r.d != null) h += `<text x="${W}" y="${y + 6}" text-anchor="end" dominant-baseline="middle" style="fill:#111;font-weight:700">${dFmt(r.d)}</text>`;
+    if (i < n - 1) h += `<line x1="0" x2="${W}" y1="${top + rh * (i + 1) - 4}" y2="${top + rh * (i + 1) - 4}" stroke="#e6e2dc"/>`; });
+  return legendHTML([{n: stName, c: CRIM, kind: "sq"}, {n: "United States", c: "#b9b3aa", kind: "sq"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
+}
+/* 100% bars for a few years, joined by translucent bands so a shift in the mix reads as a shape. o = {y, k, v} (counts) */
+function stackYears(o, years, {W = 624, H = 400} = {}) {
+  const ys = years.filter(y => o.y.includes(y)), lw = 50, bw = W - lw, bh = Math.min(110, (H - 10) / Math.max(1, ys.length) * .52), gap = ys.length > 1 ? (H - 10 - ys.length * bh) / (ys.length - 1) : 0;
+  const sh = ys.map(y => { const i = o.y.indexOf(y), t = o.v.reduce((a, s) => a + (s[i] || 0), 0) || 1; return o.k.map((k, j) => 100 * (o.v[j][i] || 0) / t); });
+  let h = "";
+  sh.forEach((d, i) => { const y = i * (bh + gap); let x = lw;
+    h += `<text x="0" y="${y + bh / 2}" dominant-baseline="middle" style="fill:#111;font-weight:800">${ys[i]}</text>`;
+    d.forEach((v, j) => { const w = bw * v / 100;
+      if (i < sh.length - 1) { const nx = sh[i + 1], xa = lw + bw * d.slice(0, j).reduce((a, b) => a + b, 0) / 100, xb = lw + bw * nx.slice(0, j).reduce((a, b) => a + b, 0) / 100, wb = bw * nx[j] / 100;
+        h += `<path d="M${xa},${y + bh} L${xa + w},${y + bh} L${xb + wb},${y + bh + gap} L${xb},${y + bh + gap} Z" fill="${PAL[j % PAL.length]}" fill-opacity=".14"/>`; }
+      h += `<rect x="${x}" y="${y}" width="${Math.max(w - 2, .5)}" height="${bh}" fill="${PAL[j % PAL.length]}"/>`;
+      if (w > 44) h += `<text x="${x + 8}" y="${y + bh / 2}" dominant-baseline="middle" style="fill:#fff;font-weight:800">${pct(v)}</text>`;
+      x += w; }); });
+  return legendHTML(o.k.map((k, j) => ({n: k, c: PAL[j % PAL.length], kind: "sq"}))) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 /* two-column Sankey: nodes {id, label | lines, n, c}; links {s, t, v, c?} */
 function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [], fs = 1}) {
@@ -822,6 +897,65 @@ function buildSpreads() {
   const padFor = (H, n) => Math.max(3, Math.min(26, ((H - 80) / (n + 1) - 15) / 2)).toFixed(1);
   const eq = (h, lead) => h.replace(/<table class="dt"([^>]*)>/, (m, a) => { const n = (h.match(/<tr>(.*?)<\/tr>/) || ["", ""])[1].split("<th").length - 2; return `<table class="dt eq"${a}><colgroup><col style="width:${lead}px"><col span="${n}" style="width:${((PW - lead) / n).toFixed(1)}px"></colgroup>`; });
   const tbig = h => h.replace('<table class="dt"', '<table class="dt" style="--pad:8px;font-size:11.4px"');
+  /* paired spread (the two single pages of a spread read as one): section label, question and crimson rule on the
+     left page; the crimson stat box on the right; two or three paragraphs of plain reporting on each page; then one
+     figure or table per page in the lower half. o = {sec, h, stats: [measure | {v, l, c}], a: {fig(H), lede[]}, b}.
+     Prose drops its last paragraphs, then steps its type down from 16 px, until it fits; figures shrink until they
+     fit. Figure and table numbers are restored before each redraw so a refit never skips a number. */
+  const PLT = 262, PLH = 190, PFT = 478, PFH = 960 - PFT;
+  const runin = f => f ? f.replace(/^<b>([^<]*)<\/b>:\s*(.)/, (m, l, c) => `<b>${l}.</b> ${c.toUpperCase()}`) : f;
+  const ledeOf = o => [o.about, ...(o.facts || []).filter(Boolean).map(runin)].filter(Boolean);
+  const cleanT = t => t.replace(/ \((SEVIS|DOL|USCIS|ACS|IPEDS|PSEO|NSF[^)]*|ICE[^)]*|NAEP)\)$/, "");
+  const bandStat = m => { if (m && typeof m === "object") return m; const r = row(m); if (r.v1 == null) return null; const c = chg(r), f = v => fmtSpec(v, r.fmt, r.unit);
+    return {v: f(r.v1), l: `${esc(cleanT(SHORT[m] || r.title).replace(/^International share of /, "Int. share of "))}, ${r.y1}`, c: [r.us1 != null && !(r.unit === "%" && Math.abs(r.us1 - 100) < 1e-6) ? `U.S. <b>${f(r.us1)}</b>` : "", r.rank ? `<b>${ord(r.rank)}</b> of ${r.n}` : ""].filter(Boolean).join(" · "), ch: c.t !== "–" ? `${c.t} since ${r.y0}` : ""}; };
+  const statDivs = (st, withCh) => st.map(s => `<div class="stat"><div class="v">${s.v}</div><div class="l">${s.l}</div><div class="c">${s.c || ""}${withCh && s.ch ? (s.c ? " · " : "") + s.ch : ""}</div></div>`).join("");
+  const sbox = ms => { const st = ms.map(bandStat).filter(Boolean).slice(0, 4); return st.length ? `<div class="sbox"><div class="stats" style="--n:${st.length}">${statDivs(st)}</div></div>` : ""; };
+  const fitText = (box, sel, f0, f1, minP = 1) => { const over = () => box.scrollHeight > box.clientHeight + 1 || box.scrollWidth > box.clientWidth + 1, ps = () => box.querySelectorAll(sel);
+    while (over() && ps().length > minP + 1) ps()[ps().length - 1].remove();
+    let f = f0; while (over() && f > f1) { f -= .4; box.style.setProperty("--fs", f + "px"); }
+    while (over() && ps().length > minP) ps()[ps().length - 1].remove(); };
+  const fitFig = (box, draw, H0, maxH) => { const n0 = [figN, tabN]; let H = H0;
+    const put = () => { [figN, tabN] = n0; box.innerHTML = draw(H); }; put();
+    while (box.scrollHeight > maxH + 1 && H > 140) { H -= 12; put(); } };
+  const pair = (toc, o) => {
+    const ph = p => `<div class="abs plede" style="left:96px;width:624px;top:${PLT}px;height:${PLH}px">${p.lede.map(t => `<p class="sp-p">${t}</p>`).join("")}</div>`
+      + `<div class="abs prule" style="left:96px;width:624px;top:${PFT - 16}px"></div><div class="abs pgF" style="left:96px;width:624px;top:${PFT}px"></div>`;
+    const headL = `<div class="abs phead" style="left:96px;width:624px;top:92px;height:${PLT - 102}px;overflow:hidden"><div class="psec">${esc(o.sec)}</div><div class="ph">${o.h}</div><div class="sp-rule" style="margin:14px 0 0"></div></div>`;
+    const headR = `<div class="abs" style="left:96px;width:624px;top:92px">${sbox(o.stats || [])}</div>`;
+    spread(toc, headL + ph(o.a), headR + ph(o.b)); const sp = doc.lastElementChild;
+    const hd = sp.children[0].querySelector(".phead"); let hs = 34; while (hd.scrollHeight > hd.clientHeight + 1 && hs > 24) hd.style.setProperty("--hs", (hs -= 2) + "px");
+    /* the stat box must end above the prose: shrink its figures, then drop its fourth number */
+    const sb = sp.children[1].querySelector(".sbox"), sbOver = () => sb && sb.offsetHeight > PLT - 92 - 12;
+    let sv = 31; while (sbOver() && sv > 24) { sv -= 1; sb.querySelectorAll(".stat .v").forEach(e => e.style.fontSize = sv + "px"); }
+    if (sbOver()) sb.querySelectorAll(".stat .l").forEach(e => e.style.lineHeight = "1.18");
+    while (sbOver() && sb.querySelectorAll(".stat").length > 3) { sb.querySelector(".stat:last-child").remove(); sb.querySelector(".stats").style.setProperty("--n", sb.querySelectorAll(".stat").length); }
+    [o.a, o.b].forEach((p, i) => { const pg = sp.children[i];
+      fitFig(pg.querySelector(".pgF"), p.fig, PFH - 74, PFH);
+      fitText(pg.querySelector(".plede"), "p", 16, 14); }); };
+  /* the same from two one() objects: their "about" text and facts become the prose (facts as run-in paragraphs); with
+     no partner page (b blank) the right page carries a facts table of the stat measures and the rest of a's prose */
+  const pairOne = (sec, h, stats, a, b, bTitle) => {
+    const la = ledeOf(a);
+    if (!b || typeof b === "string") { const k = Math.ceil(la.length / 2);
+      return pair("", {sec, h, stats, a: {fig: a.fig, lede: la.slice(0, k)}, b: {fig: factsT(bTitle || `${esc(NAME)} at a Glance`, stats.filter(m => typeof m === "string"), "Data from NCES, IPEDS."), lede: la.slice(k)}}); }
+    return pair("", {sec, h, stats, a: {fig: a.fig, lede: la}, b: {fig: b.fig, lede: ledeOf(b)}}); };
+  /* rail spread for a Sankey: the question, prose and up to three key numbers in a crimson box inside the margins on
+     the outer edge of one page (side "L" or "R"); the figure fills the rest of the spread. o = {title, lede[], stats,
+     legend, chart(W, H), src} */
+  const RW = 262, RFW = 1632 - 192 - RW - 40;
+  const rail = (toc, o, side = "L") => {
+    const n = ++figN, rx = side === "L" ? 96 : 1632 - 96 - RW, fx = side === "L" ? 96 + RW + 40 : 96;
+    const st = (o.stats || []).map(bandStat).filter(Boolean).slice(0, 3);
+    const box = `<div class="abs prail" style="left:${rx}px;top:92px;width:${RW}px;height:870px"><div class="fno">Figure ${n}</div><div class="rh">${o.title}</div><div class="rr"></div><div class="rp">${o.lede.filter(Boolean).map(t => `<p>${t}</p>`).join("")}</div>${statDivs(st, true)}</div>`;
+    spread(toc, "", "", box + `<div class="abs pgF railF" style="left:${fx}px;top:100px;width:${RFW}px"></div>`); const sp = doc.lastElementChild;
+    fitFig(sp.querySelector(".railF"), H => `<div class="fig">${o.legend || ""}${o.chart(RFW, H)}<div class="fs">${o.src}</div></div>`, 790, 860);
+    const rb = sp.querySelector(".prail"), rp = rb.querySelector(".rp"), over = () => rb.scrollHeight > rb.clientHeight + 1;
+    while (over() && rp.children.length > 1) rp.lastElementChild.remove();
+    let f = 15.4; while (over() && f > 13) { f -= .4; rb.style.setProperty("--fs", f + "px"); } };
+  /* a facts table as a figure: measure, base year, previous year, latest, change, U.S., rank */
+  const factsT = (title, ms, src) => H => { const rs = ms.filter(m => row(m).v1 != null); if (!rs.length) return "";
+    return fig(title, `<table class="dt" style="--pad:${padFor(H, rs.length)}px;font-size:11.4px"><tr><th>Measure</th><th>${D.base}</th><th>Previous</th><th>Latest</th><th>Change</th><th>U.S.</th><th>Rank</th></tr>${rs.map(m => { const r = row(m), f = v => fmtSpec(v, r.fmt, r.unit);
+      return `<tr><td>${esc(cleanT(SHORT[m] || r.title))}</td><td>${f(r.v0)}</td><td>${r.vp != null ? `${f(r.vp)}<small>${r.yp}</small>` : "–"}</td><td class="focus">${f(r.v1)}<small>${r.y1}</small></td><td>${chg(r).t}</td><td>${f(r.us1)}</td><td>${r.rank ? ord(r.rank) : "–"}</td></tr>`; }).join("")}</table>`, src, {table: true}); };
   /* a chart across both pages with text and key numbers beneath, as in the report */
   const hero = (toc, o) => {
     const head = o.head ? `<div class="abs" style="left:96px;top:96px;width:1000px"><div class="kick">${sec()}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">${o.head}</div></div>` : "";
@@ -844,7 +978,7 @@ function buildSpreads() {
     const ch = (a, b) => a ? (b >= a ? "up " : "down ") + nf(Math.abs(100 * (b - a) / a)) + "%" : "–";
     hero("", {title: `Where Do ${esc(NAME)}'s International Students Come From?`, legend: legendHTML(tr.lines.map((l, i) => ({n: l.country, c: PAL[i]}))),
       chart: H => HL(tr.lines.map((l, i) => ({name: l.country, s: {y: l.y, v: l.v}, c: PAL[i], w: 1.8})), H, {unit: "n", right: 220}),
-      src: `Active F-1 and M-1 students by country of citizenship, the five largest in ${V.month}; one snapshot per year (the latest month available), ${tr.first_month}–${V.month}. All education levels. ${SV.replace(`, ${V.month}`, "")}.`,
+      src: `Active F-1 and M-1 students by country of citizenship, the five largest in ${V.month}; one fall snapshot per year (the month closest to November), ${tr.first_month}–${V.month}. All education levels. ${SV.replace(`, ${V.month}`, "")}.`,
       paras: [`In ${V.month}, ${esc(NAME)} had ${KMB(V.total)} active international students in SEVIS, ${ord(V.rank)} of ${V.n_ranked}. ${esc(t0.country)} accounted for ${pct(t0.share)} of them and ${esc(t1.country)} for ${pct(t1.share)}, against ${pct(t0.us_share)} and ${pct(t1.us_share)} nationally.`,
         `Students came from ${V.countries} countries, but the two largest supplied ${pct(V.top2_share)}. The state's total is ${ch(tr.v[0], tr.v[tr.v.length - 1])} since ${tr.y[0]}.`],
       stats: [{v: KMB(V.total), l: `Active international students, ${V.month}`, c: `<b>${ord(V.rank)}</b> of ${V.n_ranked} · U.S. <b>${KMB(V.us_total)}</b>`},
@@ -853,23 +987,46 @@ function buildSpreads() {
     const LVN = {bachelors: "Bachelor's", masters: "Master's", doctorate: "Doctorate", other: "Other levels"}, LVC = {bachelors: PAL[2], masters: PAL[1], doctorate: PAL[0], other: cssv("--grey")};
     const ord8 = V.stem.order, levs = ["masters", "doctorate", "bachelors", "other"].filter(k => V.stem.levels[k] && V.stem.levels[k].n > 0);
     const cn = c => V.stem.flows.filter(f => f.c === c).reduce((a, f) => a + f.n, 0);
-    const sk = H => sankeyDraw({left: ord8.map((c, i) => ({id: "c" + i, label: c, n: cn(c), c: c === "All other countries" ? cssv("--grey") : TEAL})),
+    const sk = (H, W = PW) => sankeyDraw({left: ord8.map((c, i) => ({id: "c" + i, label: c, n: cn(c), c: c === "All other countries" ? cssv("--grey") : TEAL})),
       right: levs.map(k => ({id: k, lines: [LVN[k]], n: V.stem.levels[k].n, c: LVC[k]})),
       links: V.stem.flows.filter(f => levs.includes(f.lev)).map(f => ({s: "c" + ord8.indexOf(f.c), t: f.lev, v: f.n, c: LVC[f.lev]})),
-      W: PW, H, LBl: 190, LBr: 150, heads: ["Country of citizenship", "Level of study"], fs: 1.25});
-    const byC = c => (tr.lines.find(l => l.country === c) || null), ctry = r => { const l = byC(r.country);
-      return `<b>${esc(r.country)}</b>: ${pct(r.share)} of the state's international students (U.S. ${pct(r.us_share)})${l ? `; ${KMB(last(l))} students in ${lastY(l)}${trendBits(l, "n")}` : ""}.`; };
-    pages1("", one(H => F(`Is ${esc(NAME)}'s Mix of Countries Like the Nation's?`, dumbbell(V.top.map(r => ({name: r.country, st: r.share, us: r.us_share})), {W: PW, Lw: 200, rh: Math.min(46, (H - 40) / V.top.length), fs: 1.3}), `Share of active F-1 and M-1 students, all levels. ${SV}.`),
-        `Each row is one of the ${V.top.length} countries with the most active F-1 and M-1 student records in ${esc(NAME)} in ${V.month}. The filled dot is the country's share of the state's international students; the open dot is its share of all international students in the United States. Students at every level, from secondary school to doctorate, are counted. Yearly counts are the latest month available in each year.`,
-        [`<b>All active international students</b>: ${KMB(V.total)} in ${V.month}, ${ord(V.rank)} of ${V.n_ranked} states (U.S. ${KMB(V.us_total)})${trendBits(tr, "n")}.`,
-          ...V.top.slice(0, 4).map(ctry),
-          `<b>Countries represented</b>: ${nf(V.countries)}; the two largest supplied ${pct(V.top2_share)} of the state's international students.`], 440),
-      one(H => F(`Which Countries Supply ${esc(NAME)}'s International STEM Students?`, sk(H), `Active F-1 and M-1 students in STEM fields by country of citizenship and level, ${V.stem.month}; the eight largest countries. ${SV.replace(V.month, V.stem.month)}.`),
-        `Each band runs from a country of citizenship on the left to a level of study on the right, for international students enrolled in STEM fields in ${V.stem.month}. Band widths are proportional to the number of students. The eight largest countries are shown and the rest are grouped as all other countries.`,
-        [V.stem.share != null ? `<b>Share of international students in STEM fields</b>: ${pct(V.stem.share)} in ${V.stem.month} (U.S. ${pct(V.stem.us_share)}).` : "",
-          ...levs.filter(k => k !== "other").map(k => { const L0 = V.stem.levels[k], t = (L0.top || []).slice(0, 3);
-            return `<b>${LVN[k]} level</b>: ${KMB(L0.n)} students${t.length ? `; largest countries ${t.map(x => `${esc(x.country)} (${KMB(x.n)})`).join(", ")}` : ""}.`; }),
-          rowFact("sevis_stem_total", "Active STEM students"), rowFact("sevis_stem_master_india", "Share of STEM master's students from India")], 500)); }
+      W, H, LBl: W > 900 ? 220 : 190, LBr: W > 900 ? 240 : 150, heads: ["Country of citizenship", "Level of study"], fs: W > 900 ? 1.5 : 1.25});
+    /* paired spread: the country mix (dot plot with value columns) and Table: international students since the base year */
+    const pt = (s, y) => { const p = s.y.map((yy, i) => [yy, s.v[i]]).filter(d => d[1] != null && d[1] > 0); const b = p.find(d => d[0] >= y) || p[0], l1 = p[p.length - 1], lp = p[p.length - 2];
+      return {yb: b && b[0], vb: b && b[1], y1: l1 && l1[0], v1: l1 && l1[1], yp: lp && lp[0], vp: lp && lp[1]}; };
+    const tt = pt(tr, D.base), r2 = row("sevis_top2_share"), rU = row("sevis_share_of_us"), rC = row("sevis_countries");
+    const lineP = tr.lines.map(l => ({c: l.country, ...pt(l, D.base)})).filter(l => l.vb != null && l.v1 != null);
+    const gap0 = t0.share - t0.us_share;
+    const intlT = H => { const rs = ["sevis_total", "sevis_share_of_us", "sevis_countries", "sevis_top2_share"].filter(m => row(m).v1 != null), n = rs.length + lineP.length + 2;
+      const f = (m, v) => fmtSpec(v, row(m).fmt, row(m).unit), share = c => (V.top.find(x => x.country === c) || {});
+      return fig(`International Students in ${esc(NAME)}, ${tt.yb || D.base}–${tt.y1}`, `<table class="dt" style="--pad:${padFor(H, n)}px;font-size:11.4px"><tr><th></th><th>${row(rs[0]).y0}</th><th>${row(rs[0]).yp}</th><th>${row(rs[0]).y1}</th><th>Change since ${row(rs[0]).y0}</th><th>U.S. ${row(rs[0]).y1}</th><th>Rank</th></tr>`
+        + `<tr class="s"><td colspan="7">All international students</td></tr>`
+        + rs.map(m => { const r = row(m); return `<tr><td>${esc(cleanT(r.title).replace("Active F-1/M-1 students, all levels", "Active F-1 and M-1 students"))}</td><td>${f(m, r.v0)}</td><td>${f(m, r.vp)}</td><td class="focus">${f(m, r.v1)}</td><td>${chg(r).t}</td><td>${m === "sevis_share_of_us" ? "–" : f(m, r.us1)}</td><td>${r.rank ? ord(r.rank) : "–"}</td></tr>`; }).join("")
+        + `<tr class="s"><td colspan="5">Largest countries of citizenship (students)</td><td>U.S. share</td><td>State share</td></tr>`
+        + lineP.map(l => `<tr><td>${esc(l.c)}</td><td>${KMB(l.vb)}</td><td>${KMB(l.vp)}</td><td class="focus">${KMB(l.v1)}</td><td>${chgW(l.vb, l.v1, "n").replace(/^up /, "+").replace(/^down /, "−")}</td><td>${pct(share(l.c).us_share)}</td><td>${pct(share(l.c).share)}</td></tr>`).join("") + `</table>`,
+        `Active F-1 and M-1 students, one fall snapshot per year (the month closest to November; ${tr.y.includes(2019) ? "" : "2019 has none; "}the latest year is ${V.month}). Rank among the 50 states and DC. ${SV.replace(`, ${V.month}`, "")}.`, {table: true}); };
+    pair("", {sec: "International students", h: `How Does ${esc(NAME)}'s Mix of Countries Compare With the Nation's?`,
+      stats: [{v: KMB(V.total), l: `Active international students, ${V.month}`, c: `<b>${ord(V.rank)}</b> of ${V.n_ranked} · U.S. <b>${KMB(V.us_total)}</b>`},
+        {v: pct(t0.share), l: `From ${esc(t0.country)}`, c: `U.S. <b>${pct(t0.us_share)}</b>`}, {v: pct(t1.share), l: `From ${esc(t1.country)}`, c: `U.S. <b>${pct(t1.us_share)}</b>`},
+        {v: nf(V.countries), l: "Countries represented", c: rC.us1 != null ? `U.S. <b>${nf(rC.us1)}</b>` : ""}],
+      a: {fig: H => F(`Is ${esc(NAME)}'s Mix of Countries Like the Nation's?`, dumbCols(V.top.map(r => ({name: r.country, st: r.share, us: r.us_share})), {W: PW, H,
+            callout: `${esc(t0.country)} supplies <b style="color:${CRIM}">${pct(t0.share)}</b> of ${esc(NAME)}'s students, ${nf(Math.abs(gap0))} points ${gap0 >= 0 ? "above" : "below"} its U.S. share.`}), `Share of active F-1 and M-1 students, all levels. ${SV}.`),
+        lede: [`In ${V.month}, ${esc(NAME)} had <b>${KMB(V.total)}</b> active F-1 and M-1 students, ${ord(V.rank)} of ${V.n_ranked} states and <b>${pct(100 * V.total / V.us_total)}</b> of the U.S. total. They came from ${nf(V.countries)} countries.`,
+          `${esc(t0.country)} supplied <b>${pct(t0.share)}</b> of them, against ${pct(t0.us_share)} nationally, and ${esc(t1.country)} <b>${pct(t1.share)}</b>, against ${pct(t1.us_share)}.${V.top.length > 4 ? ` ${V.top.slice(2, 5).map(r => `${esc(r.country)} (${pct(r.share)})`).join(", ").replace(/, ([^,]*)$/, " and $1")} followed.` : ""}`,
+          r2.v1 != null ? `Together the two largest countries supplied <b>${pct(r2.v1)}</b> of the state's international students (U.S. ${pct(r2.us1)}), ${ord(r2.rank)} among the states${r2.v0 != null ? `, against ${pct(r2.v0)} in ${r2.y0}` : ""}.` : ""].filter(Boolean)},
+      b: {fig: intlT,
+        lede: [tt.v1 != null ? `The state's count is ${chgW(tt.vp, tt.v1, "n")} from ${tt.yp}${tt.yb < tt.yp ? ` and ${chgW(tt.vb, tt.v1, "n")} since ${tt.yb}, when it stood at ${KMB(tt.vb)}` : ""}.${rU.v1 != null && rU.v0 != null ? ` Its share of all U.S. international students is ${chgW(rU.v0, rU.v1, "%")} since ${rU.y0}, to <b>${pct(rU.v1)}</b>.` : ""}` : "",
+          lineP.length ? `Since ${lineP[0].yb}, ${lineP.slice(0, 3).map(l => `students from ${esc(l.c)} went from ${KMB(l.vb)} to ${KMB(l.v1)}`).join("; ")}.` : "",
+          lineP.length > 3 ? `Over the same years, ${lineP.slice(3).map(l => `students from ${esc(l.c)} went from ${KMB(l.vb)} to ${KMB(l.v1)}`).join(", and ")}. The table gives each country's count for the first, previous and latest years.` : ""].filter(Boolean)}});
+    /* rail spread: the STEM Sankey across the spread */
+    const bigL = levs.filter(k => k !== "other").sort((a, b) => V.stem.levels[b].n - V.stem.levels[a].n)[0], BL = bigL ? V.stem.levels[bigL] : null, rS = row("sevis_stem_total"), rD = row("sevis_stem_doc"), rM = row("sevis_stem_master");
+    rail("", {title: `Which Countries Supply ${esc(NAME)}'s International STEM Students?`,
+      lede: [`<b>${KMB(V.stem.total)}</b> of ${esc(NAME)}'s international students were in STEM fields in ${V.stem.month}${V.stem.share != null ? `, <b>${pct(V.stem.share)}</b> of the total against ${pct(V.stem.us_share)} nationally` : ""}${rS.v0 != null ? `, ${chgW(rS.v0, rS.v1, "n")} since ${rS.y0}` : ""}.`,
+        BL && BL.top && BL.top.length > 1 ? `${LVN[bigL]} students were the largest group, <b>${KMB(BL.n)}</b>. ${esc(BL.top[0].country)} supplied ${pct(100 * BL.top[0].n / BL.n)} of them and ${esc(BL.top[1].country)} ${pct(100 * BL.top[1].n / BL.n)}.` : "",
+        rD.v0 != null && rM.v0 != null ? `STEM doctoral students went from ${KMB(rD.v0)} in ${rD.y0} to <b>${KMB(rD.v1)}</b>, and STEM master's students from ${KMB(rM.v0)} to ${KMB(rM.v1)}.` : ""],
+      stats: ["sevis_stem_total", ...(V.stem.share != null ? [{v: pct(V.stem.share), l: "Share in STEM fields", c: `U.S. <b>${pct(V.stem.us_share)}</b>`}] : []), "sevis_stem_master"],
+      legend: legendHTML(levs.map(k => ({n: LVN[k], c: LVC[k], kind: "sq"}))), chart: (W, H) => sk(H, W),
+      src: `Active F-1 and M-1 students in STEM fields by country of citizenship and level of study, ${V.stem.month}; the eight largest countries are shown. ${SV.replace(V.month, V.stem.month)}.`}, "L"); }
   { const fieldsRows = (I.by_field.master || []).filter(f => f.n >= 30 && f.st != null).sort((a, b) => b.st - a.st).slice(0, 12).map(f => ({name: f.name, st: f.st, us: f.us}));
     const mt = T.matrix.filter(f => f.stem);
     const t1 = H => fig(`How International Is Each STEM Field?`, `<table class="dt" style="--pad:${padFor(H, mt.length)}px;font-size:11.4px"><tr><th>Field</th><th>Bachelor's</th><th>Master's</th><th>Doctorates</th></tr>${mt.map(f => `<tr><td>${esc(f.name)}</td>${["bach", "master", "doc_res"].map(l => `<td class="${l === "master" ? "focus" : ""}">${f[l] && f[l].n ? pct(f[l].st) : "–"} <span style="color:var(--muted)">/ ${f[l] ? pct(f[l].us) : "–"}</span></td>`).join("")}</tr>`).join("")}</table>`, `International share in ${esc(NAME)} / U.S., ${T.y1}. ${SRCC}`, {table: true});
@@ -881,7 +1038,8 @@ function buildSpreads() {
       return {k, a0: at(a, T.y0), a1: at(a, T.y1), i0: b ? at(b, T.y0) : null, i1: b ? at(b, T.y1) : null}; }).filter(r => r.a1 != null);
     const shr = (i, a) => i != null && a ? pct(100 * i / a) : "–";
     const t6 = H => fig(`How Many STEM Master's Degrees Does Each Field Award?`, `<table class="dt" style="--pad:${padFor(H, gRows.length)}px;font-size:11.4px"><tr><th>Field</th><th>${T.y0}</th><th>${T.y1}</th><th>Change</th><th>International<br>${T.y1}</th><th>Int. share<br>${T.y0}</th><th>Int. share<br>${T.y1}</th></tr>${gRows.map(r => `<tr><td>${esc(r.k)}</td><td>${nf(r.a0)}</td><td class="focus">${nf(r.a1)}</td><td>${r.a0 ? chgW(r.a0, r.a1, "n").replace(/^up /, "+").replace(/^down /, "−") : "–"}</td><td>${nf(r.i1)}</td><td>${shr(r.i0, r.a0)}</td><td>${shr(r.i1, r.a1)}</td></tr>`).join("")}</table>`, `STEM master's degrees awarded in ${esc(NAME)}, all students and international students, ${T.y0} and ${T.y1}. ${SRCC}`, {table: true});
-    pages1("", one(H => F(`Which Master's Fields Depend Most on International Students?`, dumbbell(fieldsRows, {W: PW, Lw: 220, rh: Math.min(48, (H - 40) / Math.max(1, fieldsRows.length)), fs: 1.3}), `International share of master's degrees by field, ${I.by_field_year}; fields with 30+ graduates. ${SRCC}`),
+    pairOne("International dependence", `How International Are ${esc(NAME)}'s Master's Fields?`, ["intl_share_master", "intl_share_stem_master", "intl_share_cs_master", "intl_share_eng_master"],
+      one(H => F(`Which Master's Fields Depend Most on International Students?`, dumbbell(fieldsRows, {W: PW, Lw: 220, rh: Math.min(48, (H - 40) / Math.max(1, fieldsRows.length)), fs: 1.3}), `International share of master's degrees by field, ${I.by_field_year}; fields with 30+ graduates. ${SRCC}`),
         `Each row is a master's field with at least 30 graduates in ${esc(NAME)} in ${I.by_field_year}, ranked by the share of degrees earned by international students (U.S. nonresidents on temporary visas). The filled dot is the state's share; the open dot is the national share for the same field.`,
         [fieldsRows.length ? `<b>Highest international shares</b>: ${fieldsRows.slice(0, 3).map(f => `${esc(f.name.toLowerCase())} ${pct(f.st)} (U.S. ${pct(f.us)})`).join("; ")}.` : "",
           rowFact("intl_share_master", "All master's degrees"), rowFact("intl_share_stem_master", "STEM master's degrees"),
@@ -892,7 +1050,8 @@ function buildSpreads() {
           nMaj ? `<b>STEM fields where international students earn a majority of master's degrees</b>: ${nMaj}.` : "",
           rowFact("intl_share_stem_bach", "International share of STEM bachelor's"), rowFact("intl_share_stem_master", "International share of STEM master's"),
           rowFact("intl_share_stem_doc", "International share of STEM research doctorates")]));
-    pages1("", one(H => f6(H),
+    pairOne("International dependence", `How Has ${esc(NAME)}'s STEM Master's Output Grown?`, ["intl_stem_master_count", "stem_share_master", "share_of_us_intl_stem_master", "stem_master_per_doc"],
+      one(H => f6(H),
         `Each pair of bars is the change in the number of STEM master's degrees awarded in ${esc(NAME)} between ${T.y0} and ${T.y1} in one field: to domestic students (U.S. citizens and permanent residents) and to international students. Bars to the left of the axis are declines.`,
         [g0["Domestic STEM_1"] != null ? `<b>STEM master's degrees</b>: ${nf(g0["Domestic STEM_1"] + g0["International STEM_1"])} in ${T.y1}, against ${nf(g0["Domestic STEM_0"] + g0["International STEM_0"])} in ${T.y0}: ${sg(g0["International STEM"])} for international students and ${sg(g0["Domestic STEM"])} for domestic students.` : "",
           ...grw.slice(0, 3).map(f => `<b>${esc(f.name)}</b>: ${sg(f.a)} for domestic students and ${sg(f.b)} for international students.`),
@@ -940,27 +1099,34 @@ function buildSpreads() {
     });
     const top = a => a.slice(0, 12), rest = (a, t) => Math.max(0, t - top(a).reduce((s, x) => s + x.n, 0));
     const iN = top(M.in), iR = rest(M.in, M.in_total), oN = top(M.out), oR = rest(M.out, M.out_total), GR = cssv("--grey"), OR = cssv("--orange");
-    const sIn = H => sankeyDraw({left: [...iN.map(x => ({id: "i" + x.k, label: x.k === "Abroad" ? "Abroad" : x.name, n: x.n, c: x.k === "Abroad" ? OR : TEAL})), ...(iR ? [{id: "ir", label: "All other states", n: iR, c: GR}] : [])],
+    const sIn = (H, W = PW) => sankeyDraw({left: [...iN.map(x => ({id: "i" + x.k, label: x.k === "Abroad" ? "Abroad" : x.name, n: x.n, c: x.k === "Abroad" ? OR : TEAL})), ...(iR ? [{id: "ir", label: "All other states", n: iR, c: GR}] : [])],
       right: [{id: "in", lines: [NAME, "institutions"], n: M.in_total, c: CRIM}], links: [...iN.map(x => ({s: "i" + x.k, t: "in", v: x.n})), ...(iR ? [{s: "ir", t: "in", v: iR}] : [])],
-      W: PW, H, LBl: 180, LBr: 130, heads: ["Home", "Enrolled in"], fs: 1.25});
-    const sOut = H => sankeyDraw({left: [{id: "res", lines: [NAME, "residents"], n: M.out_total, c: CRIM}], right: [...oN.map(x => ({id: "o" + x.k, label: x.name, n: x.n, c: TEAL})), ...(oR ? [{id: "or", label: "All other states", n: oR, c: GR}] : [])],
+      W, H, LBl: W > 900 ? 230 : 180, LBr: W > 900 ? 200 : 130, heads: ["Home", "Enrolled in"], fs: W > 900 ? 1.5 : 1.25});
+    const sOut = (H, W = PW) => sankeyDraw({left: [{id: "res", lines: [NAME, "residents"], n: M.out_total, c: CRIM}], right: [...oN.map(x => ({id: "o" + x.k, label: x.name, n: x.n, c: TEAL})), ...(oR ? [{id: "or", label: "All other states", n: oR, c: GR}] : [])],
       links: [...oN.map(x => ({s: "res", t: "o" + x.k, v: x.n, c: TEAL})), ...(oR ? [{s: "res", t: "or", v: oR, c: GR}] : [])],
-      W: PW, H, LBl: 130, LBr: 180, heads: ["Home", "Enrolled in"], fs: 1.25});
+      W, H, LBl: W > 900 ? 200 : 130, LBr: W > 900 ? 230 : 180, heads: ["Home", "Enrolled in"], fs: W > 900 ? 1.5 : 1.25});
     const srcM = `First-time degree-seeking undergraduates, fall ${M.year}; the 12 largest flows. Data from NCES, IPEDS Fall Enrollment.`;
     const fl = k => kser(M.flows, k), fy = y => `fall ${y}`, top3 = a => a.filter(x => x.k !== "Abroad").slice(0, 3).map(x => `${esc(x.name)} (${nf(x.n)})`).join(", ");
-    pages1("", one(H => F(`Where Do ${esc(NAME)}'s Newcomers Come From?`, sIn(H), srcM),
+    const mIn = one(null,
         `The bands show where first-time degree-seeking undergraduates who enrolled at ${esc(NAME)}'s institutions in fall ${M.year} but did not live in the state came from: the 12 largest home states and students from abroad, with all other states grouped. Band widths are proportional to the number of students. Home is the state where the student lived when admitted.`,
         [serFact("Students arriving from other states", fl("Arrived from other states"), "n", {yl: fy}),
           `<b>Students arriving from abroad</b>: ${nf(abroadN)} in fall ${M.year}.`,
           M.in.length ? `<b>Largest home states</b>: ${top3(M.in)}.` : "",
-          rowFact("foreign_share_ft", "Share of first-time students from outside the U.S.")], 560),
-      one(H => F(`Where Do ${esc(NAME)}'s Residents Go When They Leave?`, sOut(H), srcM),
+          rowFact("foreign_share_ft", "Share of first-time students from outside the U.S.")]),
+      mOut = one(null,
         `The bands show where ${esc(NAME)} residents who left the state to start college in fall ${M.year} enrolled: the 12 largest destination states, with all other states grouped. Band widths are proportional to the number of students. Residents who enrolled in the state are not shown.`,
         [serFact("Residents leaving for other states", fl("Left for other states"), "n", {yl: fy}),
           serFact("Residents staying in the state", fl("Stayed in state"), "n", {yl: fy}),
           M.out.length ? `<b>Largest destinations</b>: ${top3(M.out)}.` : "",
           rowFact("net_migration_ft", "Net migration per 100 resident first-time students"), rowFact("instate_share_ft", "Share of first-time students who are residents"),
-          rowFact("fresh_leave_share_hs", "Recent high school graduates who go to college out of state")], 560)); }
+          rowFact("fresh_leave_share_hs", "Recent high school graduates who go to college out of state")]);
+    const leg = (a, b) => legendHTML([...a, {n: "All other states", c: GR, kind: "sq"}, ...b]);
+    rail("", {title: `Where Do ${esc(NAME)}'s Newcomers Come From?`, lede: ledeOf(mIn), src: srcM,
+      stats: [{v: KMB(M.in_total), l: `First-time students from other states and abroad, fall ${M.year}`, c: abroadN ? `Abroad <b>${KMB(abroadN)}</b>` : ""}, "foreign_share_ft", "instate_share_ft"],
+      legend: leg([{n: "Other states", c: TEAL, kind: "sq"}, {n: "Abroad", c: OR, kind: "sq"}], [{n: `${NAME} institutions`, c: CRIM, kind: "sq"}]), chart: (W, H) => sIn(H, W)}, "L");
+    rail("", {title: `Where Do ${esc(NAME)}'s Residents Go When They Leave?`, lede: ledeOf(mOut), src: srcM,
+      stats: [{v: KMB(M.out_total), l: `Residents who started college in another state, fall ${M.year}`, c: `Arrivals <b>${KMB(M.in_total)}</b>`}, "net_migration_ft", ...(M.out[0] ? [{v: KMB(M.out[0].n), l: `Went to ${esc(M.out[0].name)}`, c: "The largest destination"}] : [])],
+      legend: leg([{n: `${NAME} residents`, c: CRIM, kind: "sq"}, {n: "Other states", c: TEAL, kind: "sq"}], []), chart: (W, H) => sOut(H, W)}, "R"); }
 
   /* ===== Beyond campus: NAEP, NSF GSS, DOL, USCIS, ACS, USPTO (each figure names its source) ===== */
   { const E = D.ext_lines || {}, SLs = D.srcLines || {}, has = m => E[m] && E[m][ST] && E[m][ST].y && E[m][ST].y.length;
@@ -1073,7 +1239,8 @@ function buildSpreads() {
     const t1 = H => fig(`Where Is ${esc(NAME)} Most Specialized?`, `<table class="dt" style="--pad:${padFor(H, 10)}px;font-size:11.4px"><tr><th>Field</th><th>Location quotient</th><th>State share</th><th>U.S. share</th><th>Degrees</th></tr>${(lq.bach || []).filter(f => f.n >= 50).sort((a, b) => b.lq - a.lq).slice(0, 10).map(f => `<tr><td>${esc(f.name)}</td><td class="focus">${nf(f.lq, 2)}</td><td>${pct(f.st)}</td><td>${pct(f.us)}</td><td>${nf(f.n)}</td></tr>`).join("")}</table>`, `Bachelor's degrees; location quotient = state share ÷ U.S. share; fields with 50+ degrees. Data from NCES, IPEDS.`, {table: true});
     const dd = [...(lq.doc_res || [])].filter(f => f.n >= 20).sort((a, b) => b.st - a.st).slice(0, 10).map(f => ({name: f.name, st: f.st, us: f.us}));
     const lqTop = (lq.bach || []).filter(f => f.n >= 50).sort((a, b) => b.lq - a.lq).slice(0, 3);
-    pages1("", one(H => eq(t1(H), 220),
+    pairOne("Fields of study", dd.length >= 3 ? `Where Is ${esc(NAME)} Specialized, and What Do Its Doctoral Graduates Study?` : `Where Is ${esc(NAME)} Most Specialized?`, ["stem_share_bach", "field_share_cs_bach", "field_share_eng_bach", "field_share_business_bach"],
+      one(H => eq(t1(H), 220),
         `The location quotient divides a field's share of ${esc(NAME)}'s bachelor's degrees by its share of all U.S. bachelor's degrees in ${P.degrees.lq_year}. A quotient of 1.00 means the same share as the nation; 2.00 means twice the national share. The table lists the ten fields with the highest quotients among fields with at least 50 degrees.`,
         [lqTop.length ? `<b>Highest location quotients</b>: ${lqTop.map(f => `${esc(f.name.toLowerCase())} ${nf(f.lq, 2)} (${pct(f.st)} of the state's bachelor's degrees; U.S. ${pct(f.us)})`).join("; ")}.` : "",
           rowFact("stem_share_bach", "STEM share of bachelor's degrees"), rowFact("field_share_cs_bach", "Computer and information sciences"), rowFact("field_share_eng_bach", "Engineering"),
@@ -1094,13 +1261,27 @@ function buildSpreads() {
       stats: ["enroll_total", "share_grad", "share_parttime"]});
     const rS = shares(race), rU = shares(rus), sec0 = P.students.sector, sS = shares(sec0), fy = y => `fall ${y}`;
     const bigK = o => o.k.map(k => ({k, v: last(kser(o, k))})).filter(x => x.v != null).sort((a, b) => b.v - a.v).map(x => x.k);
-    pages1("", one(H => F(`Who Enrolls in ${esc(NAME)}?`, stack100([{label: NAME, parts: comp(race)}, {label: "United States", parts: comp(rus)}], race.k, {vertical: true, S: Math.max(80, Math.min(200, H / 2.5))}), `Share of fall ${yR} enrollment by race and ethnicity. Data from NCES, IPEDS.`),
-        `The rings divide fall ${yR} headcount enrollment at ${esc(NAME)}'s degree-granting institutions by race and ethnicity, with the nation for comparison. "International" counts U.S. nonresidents on temporary visas, whatever their race; "Unknown" is students whose race was not reported.`,
-        bigK(rS).slice(0, 5).map(k => serFact(k, kser(rS, k), "%", {us: kser(rU, k), yl: fy})), 500),
-      one(H => F(`Where Do Students Enroll?`, stack100([{label: NAME, parts: sec0.k.map(k => ({k, v: last(kser(sec0, k))}))}], sec0.k, {vertical: true, S: Math.min(400, H - 60)}), `Share of fall ${lastY(sec0)} enrollment by sector. Data from NCES, IPEDS.`),
-        `The ring divides fall ${lastY(sec0)} headcount enrollment in ${esc(NAME)} among public four-year, public two-year, private nonprofit and for-profit institutions.`,
-        [...sec0.k.map(k => serFact(`${k} share of enrollment`, kser(sS, k), "%", {yl: fy})),
-          rowFact("enroll_total", "Total fall enrollment"), rowFact("share_online_only", "Share of students enrolled exclusively online")], 400));
+    /* paired spread: race and ethnicity (paired bars, change since the base year) and sector (100% bars by year) */
+    const yB = race.y.find(y => y >= D.base && rS.v.some(s => s[race.y.indexOf(y)] != null)) || race.y[0];
+    const NMR = {"Two or more": "Students of two or more races", "International": "International students", "Asian / Pacific Islander": "Asian and Pacific Islander students", "American Indian": "American Indian students", "Unknown": "Students of unknown race"};
+    const nmR = k => NMR[k] || `${k} students`;
+    const rRows = race.k.filter(k => k !== "Unknown").map(k => { const st = at(kser(rS, k), yR), s0 = at(kser(rS, k), yB); return {name: k, st, us: at(kser(rU, k), yR), d: st != null && s0 != null ? st - s0 : null}; }).filter(r => r.st != null && r.st > 0).sort((a, b) => b.st - a.st);
+    const rSent = r => `${nmR(r.name)} were <b>${pct(r.st)}</b> (U.S. ${pct(r.us)})${r.d != null ? `, ${chgW(r.st - r.d, r.st, "%")} since ${yB}` : ""}`;
+    const yS = lastY(sec0), yS0 = sec0.y.find(y => y >= D.base) || sec0.y[0], ySm = sec0.y.reduce((b, y) => Math.abs(y - (yS0 + yS) / 2) < Math.abs(b - (yS0 + yS) / 2) ? y : b, yS0);
+    const sRows = sec0.k.map(k => ({k, v: at(kser(sS, k), yS), v0: at(kser(sS, k), yS0)})).filter(s => s.v != null).sort((a, b) => b.v - a.v);
+    const sSent = s => `${s.k} institutions enrolled <b>${pct(s.v)}</b> of students${s.v0 != null ? `, ${chgW(s.v0, s.v, "%")} from ${pct(s.v0)} in ${yS0}` : ""}`;
+    const sp0 = row("share_public"), r0 = rRows[0] || {}, rr1 = rRows[1] || {};
+    pair("", {sec: "Students and money", h: `Who Enrolls in ${esc(NAME)}, and Where?`,
+      stats: [...rRows.slice(0, 2).map(r => ({v: pct(r.st), l: nmR(r.name), c: `U.S. <b>${pct(r.us)}</b>${r.d != null ? ` · ${(r.d >= 0 ? "+" : "−") + nf(Math.abs(r.d), 1)} pp since ${yB}` : ""}`})),
+        ...sRows.slice(0, 2).map(s => ({v: pct(s.v), l: `At ${s.k.toLowerCase()} institutions`, c: s.v0 != null ? `${(s.v - s.v0 >= 0 ? "+" : "−") + nf(Math.abs(s.v - s.v0), 1)} pp since ${yS0}` : ""}))],
+      a: {fig: H => F(`Who Enrolls in ${esc(NAME)}?`, pairBars(rRows, {W: PW, H, dHead: `Change since ${yB}`}), `Share of fall ${yR} headcount enrollment by race and ethnicity; students of unknown race are left out of the chart. Data from NCES, IPEDS.`),
+        lede: [r0.name ? `In fall ${yR}, ${nmR(r0.name)} were the largest group at ${esc(NAME)}'s degree-granting institutions, <b>${pct(r0.st)}</b> of enrollment against ${pct(r0.us)} nationally${r0.d != null ? `, ${chgW(r0.st - r0.d, r0.st, "%")} since ${yB}` : ""}.` : "",
+          rRows.length > 2 ? `${rSent(rr1)}; ${rSent(rRows[2])}.` : "",
+          rRows.length > 4 ? `${rSent(rRows[3])}, and ${rSent(rRows[4])}. "International" counts U.S. nonresidents on temporary visas, whatever their race.` : ""].filter(Boolean)},
+      b: {fig: H => F(`Where Do Students Enroll?`, stackYears(sec0, [...new Set([yS0, ySm, yS])], {W: PW, H}), `Share of fall headcount enrollment by sector, ${[...new Set([yS0, ySm, yS])].join(", ")}. Data from NCES, IPEDS.`),
+        lede: [sRows.length > 1 ? `${sSent(sRows[0])} in fall ${yS}. ${sSent(sRows[1])}.` : "",
+          sRows.length > 3 ? `${sSent(sRows[2])}, and ${sSent(sRows[3]).replace(/^(Public|Private|For)/, m => m.toLowerCase())}.` : "",
+          sp0.v1 != null ? `Public institutions together enrolled <b>${pct(sp0.v1)}</b> of students, against ${pct(sp0.us1)} nationally, ${ord(sp0.rank)} among the states.` : ""].filter(Boolean)}});
     const t = row("tuition_pub4_instate"), ap = row("approp_per_fte"), tr = row("tuition_reliance_pub");
     hero("", {title: `What Does In-State Tuition Cost?`, legend: legLv(["Public 4-year", "Public 2-year", "Private nonprofit"]),
       chart: H => HL(pairs(["Public 4-year", "Public 2-year", "Private nonprofit"].map(k => ({name: k, ...tin(k)})), {usLabels: false}), H, {unit: "$", right: 250}), src: `Published in-state tuition and fees, 2024 dollars (CPI-U); state solid, U.S. dashed. Data from NCES, IPEDS.`,
@@ -1112,8 +1293,11 @@ function buildSpreads() {
       return `<tr><td>${esc(SHORT[m] || r.title)}</td><td>${r.y1}</td><td class="focus">${f(r.v1)}</td><td>${f(r.us1)}</td><td>${r.rank ? `${ord(r.rank)} of ${r.n}` : "–"}</td><td>${c.t}</td></tr>`; }).join("")}</table>`,
       `Rank among the 50 states and DC (1 = highest). Dollars in 2024 dollars (CPI-U). Data from NCES, IPEDS.`, {table: true});
     const fy2 = y => `FY${y}`;
-    pages1("", one(H => F(`How Are Public Institutions Funded?`, stack100([{label: NAME, parts: fi.st.k.map(k => ({k, v: last(kser(fi.st, k))}))}, {label: "United States", parts: fi.us.k.map(k => ({k, v: last(kser(fi.us, k))}))}], fi.st.k, {vertical: true, S: Math.max(120, Math.min(200, H / 2.5))}), `Core revenue per FTE student, public institutions. Data from NCES, IPEDS Finance.`),
-        `The rings divide the core revenue of ${esc(NAME)}'s public institutions per full-time-equivalent (FTE) student by source, with the nation for comparison. Values are in 2024 dollars (CPI-U). Net tuition is tuition and fees after institutional discounts and allowances.`,
+    const fSh = o => { const t = o.k.reduce((a, k) => a + (last(kser(o, k)) || 0), 0) || 1; return k => 100 * (last(kser(o, k)) || 0) / t; }, fS = fSh(fi.st), fU = fSh(fi.us);
+    const fRows = fi.st.k.map(k => ({name: k, st: fS(k), us: fU(k), d: last(kser(fi.st, k))})).filter(r => r.d != null);
+    pairOne("Students and money", `How Are ${esc(NAME)}'s Public Institutions Funded, and What Do They Produce?`, MR.slice(0, 4),
+      one(H => F(`How Are Public Institutions Funded?`, pairBars(fRows, {W: PW, H, dHead: "Per FTE student", dFmt: usd}), `Share of core revenue per FTE student by source, public institutions, FY${lastY(fi.st)}; dollars per FTE at right, 2024 dollars (CPI-U). Data from NCES, IPEDS Finance.`),
+        `The bars give each source's share of the core revenue of ${esc(NAME)}'s public institutions, with the nation for comparison, and at right the dollars per full-time-equivalent (FTE) student it provides. Values are in 2024 dollars (CPI-U). Net tuition is tuition and fees after institutional discounts and allowances.`,
         [...fi.st.k.map(k => serFact(`${k} per FTE student`, kser(fi.st, k), "$", {us: kser(fi.us, k), yl: fy2})),
           rowFact("tuition_reliance_pub", "Tuition share of core revenue")], 500),
       one(H => eq(tM(H), 250),
@@ -1128,7 +1312,8 @@ function buildSpreads() {
         `By sector: ${s6.k.map(k => `${esc(k.toLowerCase())} ${pct(last(kser(s6, k)))}`).join(", ")}. At two-year institutions, ${pct(g2.v1)} complete within 150% of normal time (U.S. ${pct(g2.us1)}).`],
       stats: ["grad_rate_bach6", "grad_rate_2yr", "bach_per_100_ug"]});
     const rr = o.bach6_race.filter(r => r.n >= 100).map(r => ({name: r.name, st: r.st, us: r.us}));
-    pages1("", one(H => F(`Six-Year Bachelor's Graduation Rate`, lineSVG({series: pairs([{name: ST, st: o.bach6_st, us: o.bach6_us, c: CRIM}]), W: PW, H, right: 96, zero: false, fs: 1.3}), `Four-year institutions; state solid, U.S. dashed. Data from NCES, IPEDS Graduation Rates.`),
+    pairOne("Student outcomes", `How Many of ${esc(NAME)}'s Students Graduate?`, ["grad_rate_bach6", "grad_rate_2yr", "bach_per_100_ug"],
+      one(H => F(`Six-Year Bachelor's Graduation Rate`, lineSVG({series: pairs([{name: ST, st: o.bach6_st, us: o.bach6_us, c: CRIM}]), W: PW, H, right: 96, zero: false, fs: 1.3}), `Four-year institutions; state solid, U.S. dashed. Data from NCES, IPEDS Graduation Rates.`),
         `The line follows the share of first-time, full-time bachelor's-degree students at ${esc(NAME)}'s four-year institutions who graduated from the institution where they started within six years (150% of normal time). Each year is the cohort that entered six years earlier. The state is solid and the United States dashed.`,
         [serFact("Six-year graduation rate", o.bach6_st, "%", {us: o.bach6_us}),
           ...s6.k.map(k => serFact(`${k} institutions`, kser(s6, k), "%")),
@@ -1148,13 +1333,16 @@ function buildSpreads() {
         `${esc(NAME)}'s institutions had ${sig3(last(tot))} full-time instructional staff in ${lastY(tot)}, ${mv(tot, "n")}. Average salary across all ranks is ${mv(f.avg_st, "n")}.`],
       stats: ["faculty_salary"]});
     const tS = shares(tn);
-    pages1("", one(H => F(`Average Faculty Salary`, lineSVG({series: pairs([{name: ST, st: f.avg_st, us: f.avg_us, c: CRIM}]), W: PW, H, right: 96, unit: "$", zero: false, fs: 1.3}), `Full-time instructional faculty, 9/10-month, 2024 dollars. Data from NCES, IPEDS.`),
+    const yT0 = tn.y.find(y => y >= D.base && at(tot, y)) || tn.y[0], yTm = tn.y.filter(y => at(tot, y)).reduce((b, y) => Math.abs(y - (yT0 + yT) / 2) < Math.abs(b - (yT0 + yT) / 2) ? y : b, yT0), yT3 = [...new Set([yT0, yTm, yT])];
+    const tTen = at(kser(tS, tn.k[0]), yT);
+    pairOne("Faculty", `What Do ${esc(NAME)}'s Faculty Earn, and How Many Hold Tenure?`, ["faculty_salary", {v: KMB(last(tot)), l: `Full-time instructional staff, ${lastY(tot)}`, c: ""}, ...(tTen != null ? [{v: pct(tTen), l: `${tn.k[0]}, ${yT}`, c: ""}] : [])],
+      one(H => F(`Average Faculty Salary`, lineSVG({series: pairs([{name: ST, st: f.avg_st, us: f.avg_us, c: CRIM}]), W: PW, H, right: 96, unit: "$", zero: false, fs: 1.3}), `Full-time instructional faculty, 9/10-month, 2024 dollars. Data from NCES, IPEDS.`),
         `The line follows the average salary of full-time instructional faculty on 9- or 10-month contracts at ${esc(NAME)}'s degree-granting institutions, all ranks combined, in 2024 dollars (CPI-U). The state is solid and the United States dashed.`,
         [serFact("Average salary", f.avg_st, "$", {us: f.avg_us}), rowFact("faculty_salary", "State rank on average salary"),
           serFact("Full-time instructional staff", tot, "n"),
           ...lr.slice(0, 3).map(x => serFact(`${x.k}s, average salary`, kser(br, x.k), "$"))], 400),
-      one(H => F(`Tenure Status`, stack100([{label: ST, parts: tn.k.map(k => ({k, v: at(kser(tn, k), yT)}))}], tn.k, {vertical: true, S: Math.min(420, H - 40)}), `Full-time instructional staff, ${yT}. Data from NCES, IPEDS.`),
-        `The ring divides ${esc(NAME)}'s full-time instructional staff in ${yT} by tenure status: tenured, on the tenure track, not on the tenure track (for example, lecturers on fixed-term contracts), and staff at institutions with no tenure system.`,
+      one(H => F(`Tenure Status`, stackYears(tn, yT3, {W: PW, H}), `Full-time instructional staff by tenure status, ${yT3.join(", ")}. Data from NCES, IPEDS.`),
+        `The bars divide ${esc(NAME)}'s full-time instructional staff by tenure status in ${yT3.join(", ").replace(/, ([^,]*)$/, " and $1")}: tenured, on the tenure track, not on the tenure track (for example, lecturers on fixed-term contracts), and staff at institutions with no tenure system.`,
         tn.k.map(k => serFact(`${k}, share of full-time instructional staff`, kser(tS, k), "%")), 400)); }
 
   /* ===== 9  Institutions ===== */
@@ -1168,7 +1356,8 @@ function buildSpreads() {
     const t1 = (k = ti.length, H = 500) => fig(`Which Institutions Train the Most International STEM Graduates?`, `<table class="dt" style="--pad:${Math.min(+padFor(H, k), 9)}px;font-size:11px"><tr><th>Institution</th><th>Intl STEM master's</th><th>Int. share</th><th>Intl STEM doctorates</th><th>Int. share</th></tr>${ti.slice(0, k).map(r => `<tr><td>${esc(r.name)}<small>${esc(r.city || "")} · ${esc(r.sector || "")}</small></td><td class="focus">${nf(r.ms_stem_intl)}</td><td>${sh(r.ms_stem_intl, r.ms_stem)}</td><td>${nf(r.phd_stem_intl)}</td><td>${sh(r.phd_stem_intl, r.phd_stem)}</td></tr>`).join("")}</table>`, `Degrees awarded in ${yrs.completions}. Data from NCES, IPEDS.`, {table: true});
     const t2 = (k = te.length, H = 500) => fig(`What Are ${esc(NAME)}'s Largest Institutions?`, `<table class="dt" style="--pad:${padFor(H, k)}px;font-size:11px"><tr><th>Institution</th><th>Enrollment</th><th>Int. share, grad</th><th>STEM bachelor's</th><th>Six-year grad rate</th><th>Admit rate</th></tr>${te.slice(0, k).map(r => `<tr><td>${esc(r.name)}</td><td class="focus">${nf(r.enroll)}</td><td>${pct(r.intl_grad)}</td><td>${nf(r.ba_stem)}</td><td>${pct(r.grad6)}</td><td>${r.admit != null ? pct(r.admit) : "–"}</td></tr>`).join("")}</table>`, `Fall ${yrs.enroll} enrollment; degrees ${yrs.completions}. Data from NCES, IPEDS.`, {table: true});
     const kRows = H => Math.max(5, Math.floor((H - 70) / 31));
-    pages1("", one(H => eq(t1(Math.min(ti.length, kRows(H)), H), 260),
+    pairOne("Institutions", `Which Institutions Lead in ${esc(NAME)}?`, [{v: nf(P.inst.n), l: "Degree-granting institutions", c: ""}, "share_public", "share_forprofit", "share_online_only"],
+      one(H => eq(t1(Math.min(ti.length, kRows(H)), H), 260),
         `Institutions in ${esc(NAME)} ranked by the STEM master's and research doctorates they awarded to international students in ${yrs.completions}. The share columns give international students' share of each institution's STEM degrees at that level.`,
         [ti[0] ? `<b>Largest</b>: ${ti.slice(0, 3).map(r => `${esc(r.name)} (${nf(r.ms_stem_intl)} international STEM master's, ${nf(r.phd_stem_intl)} doctorates)`).join("; ")}.` : "",
           rowFact("intl_stem_master_count", "International STEM master's degrees, all institutions"), rowFact("intl_share_stem_doc", "International share of STEM research doctorates")], 560),
@@ -1291,7 +1480,7 @@ function buildSpreads() {
     const fits = () => [...sp.querySelectorAll(".pg .abs > *")].every(e => e.getBoundingClientRect().bottom - top <= 960);
     for (const html of (FILL[slot.dataset.fill] || (() => []))()) { const before = slot.innerHTML; slot.insertAdjacentHTML("beforeend", html); if (!fits()) { slot.innerHTML = before; break; } } });
   /* renumber figures and tables in reading order */
-  let nF = 0, nT = 0; doc.querySelectorAll(".fig .ft em").forEach(e => { e.textContent = e.textContent.startsWith("Table") ? `Table ${++nT}` : `Figure ${++nF}`; });
+  let nF = 0, nT = 0; doc.querySelectorAll(".fig .ft em, .prail .fno").forEach(e => { e.textContent = e.textContent.startsWith("Table") ? `Table ${++nT}` : `Figure ${++nF}`; });
   { const cap = t => t.replace(/(^|\s)(\w)/g, (m, a, b) => a + b.toUpperCase()).replace(/ (A|And|Of|The|These) /g, m => m.toLowerCase());
     const back = ["About these data", "By the Numbers", "Sources"], over = ["At a glance"]; let k = 0;
     const grp = (h, rows) => rows.length ? `<div class="toc-g">${h}</div>${rows.map(([n, t]) => `<div class="toc-r">${t}<span>${n}</span></div>`).join("")}` : "";
