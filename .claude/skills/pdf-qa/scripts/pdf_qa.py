@@ -42,7 +42,25 @@ JS = r"""(() => {
     return want == null || got === want ? null : `${m}: box ${got} vs table ${want}`; }).filter(Boolean);
   const sbH = sel('.sbox').filter(e => e.getBoundingClientRect().bottom - e.closest('.pg').getBoundingClientRect().top > 262 - 6).length;
   const sections = sel('section');
+  /* reconciliation: numbers that must agree with each other */
+  const usHundred = (txt.match(/U\.S\.\s*100(\.0)?%/g) || []).length;          // share-of-U.S. measures have no U.S. value
+  const isec = P.institutions && P.institutions.sectors, nInst = isec ? isec.v.reduce((a, s) => a + (s[s.length - 1] || 0), 0) : null;
+  const instBox = sel('.stat').filter(e => /^Degree-granting institutions/.test(e.querySelector('.l')?.textContent || '')).map(e => e.querySelector('.v').textContent.trim());
+  const instMismatch = nInst == null ? [] : instBox.filter(v => v !== nf(nInst)).map(v => `box ${v} vs sectors ${nf(nInst)}`);
+  const sv = P.sevis, stemN = sv ? sv.stem.flows.reduce((o, f) => (o[f.c] = (o[f.c] || 0) + f.n, o), {}) : {};
+  const stemOver = sv ? Object.entries(stemN).filter(([c, n]) => { const t = sv.top.find(x => x.country === c); return t && n > t.n; }).map(([c]) => c) : [];
+  const sevisNoteMissing = stemOver.length && !/does not draw its STEM pages/.test(txt) ? stemOver : [];
+  /* dot plots: a state's value label must sit nearer the state's filled dot than the U.S. open dot (or name the state) */
+  const dumbBad = [];
+  sel('svg').forEach(s => { const fill = [...s.querySelectorAll('circle')].filter(c => c.getAttribute('fill') === CRIM), open = [...s.querySelectorAll('circle')].filter(c => c.getAttribute('fill') === '#fff');
+    if (!fill.length || !open.length || [...s.querySelectorAll('text')].some(t => t.textContent.trim() === 'Gap')) return;   // value-column plots print values in columns, not beside dots
+    const labs = [...s.querySelectorAll('text')].filter(t => (t.getAttribute('style') || '').includes(CRIM) && /%$/.test(t.textContent.trim()));
+    fill.forEach(f => { const y = +f.getAttribute('cy'), o = open.find(c => Math.abs(+c.getAttribute('cy') - y) < 1); if (!o) return;
+      const l = labs.find(t => Math.abs(+t.getAttribute('y') - y) < 6); if (!l || l.textContent.trim().startsWith(ST)) return;
+      const b = l.getBBox(), d = x => Math.min(Math.abs(b.x - x), Math.abs(b.x + b.width - x)), fx = +f.getAttribute('cx'), ox = +o.getAttribute('cx');
+      if (Math.abs(fx - ox) > 14 && d(ox) < d(fx) - 2) dumbBad.push(l.textContent.trim()); }); });
   return {
+    usHundred, instMismatch, sevisNoteMissing, dumbBad: dumbBad.slice(0, 6), dumbBadN: dumbBad.length,
     pairs: sel('.phead').length, rails: sel('.prail').length, sheets: sections.length,
     errorsNan: [txt.split('NaN').length - 1, txt.split('undefined').length - 1],
     overflow: {lede: sel('.plede').filter(over).length, head: sel('.phead').filter(over).length, rail: sel('.prail').filter(over).length},
@@ -91,6 +109,10 @@ def flags(r: dict) -> list[str]:
     if r.get("statbox"): out.append(f"stat box vs table {r['statbox']}")
     if r.get("sboxHigh"): out.append(f"{r['sboxHigh']} stat box(es) reach the prose")
     if r.get("ledeKept") and min(r["ledeKept"]) < 1: out.append("a paired page lost all its prose")
+    if r.get("usHundred"): out.append(f"'U.S. 100%' printed {r['usHundred']} time(s) (share-of-U.S. measures have no U.S. value)")
+    if r.get("instMismatch"): out.append(f"institution count {r['instMismatch']}")
+    if r.get("sevisNoteMissing"): out.append(f"STEM count above all-level count without the DHS note: {r['sevisNoteMissing']}")
+    if r.get("dumbBadN"): out.append(f"{r['dumbBadN']} dot-plot label(s) nearer the U.S. dot than the state's: {r['dumbBad']}")
     return out
 
 

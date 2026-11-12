@@ -273,6 +273,9 @@ ol.bib li .bn { position: absolute; left: 0; font: 700 9px/1.65 Montserrat, sans
 <script>
 const D = /*__DATA__*/null;
 const NM = D.names, ST = D.st, NAME = D.name, PEERS = D.peers, P = D.prof, R = D.rows;
+/* a state's share of the U.S. total has no U.S. comparison (the U.S. is always 100%): drop it everywhere it would print */
+for (const m in R) { const r = R[m]; if (r.unit === "%" && r.us1 != null && Math.abs(r.us1 - 100) < 1e-6) { r.us1 = null; r.us0 = null; } }
+(D.peer_tab || []).forEach(r => { if (r.unit === "%" && r.vals && r.vals.US != null && Math.abs(r.vals.US - 100) < 1e-6) r.vals.US = null; });
 const I = P.international, T = P.talent, L = T.levels, M = P.migration;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -398,7 +401,10 @@ function dumbbell(rows, {W = FW, Lw = 170, max, rh = 16, fs = 1} = {}) {
     h += `<text x="${Lw - 8 * fs}" y="${y + 2.5 * fs}" text-anchor="end" style="fill:#1c1c1c;font-size:${LF.toFixed(1)}px;${r.bold ? "font-weight:700" : ""}">${esc(r.name)}</text>`;
     if (a != null && b != null) h += `<line x1="${X(a)}" x2="${X(b)}" y1="${y}" y2="${y}" stroke="${CRIM}" stroke-opacity=".4" stroke-width="${2.2 * fs}"/>`;
     if (a != null) h += `<circle cx="${X(a)}" cy="${y}" r="${3.8 * fs}" fill="#fff" stroke="${TEAL}" stroke-width="${1.7 * fs}"/>`;
-    if (b != null) h += `<circle cx="${X(b)}" cy="${y}" r="${4.2 * fs}" fill="${CRIM}"/><text x="${Math.max(X(b), a == null ? 0 : X(a)) + 8 * fs}" y="${y + 2.5 * fs}" style="fill:${CRIM};font-weight:700;${tf}">${pct(b)}</text>`; });
+    /* the state's value sits beside the state's (filled) dot, on the side away from the U.S. dot, so it can never be
+       read as the U.S. figure; it goes left only when the state is below the U.S. and there is room before the axis */
+    if (b != null) { const left = a != null && a > b && X(b) - Lw > 44 * fs;
+      h += `<circle cx="${X(b)}" cy="${y}" r="${4.2 * fs}" fill="${CRIM}"/><text x="${left ? X(b) - 8 * fs : (a != null && a > b ? X(a) + 8 * fs : X(b) + 8 * fs)}" y="${y + 2.5 * fs}" ${left ? 'text-anchor="end"' : ""} style="fill:${CRIM};font-weight:700;${tf}">${a != null && a > b && !left ? `${esc(ST)} ` : ""}${pct(b)}</text>`; } });
   return legendHTML([{n: NAME, c: CRIM, kind: "dot"}, {n: "United States", c: TEAL, kind: "ring"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 /* part-of-whole as donuts: rows [{label, parts:[{k, v}]}]; one donut per row, legend with each row's share */
@@ -1019,6 +1025,8 @@ function buildSpreads() {
           lineP.length ? `Since ${lineP[0].yb}, ${lineP.slice(0, 3).map(l => `students from ${esc(l.c)} went from ${KMB(l.vb)} to ${KMB(l.v1)}`).join("; ")}.` : "",
           lineP.length > 3 ? `Over the same years, ${lineP.slice(3).map(l => `students from ${esc(l.c)} went from ${KMB(l.vb)} to ${KMB(l.v1)}`).join(", and ")}. The table gives each country's count for the first, previous and latest years.` : ""].filter(Boolean)}});
     /* rail spread: the STEM Sankey across the spread */
+    /* countries whose STEM count exceeds their all-level count (DHS's STEM and all-student pages differ in basis) */
+    const stemOver = ord8.filter(c => c !== "All other countries").map(c => ({c, s: cn(c), a: (V.top.find(t => t.country === c) || {}).n})).filter(x => x.a != null && x.s > x.a);
     const bigL = levs.filter(k => k !== "other").sort((a, b) => V.stem.levels[b].n - V.stem.levels[a].n)[0], BL = bigL ? V.stem.levels[bigL] : null, rS = row("sevis_stem_total"), rD = row("sevis_stem_doc"), rM = row("sevis_stem_master");
     rail("", {title: `Which Countries Supply ${esc(NAME)}'s International STEM Students?`,
       lede: [`<b>${KMB(V.stem.total)}</b> of ${esc(NAME)}'s international students were in STEM fields in ${V.stem.month}${V.stem.share != null ? `, <b>${pct(V.stem.share)}</b> of the total against ${pct(V.stem.us_share)} nationally` : ""}${rS.v0 != null ? `, ${chgW(rS.v0, rS.v1, "n")} since ${rS.y0}` : ""}.`,
@@ -1026,7 +1034,7 @@ function buildSpreads() {
         rD.v0 != null && rM.v0 != null ? `STEM doctoral students went from ${KMB(rD.v0)} in ${rD.y0} to <b>${KMB(rD.v1)}</b>, and STEM master's students from ${KMB(rM.v0)} to ${KMB(rM.v1)}.` : ""],
       stats: ["sevis_stem_total", ...(V.stem.share != null ? [{v: pct(V.stem.share), l: "Share in STEM fields", c: `U.S. <b>${pct(V.stem.us_share)}</b>`}] : []), "sevis_stem_master"],
       legend: legendHTML(levs.map(k => ({n: LVN[k], c: LVC[k], kind: "sq"}))), chart: (W, H) => sk(H, W),
-      src: `Active F-1 and M-1 students in STEM fields by country of citizenship and level of study, ${V.stem.month}; the eight largest countries are shown. ${SV.replace(V.month, V.stem.month)}.`}, "L"); }
+      src: `Active F-1 and M-1 students in STEM fields by country of citizenship and level of study, ${V.stem.month}; the eight largest countries are shown. ${stemOver.length ? `DHS does not draw its STEM pages on the same basis as its all-student pages, so the STEM count here exceeds the all-level count for ${stemOver.map(c => `${esc(c.c)} (${KMB(c.s)} against ${KMB(c.a)})`).join(", ")}. ` : ""}${SV.replace(V.month, V.stem.month)}.`}, "L"); }
   { const fieldsRows = (I.by_field.master || []).filter(f => f.n >= 30 && f.st != null).sort((a, b) => b.st - a.st).slice(0, 12).map(f => ({name: f.name, st: f.st, us: f.us}));
     const mt = T.matrix.filter(f => f.stem);
     const t1 = H => fig(`How International Is Each STEM Field?`, `<table class="dt" style="--pad:${padFor(H, mt.length)}px;font-size:11.4px"><tr><th>Field</th><th>Bachelor's</th><th>Master's</th><th>Doctorates</th></tr>${mt.map(f => `<tr><td>${esc(f.name)}</td>${["bach", "master", "doc_res"].map(l => `<td class="${l === "master" ? "focus" : ""}">${f[l] && f[l].n ? pct(f[l].st) : "–"} <span style="color:var(--muted)">/ ${f[l] ? pct(f[l].us) : "–"}</span></td>`).join("")}</tr>`).join("")}</table>`, `International share in ${esc(NAME)} / U.S., ${T.y1}. ${SRCC}`, {table: true});
@@ -1349,14 +1357,14 @@ function buildSpreads() {
   { const o = P.institutions.sectors, tot = {y: o.y, v: o.y.map((y, i) => o.v.reduce((a, s) => a + (s[i] || 0), 0))};
     hero("Institutions", {head: "Institutions", title: `How Many Institutions Does ${esc(NAME)} Have?`, legend: legendHTML(o.k.map((k, i) => ({n: k, c: PAL[i]})).concat([{n: "All", c: "#111", kind: "dash"}])),
       chart: H => HL([...multi(o), {name: "All", s: tot, c: "#111", w: 1.2, dash: true}], H, {unit: "n", right: 250}), src: `Degree-granting institutions by sector. Data from NCES, IPEDS.`,
-      paras: [`${esc(NAME)} has ${nf(P.inst.n)} degree-granting institutions: ${o.k.map(k => `${nf(last(kser(o, k)))} ${esc(k.toLowerCase())}`).join(", ")} (${lastY(o)}).`,
+      paras: [`${esc(NAME)} has ${nf(last(tot))} degree-granting institutions:${o.k.map(k => `${nf(last(kser(o, k)))} ${esc(k.toLowerCase())}`).join(", ")} (${lastY(o)}).`,
         `The number of institutions is ${mv(tot, "n")}. ${pct(row("share_public").v1)} of students attend public institutions and ${pct(row("share_forprofit").v1)} attend for-profit ones.`],
       stats: ["share_public", "share_forprofit", "share_online_only"]});
     const ti = P.inst.top_intl.filter(r => (r.ms_stem_intl || 0) + (r.phd_stem_intl || 0) > 0).slice(0, 14), te = P.inst.top_enroll.slice(0, 15), yrs = P.inst.years, sh = (a, b) => b ? pct(100 * a / b) : "–";
     const t1 = (k = ti.length, H = 500) => fig(`Which Institutions Train the Most International STEM Graduates?`, `<table class="dt" style="--pad:${Math.min(+padFor(H, k), 9)}px;font-size:11px"><tr><th>Institution</th><th>Intl STEM master's</th><th>Int. share</th><th>Intl STEM doctorates</th><th>Int. share</th></tr>${ti.slice(0, k).map(r => `<tr><td>${esc(r.name)}<small>${esc(r.city || "")} · ${esc(r.sector || "")}</small></td><td class="focus">${nf(r.ms_stem_intl)}</td><td>${sh(r.ms_stem_intl, r.ms_stem)}</td><td>${nf(r.phd_stem_intl)}</td><td>${sh(r.phd_stem_intl, r.phd_stem)}</td></tr>`).join("")}</table>`, `Degrees awarded in ${yrs.completions}. Data from NCES, IPEDS.`, {table: true});
     const t2 = (k = te.length, H = 500) => fig(`What Are ${esc(NAME)}'s Largest Institutions?`, `<table class="dt" style="--pad:${padFor(H, k)}px;font-size:11px"><tr><th>Institution</th><th>Enrollment</th><th>Int. share, grad</th><th>STEM bachelor's</th><th>Six-year grad rate</th><th>Admit rate</th></tr>${te.slice(0, k).map(r => `<tr><td>${esc(r.name)}</td><td class="focus">${nf(r.enroll)}</td><td>${pct(r.intl_grad)}</td><td>${nf(r.ba_stem)}</td><td>${pct(r.grad6)}</td><td>${r.admit != null ? pct(r.admit) : "–"}</td></tr>`).join("")}</table>`, `Fall ${yrs.enroll} enrollment; degrees ${yrs.completions}. Data from NCES, IPEDS.`, {table: true});
     const kRows = H => Math.max(5, Math.floor((H - 70) / 31));
-    pairOne("Institutions", `Which Institutions Lead in ${esc(NAME)}?`, [{v: nf(P.inst.n), l: "Degree-granting institutions", c: ""}, "share_public", "share_forprofit", "share_online_only"],
+    pairOne("Institutions", `Which Institutions Lead in ${esc(NAME)}?`, [{v: nf(last(tot)), l: `Degree-granting institutions, ${lastY(tot)}`, c: ""}, "share_public", "share_forprofit", "share_online_only"],
       one(H => eq(t1(Math.min(ti.length, kRows(H)), H), 260),
         `Institutions in ${esc(NAME)} ranked by the STEM master's and research doctorates they awarded to international students in ${yrs.completions}. The share columns give international students' share of each institution's STEM degrees at that level.`,
         [ti[0] ? `<b>Largest</b>: ${ti.slice(0, 3).map(r => `${esc(r.name)} (${nf(r.ms_stem_intl)} international STEM master's, ${nf(r.phd_stem_intl)} doctorates)`).join("; ")}.` : "",
@@ -1364,7 +1372,7 @@ function buildSpreads() {
       one(H => eq(t2(Math.min(te.length, kRows(H)), H), 260),
         `${esc(NAME)}'s largest degree-granting institutions by fall ${yrs.enroll} headcount enrollment, with the international share of graduate students, STEM bachelor's degrees awarded in ${yrs.completions}, the six-year graduation rate and the admission rate (a dash where the institution admits all applicants or does not report one).`,
         [te[0] ? `<b>Largest</b>: ${te.slice(0, 3).map(r => `${esc(r.name)} (${nf(r.enroll)} students)`).join("; ")}.` : "",
-          `<b>Degree-granting institutions</b>: ${nf(P.inst.n)}.`, rowFact("share_public", "Share of students at public institutions"), rowFact("share_forprofit", "Share at for-profit institutions")], 560));
+          `<b>Degree-granting institutions</b>: ${nf(last(tot))} in ${lastY(tot)}; ${nf(P.inst.n)} of them reported the enrollment and degree data in these tables.`, rowFact("share_public", "Share of students at public institutions"), rowFact("share_forprofit", "Share at for-profit institutions")], 560));
     const notes = `<div class="notes" style="font-size:10.4px;columns:2;column-gap:28px"><h4 style="margin-top:0">International students</h4><p>U.S. nonresidents on temporary visas, as IPEDS defines them. IPEDS does not record country of citizenship. Permanent residents count with U.S. citizens.</p>
       <h4>STEM</h4><p>CIP families 03, 04, 11, 14, 15, 26, 27 and 40. Doctorates are research and scholarship doctorates; professional doctorates appear only in the degree-count figure. Degrees are first majors only.</p><h4>Universe</h4><p>Degree-granting institutions located in the state; Title IV participants from 1996. Geography is the institution's location, not the student's home. Enrollment is fall headcount.</p>
       <h4>Migration</h4><p>First-time degree-seeking undergraduates by home state, reported in even years before 2001 and every year since; odd years with incomplete reporting are omitted. Net migration is students arriving from other states minus residents leaving, per 100 resident first-time students.</p><h4>Money</h4><p>All dollar values are in 2024 dollars using the CPI-U. Appropriations and revenue are per full-time-equivalent student at public institutions.</p>
