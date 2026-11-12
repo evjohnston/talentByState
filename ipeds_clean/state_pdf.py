@@ -272,9 +272,15 @@ def render(states: list[str], variant: str = "spread", out_dir: Path | None = No
                 out.parent.mkdir(parents=True, exist_ok=True)
                 tmp = HTML_DIR / f"{st}.main.pdf"
                 page.pdf(path=str(tmp), print_background=True, prefer_css_page_size=True)
+                outline = page.evaluate("window.__outline || []")   # [{t, i}]: TOC entries and their sheet index
                 rd, w = PdfReader(str(tmp)), PdfWriter()
                 for pg_ in rd.pages:
                     w.add_page(pg_)
+                w.add_outline_item(f"{NAMES[st]} State Talent Profile", 0)
+                for o in outline:   # bookmarks, one per table-of-contents entry
+                    if o["i"] < len(rd.pages):
+                        w.add_outline_item(o["t"][:1].upper() + o["t"][1:], o["i"])
+                w.page_mode = "/UseOutlines"
                 w.add_metadata({"/Title": f"{NAMES[st]} State Talent Profile", "/Subject": "State talent profile (digital, spreads)"})
                 with open(out, "wb") as f:
                     w.write(f)

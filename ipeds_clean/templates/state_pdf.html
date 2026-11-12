@@ -11,7 +11,7 @@
 @page { size: 8.5in 11in; margin: 1.12in 1.12in 0.85in 1.17in }
 @page full { margin: 0 }
 :root {
-  --crim: #9a0033; --crim-d: #6e0024; --ink: #111111; --body: #1c1c1c; --taupe: #8a7f72; --muted: #6f6a64;
+  --crim: #9a0033; --crim-d: #6e0024; --ink: #111111; --body: #1c1c1c; --taupe: #8a7f72; --muted: #5c5752;
   --paper: #e2e0dc; --panel: #ffffff; --pink: #f4d7dc; --band: #f5f2ed; --rule: #e6e2dc;
   --teal: #23707f; --orange: #f39a32; --green: #76a13a; --purple: #6b2a73; --brown: #6e3b23; --grey: #b9b3aa; --rose: #d9718a; --navy: #2b3f73;
   --up: #1d3fd0; --down: #f2c200;
@@ -47,7 +47,7 @@ h2.title { font: 800 21pt/1.1 Montserrat, sans-serif; color: var(--ink); margin:
 .btn-panel { background: var(--panel); padding: .14in .16in .1in }
 table.btn { width: 100%; border-collapse: collapse; font: 400 7.7pt Montserrat, sans-serif; color: var(--ink); font-variant-numeric: tabular-nums }
 table.btn th { font: 500 6.8pt Montserrat, sans-serif; text-align: left; padding: 3px 5px; border-bottom: 2px solid var(--crim-d) }
-table.btn th.h { background: #8a8076; color: #fff; font-weight: 700; text-align: center }
+table.btn th.h { background: #645a50; color: #fff; font-weight: 700; text-align: center }
 table.btn { table-layout: fixed } table.btn td { padding: 2px 5px; border-bottom: 1px solid #ece8e2; line-height: 1.28; overflow-wrap: anywhere }
 table.btn td.num { text-align: right; white-space: nowrap }
 table.btn td.hl { background: var(--pink); color: var(--crim); font-weight: 800; text-align: center; white-space: nowrap }
@@ -164,7 +164,7 @@ ol.kt.w li { color: #fff; font-size: 11.6px } ol.kt.w li b { color: #fff } ol.kt
 .t9 .c { font: 400 9.4px/1.35 Montserrat, sans-serif; color: var(--muted); margin-top: 5px } .t9 .c b { color: var(--ink) }
 .t9 .rk { position: absolute; top: 12px; right: 12px; font: 800 9px Montserrat, sans-serif; color: #fff; background: var(--crim); border-radius: 10px; padding: 3px 8px }
 .locbig { display: grid; grid-template-columns: repeat(12, 26px); grid-auto-rows: 26px; gap: 3px }
-.locbig i { display: grid; place-items: center; font: 700 8px Montserrat, sans-serif; font-style: normal; color: #6f6a64; background: #ece8e2; border-radius: 2px }
+.locbig i { display: grid; place-items: center; font: 700 8px Montserrat, sans-serif; font-style: normal; color: #5c5752; background: #ece8e2; border-radius: 2px }
 .locbig i.me { background: var(--crim); color: #fff }
 .band { background: var(--paper) } .band-c { background: var(--crim); color: #fff }
 .bignums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 }
@@ -207,6 +207,9 @@ ul.facts li b { font-weight: 600; color: var(--ink) }
 .prail .stat .v { color: #fff; font-size: 28px } .prail .stat .l { color: #fff; font-weight: 300 }
 .prail .stat .c { color: #f6dbe2; font-weight: 300 } .prail .stat .c b { color: #fff; font-weight: 600 }
 .railF .legend { margin-bottom: 10px }
+/* thumb tab: section number on the outer edge of every right page in a section, one step lower per section */
+.ttab { position: absolute; right: 18px; width: 26px; height: 40px; background: var(--crim); color: #fff; font: 800 12px/40px Montserrat, sans-serif; text-align: center; border-radius: 2px }
+.fm .ttab, .dark .ttab { display: none }
 table.dt tr.s td { background: var(--band); color: var(--crim); font-weight: 800; text-transform: uppercase; letter-spacing: .03em; border-top: 1px solid #222; text-align: right }
 table.dt tr.s td:first-child { text-align: left }
 .spread .fig svg text:not(.big), .spread .fig svg tspan, .spread .legend, .spread .fig .fs, .spread table.dt, .spread table.dt th, .spread table.dt td, .spread table.dt small, .spread .stat .l, .spread .stat .c, .spread .t9 .l, .spread .t9 .c, .spread ol.kt li, .spread .notes, .spread .notes p, .spread .bignums span, .spread table.btn, .spread .tnote { font-size: 12px !important }
@@ -381,11 +384,15 @@ function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104,
   const ends = [];
   for (const s of [...series].reverse()) { let p = "", pen = false;
     s.s.y.forEach((y, i) => { const v = s.s.v[i]; if (v == null || (i && y - s.s.y[i - 1] > gap)) pen = false; if (v != null) { p += (pen ? "L" : "M") + X(y).toFixed(1) + " " + Y(v).toFixed(1); pen = true; } });
-    h += `<path d="${p}" fill="none" stroke="${s.c}" stroke-width="${(s.w || 1.6) * (fs > 1 ? 1.4 : 1)}" ${s.dash ? `stroke-dasharray="${4 * fs} ${3 * fs}"` : ""} stroke-linejoin="round"/>`;
+    h += `<path d="${p}" fill="none" stroke="${s.c}" stroke-width="${(s.w || 1.6) * (fs > 1 ? 1.4 : 1)}" ${s.dash ? `stroke-dasharray="${7 * fs} ${3.5 * fs}"` : ""} stroke-linejoin="round"/>`;
     const lv = last(s.s); if (lv != null && s.label !== false) { const vt = unit === "%" ? pct(lv) : unit === "$" ? usd(lv) : yFmt ? yFmt(lv) : sig3(lv), full = `${s.short || s.name} - ${vt}`;
-      ends.push({y: Y(lv), x: X(lastY(s.s)), c: s.c, t: full.length * EF * .56 + 8 > Rr ? vt : full, bold: s.bold}); } }
-  ends.sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < EF * 1.2) ends[i].y = ends[i - 1].y + EF * 1.2;
-  h += ends.map(e => `<text x="${e.x + 6 * fs}" y="${e.y + EF * .35}" style="fill:${e.c};font-weight:${e.bold ? 800 : 700};font-size:${EF.toFixed(1)}px">${esc(e.t)}</text>`).join("");
+      /* every line end carries its name (greyscale prints can't tell lines apart by colour): on one line when it
+         fits, else the name above the value, else a name shortened to fit */
+      const fit = t => t.length * EF * .56 + 8 <= Rr, nm = s.short || s.name, maxC = Math.max(4, Math.floor((Rr - 8) / (EF * .56)));
+      const lines = fit(full) ? [full] : [fit(nm) ? nm : nm.slice(0, maxC - 1) + "…", vt];
+      ends.push({y: Y(lv), x: X(lastY(s.s)), c: s.c, lines, bold: s.bold}); } }
+  ends.sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) { const need = EF * 1.2 * ends[i - 1].lines.length; if (ends[i].y - ends[i - 1].y < need) ends[i].y = ends[i - 1].y + need; }
+  h += ends.map(e => `<text x="${e.x + 6 * fs}" y="${e.y + EF * .35}" style="fill:${e.c};font-weight:${e.bold ? 800 : 700};font-size:${EF.toFixed(1)}px">${e.lines.map((t, j) => `<tspan x="${e.x + 6 * fs}" dy="${j ? EF * 1.15 : 0}">${esc(t)}</tspan>`).join("")}</text>`).join("");
   return `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 function legendHTML(items) { return `<div class="legend">${items.map(i => `<span><i class="${i.kind || ""}" style="background:${i.c};color:${i.c}"></i>${esc(i.n)}</span>`).join("")}</div>`; }
@@ -397,7 +404,7 @@ const duo = (a, b) => `<div class="duo">${a}${b}</div>`;
 function pairs(list, opt = {}) {
   const series = []; list.forEach((p, i) => { const c = p.c || PAL[i];
     series.push({name: p.name, short: p.short || p.name, s: p.st, c, w: 2});
-    if (p.us) series.push({name: p.name + " (U.S.)", short: "U.S.", s: p.us, c, dash: true, w: 1.2, label: opt.usLabels !== false}); });
+    if (p.us) series.push({name: p.name + " (U.S.)", short: "U.S.", s: p.us, c, dash: true, w: 1.7, label: opt.usLabels !== false}); });   // heavier long dashes: the U.S. line must read as dashed in greyscale
   return series;
 }
 function multi(o, names, opt = {}) { return (names || o.k).filter(k => o.k.includes(k)).map((k, i) => ({name: k, s: kser(o, k), c: (opt.colors || PAL)[i], w: 1.7})); }
@@ -429,7 +436,7 @@ function stack100(rows, keys, {vertical = false, S: S0} = {}) {
       if (s >= 7) { const m = (a + a1) / 2, rr = (r0 + r1) / 2; h += `<text x="${S / 2 + rr * Math.sin(m)}" y="${S / 2 - rr * Math.cos(m) + 2.6}" text-anchor="middle" style="fill:#fff;font-weight:700;font-size:${(7.6 * kz).toFixed(1)}px">${nf(s)}%</text>`; }
       a = a1; });
     const top = keys.reduce((b, k) => (sh[k] || 0) > (sh[b] || 0) ? k : b, keys[0]);
-    h += `<text x="${S / 2}" y="${S / 2 - 2 * kz}" text-anchor="middle" class="big" style="fill:#111;font-weight:800;font-size:${Math.max(16, 13 * kz).toFixed(1)}px">${nf(sh[top] || 0)}%</text><text x="${S / 2}" y="${S / 2 + 10 * kz}" text-anchor="middle" style="fill:#6f6a64;font-size:${fz(6.8 * kz).toFixed(1)}px">${esc(top.length > 18 ? top.slice(0, 17) + "…" : top)}</text>`;
+    h += `<text x="${S / 2}" y="${S / 2 - 2 * kz}" text-anchor="middle" class="big" style="fill:#111;font-weight:800;font-size:${Math.max(16, 13 * kz).toFixed(1)}px">${nf(sh[top] || 0)}%</text><text x="${S / 2}" y="${S / 2 + 10 * kz}" text-anchor="middle" style="fill:#5c5752;font-size:${fz(6.8 * kz).toFixed(1)}px">${esc(top.length > 18 ? top.slice(0, 17) + "…" : top)}</text>`;
     return `<div style="text-align:center"><svg viewBox="0 0 ${S} ${S}" style="width:${S}px;height:${S}px;display:inline-block">${h}</svg>${label ? `<div style="font:700 ${(7.6 * kz).toFixed(1)}pt Montserrat,sans-serif;color:#111;margin-top:2px">${esc(label)}</div>` : ""}</div>`; };
   const legend = `<table class="dt lg" style="flex:1 1 2.4in;min-width:2.4in"><tr><th></th>${rows.length > 1 ? rows.map(r => `<th>${esc(r.label)}</th>`).join("") : "<th>Share</th>"}</tr>${keys.map((k, i) => `<tr><td><span style="display:inline-block;width:8px;height:8px;background:${PAL[i % PAL.length]};margin-right:6px"></span>${esc(k)}</td>${shares.map((sh, j) => `<td class="${j === 0 ? "focus" : ""}">${pct(sh[k] || 0)}</td>`).join("")}</tr>`).join("")}</table>`;
   if (vertical) return `<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin:8px 0 16px">${rows.map((r, i) => donutSVG(shares[i], rows.length > 1 ? r.label : "")).join("")}</div>${legend.replace('style="flex:1 1 2.4in;min-width:2.4in"', 'style="width:100%;font-size:11px;--pad:5px"')}`;
@@ -475,7 +482,7 @@ function pairBars(rows, {W = 624, H = 400, dHead = "Change", dFmt = d => (d >= 0
   rows.forEach((r, i) => { const y = top + rh * i + rh / 2 - 8;
     h += `<text x="${lw}" y="${y + 6}" text-anchor="end" dominant-baseline="middle" style="fill:#111;font-weight:500">${esc(r.name)}</text>`;
     if (r.st != null) h += `<rect x="${x0}" y="${y - 3}" width="${Math.max(X(r.st) - x0, 1)}" height="13" fill="${CRIM}" rx="1"/><text x="${X(r.st) + 6}" y="${y + 4}" dominant-baseline="middle" style="fill:${CRIM};font-weight:800">${pct(r.st)}</text>`;
-    if (r.us != null) h += `<rect x="${x0}" y="${y + 13}" width="${Math.max(X(r.us) - x0, 1)}" height="7" fill="#b9b3aa" rx="1"/><text x="${X(r.us) + 6}" y="${y + 17}" dominant-baseline="middle" style="fill:#6f6a64">U.S. ${pct(r.us)}</text>`;
+    if (r.us != null) h += `<rect x="${x0}" y="${y + 13}" width="${Math.max(X(r.us) - x0, 1)}" height="7" fill="#b9b3aa" rx="1"/><text x="${X(r.us) + 6}" y="${y + 17}" dominant-baseline="middle" style="fill:#5c5752">U.S. ${pct(r.us)}</text>`;
     if (r.d != null) h += `<text x="${W}" y="${y + 6}" text-anchor="end" dominant-baseline="middle" style="fill:#111;font-weight:700">${dFmt(r.d)}</text>`;
     if (i < n - 1) h += `<line x1="0" x2="${W}" y1="${top + rh * (i + 1) - 4}" y2="${top + rh * (i + 1) - 4}" stroke="#e6e2dc"/>`; });
   return legendHTML([{n: stName, c: CRIM, kind: "sq"}, {n: "United States", c: "#b9b3aa", kind: "sq"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
@@ -492,6 +499,7 @@ function stackYears(o, years, {W = 624, H = 400} = {}) {
         h += `<path d="M${xa},${y + bh} L${xa + w},${y + bh} L${xb + wb},${y + bh + gap} L${xb},${y + bh + gap} Z" fill="${PAL[j % PAL.length]}" fill-opacity=".14"/>`; }
       h += `<rect x="${x}" y="${y}" width="${Math.max(w - 2, .5)}" height="${bh}" fill="${PAL[j % PAL.length]}"/>`;
       if (w > 44) h += `<text x="${x + 8}" y="${y + bh / 2}" dominant-baseline="middle" style="fill:#fff;font-weight:800">${pct(v)}</text>`;
+      else if (v >= .5) h += `<text x="${x + w / 2}" y="${y - 6}" text-anchor="middle" style="fill:#111;font-weight:700">${pct(v)}</text>`;   // small segments labelled above the bar
       x += w; }); });
   return legendHTML(o.k.map((k, j) => ({n: k, c: PAL[j % PAL.length], kind: "sq"}))) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
@@ -774,10 +782,15 @@ window.__titles = SECTION_TITLES;
 /* ======================= SPREAD MOCKUPS ======================= */
 function buildSpreads() {
   doc.innerHTML = ""; figN = 0; tabN = 0;
-  const PX = 96, page = (n, side) => `<div class="rh2" style="${side === "L" ? "left:84px" : "right:84px;text-align:right"}"><b>${esc(NAME)}</b> · State Talent Profile</div><div class="fol" style="${side === "L" ? "left:84px" : "right:84px"}">${n}</div>`;
+  /* wayfinding: the left running head names the profile, the right one names the current section, and every right
+     page in a section carries a crimson thumb tab with the section number on its outer edge, one step lower per
+     section, so a section can be found with the book closed. CURSEC is set by sec(name). */
+  let CURSEC = null;
+  const PX = 96, page = (n, side) => `<div class="rh2" style="${side === "L" ? "left:84px" : "right:84px;text-align:right"}">${side === "R" && CURSEC ? (CURSEC.n ? `<b>Section ${CURSEC.n}</b> · ${esc(CURSEC.name)}` : `<b>${esc(CURSEC.name)}</b>`) : `<b>${esc(NAME)}</b> · State Talent Profile`}</div><div class="fol" style="${side === "L" ? "left:84px" : "right:84px"}">${n}</div>`
+    + (side === "R" && CURSEC && CURSEC.n ? `<div class="ttab" style="top:${110 + (CURSEC.n - 1) * 46}px">${CURSEC.n}</div>` : "");
   let FOL = 2; const TOC = [];
   const spread = (title, L, Rt, over = "", lcls = "", rcls = "") => { const n = FOL; if (title) TOC.push([n, title]); FOL += 2;
-    doc.insertAdjacentHTML("beforeend", `<section class="spread"><div class="pg ${lcls}">${page(n, "L")}${L}</div><div class="pg ${rcls}">${page(n + 1, "R")}${Rt}</div>${over}</section>`); };
+    doc.insertAdjacentHTML("beforeend", `<section class="spread"${title ? ` data-toc="${esc(title)}"` : ""}><div class="pg ${lcls}">${page(n, "L")}${L}</div><div class="pg ${rcls}">${page(n + 1, "R")}${Rt}</div>${over}</section>`); };
   const tile = m => { const r = row(m), c = chg(r); return `<div class="t9">${r.rank ? `<span class="rk">#${r.rank}</span>` : ""}<div class="v">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l">${esc(SHORT[m] || r.title)}, ${r.y1}</div><div class="c">U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>${c.t !== "–" ? ` · ${c.t} since ${r.y0}` : ""}</div></div>`; };
   const F = (title, body, src) => fig(title, body, src);
 
@@ -882,7 +895,7 @@ function buildSpreads() {
   /* ---------- layout kit: hero spreads, single pages, blank pages ---------- */
   const H2 = (kick, title) => `<div class="kick">${kick}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">${title}</div><div class="sp-rule"></div>`;
   const statsH = ms => `<div class="stats" style="--n:${ms.length};margin:0">${ms.map(m => { if (typeof m === "object") return `<div class="stat" style="border-top:0;padding-top:0"><div class="v" style="font-size:32px">${m.v}</div><div class="l" style="font-size:10.4px">${esc(m.l)}</div><div class="c" style="font-size:9.4px">${m.c || ""}</div></div>`; const r = row(m), c = chg(r); return `<div class="stat" style="border-top:0;padding-top:0"><div class="v" style="font-size:32px">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l" style="font-size:10.4px">${esc((SHORT[m] || r.title).replace(/^International share of /, "Int. share of "))}, ${r.y1}</div><div class="c" style="font-size:9.4px">${r.us1 != null ? `U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>` : ""}${r.rank ? ` · <b>${ord(r.rank)}</b> of ${r.n}` : ""}${c.t !== "–" ? ` · ${c.t} since ${r.y0}` : ""}</div></div>`; }).join("")}</div>`;
-  let SEC = 0; const sec = () => `Section ${++SEC}`;
+  let SEC = 0; const sec = name => { CURSEC = {n: ++SEC, name}; return `Section ${SEC}`; };
   const mv = (s, u = "%") => moved(s, u) || "little changed";
   const PW = 624, SW = 1440, SRCC = "Data from NCES, IPEDS Completions.";
   const blank = `<div class="abs" style="left:96px;right:96px;top:96px;bottom:96px;display:grid;place-items:center"><div class="blank">This page intentionally left blank.</div></div>`;
@@ -936,7 +949,7 @@ function buildSpreads() {
   const pair = (toc, o) => {
     const ph = p => `<div class="abs plede" style="left:96px;width:624px;top:${PLT}px;height:${PLH}px">${p.lede.map(t => `<p class="sp-p">${t}</p>`).join("")}</div>`
       + `<div class="abs prule" style="left:96px;width:624px;top:${PFT - 16}px"></div><div class="abs pgF" style="left:96px;width:624px;top:${PFT}px"></div>`;
-    const headL = `<div class="abs phead" style="left:96px;width:624px;top:92px;height:${PLT - 102}px;overflow:hidden"><div class="psec">${esc(o.sec)}</div><div class="ph">${o.h}</div><div class="sp-rule" style="margin:14px 0 0"></div></div>`;
+    const headL = `<div class="abs phead" style="left:96px;width:624px;top:92px;height:${PLT - 102}px;overflow:hidden"><div class="psec">${CURSEC && CURSEC.n ? `Section ${CURSEC.n} · ${esc(CURSEC.name)}` : esc(o.sec)}</div><div class="ph">${o.h}</div><div class="sp-rule" style="margin:14px 0 0"></div></div>`;
     const headR = `<div class="abs" style="left:96px;width:624px;top:92px">${sbox(o.stats || [])}</div>`;
     spread(toc, headL + ph(o.a), headR + ph(o.b)); const sp = doc.lastElementChild;
     const hd = sp.children[0].querySelector(".phead"); let hs = 34; while (hd.scrollHeight > hd.clientHeight + 1 && hs > 24) hd.style.setProperty("--hs", (hs -= 2) + "px");
@@ -981,7 +994,7 @@ function buildSpreads() {
       return `<tr><td>${esc(cleanT(SHORT[m] || r.title))}</td><td>${f(r.v0)}</td><td>${r.vp != null ? `${f(r.vp)}<small>${r.yp}</small>` : "–"}</td><td class="focus">${f(r.v1)}<small>${r.y1}</small></td><td>${chg(r).t}</td><td>${f(r.us1)}</td><td>${r.rank ? ord(r.rank) : "–"}</td></tr>`; }).join("")}</table>`, src, {table: true}); };
   /* a chart across both pages with text and key numbers beneath, as in the report */
   const hero = (toc, o) => {
-    const head = o.head ? `<div class="abs" style="left:96px;top:96px;width:1000px"><div class="kick">${sec()}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">${o.head}</div></div>` : "";
+    const head = o.head ? `<div class="abs" style="left:96px;top:96px;width:1000px"><div class="kick">${sec(o.head)}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">${o.head}</div></div>` : "";
     const top = o.head ? 196 : 96, H = (o.H || 500) + (o.head ? 0 : 100);
     const ps = o.paras.filter(Boolean).map(p => `<p class="sp-p">${p}</p>`).join("");
     const txt = o.stats ? `<div style="display:grid;grid-template-columns:${PW}px ${PW}px;column-gap:192px;align-items:start"><div class="cols2">${ps}</div>${statsH(o.stats)}</div>` : `<div class="cols2" style="column-gap:192px">${ps}</div>`;
@@ -1234,7 +1247,7 @@ function buildSpreads() {
   const pser = (m, abbr) => cols.map((s, i) => ({name: s === "US" ? "United States" : NM[s], short: abbr ? (s === "US" ? "U.S." : s) : undefined, s: pl[m][s], c: s === ST ? CRIM : s === "US" ? TAUPE : PEERC[i - 1], w: s === ST ? 2.6 : 1.3, dash: s === "US", bold: s === ST}));
   const leg = legendHTML([ST, ...PEERS].map((s, i) => ({n: NM[s], c: s === ST ? CRIM : PEERC[i - 1]})).concat([{n: "United States", c: TAUPE, kind: "dash"}]));
   const smalls = [["intl_share_enroll_grad", "Int. share of grad students"], ["stem_share_master", "STEM share of master's"], ["grad_rate_bach6", "Six-year graduation rate"], ["intl_share_stem_master", "Int. share of STEM master's"]];
-  spread("Competitors", `<div class="abs" style="left:96px;right:96px;top:96px"><div class="kick">${sec()}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">Competitors</div><div class="sp-rule"></div>
+  spread("Competitors", `<div class="abs" style="left:96px;right:96px;top:96px"><div class="kick">${sec("Competitors")}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">Competitors</div><div class="sp-rule"></div>
       <p class="sp-p">The four states closest in size are ${PEERS.map(s => esc(NM[s])).join(", ")}. ${esc(NAME)} ranks ${ord(peerOrder.indexOf(ST) + 1)} of the five on the international share of STEM master's; ${esc(NM[peerOrder[0]])} is the most dependent at ${pct(pSM.vals[peerOrder[0]])}.</p>
       ${F(`How Dependent Are ${esc(NAME)} and Its Peers on International STEM Master's?`, leg + lineSVG({series: pser("intl_share_stem_master"), W: 624, H: 280, right: 130}), `Data from NCES, IPEDS Completions.`)}</div>`,
     `<div class="abs" style="left:96px;right:96px;top:96px">${eq(fig(`How Does ${esc(NAME)} Compare With States of Similar Size?`, `<table class="dt"><tr><th>Measure</th>${cols.map(s => `<th class="${s === ST ? "focus" : ""}">${s === "US" ? "U.S." : s}</th>`).join("")}</tr>${D.peer_tab.map(r => `<tr><td>${esc((SHORT[r.m] || r.title).replace(/^International share of /, "Int. share of "))}</td>${cols.map(s => `<td class="${s === ST ? "focus" : ""}">${fmtSpec(r.vals[s], r.fmt, r.unit)}</td>`).join("")}</tr>`).join("")}</table>`, `Latest year for each measure. Data from NCES, IPEDS.`, {table: true}), 222).replace('<table class="dt eq">', '<table class="dt eq" style="--pad:3.4px">')}</div>`,
@@ -1402,6 +1415,7 @@ function buildSpreads() {
       <h4>Migration</h4><p>First-time degree-seeking undergraduates by home state, reported in even years before 2001 and every year since; odd years with incomplete reporting are omitted. Net migration is students arriving from other states minus residents leaving, per 100 resident first-time students.</p><h4>Money</h4><p>All dollar values are in 2024 dollars using the CPI-U. Appropriations and revenue are per full-time-equivalent student at public institutions.</p>
       <h4>Race and ethnicity</h4><p>IPEDS did not collect race and ethnicity in every year before 2010, and categories changed in 2008–2010; “Two or more” exists only from then.</p>${P.online ? `<h4>Caveat for ${esc(NAME)}</h4><p>${esc(P.online)}</p>` : ""}
       <h4>Countries of citizenship</h4><p>From DHS SEVIS by the Numbers: active F-1 and M-1 student records in the month named, at every level from primary school to doctorate, by the state of the school. IPEDS records only whether a student is a U.S. nonresident, not where they come from. SEVIS counts are monthly snapshots and are not directly comparable with IPEDS fall enrollment or degree counts.</p><h4>Peers</h4><p>Comparison states are the four closest in total fall enrollment.</p><h4>Source</h4><p>National Center for Education Statistics, Integrated Postsecondary Education Data System (IPEDS): Institutional Characteristics, Fall Enrollment, Completions, Graduation Rates, Finance, Human Resources and Admissions components, 1980–2025, harmonized into a state panel. Department of Homeland Security, SEVIS by the Numbers data mapping tool, 2014–2026. Generated ${esc(D.built)}.</p></div>`;
+    CURSEC = {n: null, name: "About These Data"};
     pages("About these data", onPage(`<div class="kick">Notes</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">About These Data</div><div class="sp-rule"></div>${notes}`), blank); }
 
 
@@ -1474,7 +1488,7 @@ function buildSpreads() {
     const note = `<div class="tnote">Superscript years mark the year observed; changes since ${D.base} start from ${D.base} or the first later year with data. Rank is among the 50 states and DC (1 = highest). “pp” is percentage points. Dollars are 2024 dollars (CPI-U) unless the measure is labeled nominal. Counts and dollars are rounded to three significant figures (K, M, B). Arrow colors show direction only. Source numbers refer to the list of sources that follows the tables.</div>`;
     let firstPg = true;
     const landPage = (toc, inner) => { const n = FOL++; if (toc) TOC.push([n, toc]);
-      doc.insertAdjacentHTML("beforeend", `<section class="land"><div class="rh2" style="left:96px"><b>${esc(NAME)}</b> · State Talent Profile · ${toc || "By the Numbers"}</div><div class="fol" style="right:96px">${n}</div><div class="abs" style="left:96px;right:96px;top:84px">${inner}</div></section>`);
+      doc.insertAdjacentHTML("beforeend", `<section class="land"${toc ? ` data-toc="${esc(toc)}"` : ""}><div class="rh2" style="left:96px"><b>${esc(NAME)}</b> · State Talent Profile · ${toc || "By the Numbers"}</div><div class="fol" style="right:96px">${n}</div><div class="abs" style="left:96px;right:96px;top:84px">${inner}</div></section>`);
       return doc.lastElementChild; };
     const tablePage = () => { const s = landPage(firstPg ? "By the Numbers" : "", `${firstPg ? `<div class="land-h">${esc(NAME)} – By the Numbers</div>` : `<div class="kick" style="margin-bottom:10px">${esc(NAME)} – By the Numbers (continued)</div>`}<div class="btn-panel"><table class="btn" style="width:${W}px">${head}</table></div>${note}`);
       if (!firstPg) s.querySelector(".rh2").innerHTML = `<b>${esc(NAME)}</b> · State Talent Profile · By the Numbers`; firstPg = false; return s; };
@@ -1520,7 +1534,10 @@ function buildSpreads() {
       + grp("SECTIONS", TOC.filter(x => !over.includes(x[1]) && !back.includes(x[1])).map(([n, t]) => [n, `<b>Section ${++k}</b> ${esc(cap(t))}`]))
       + grp("BACK MATTER", TOC.filter(x => back.includes(x[1])).map(([n, t]) => [n, `<b>${esc(cap(t))}</b>`])); }
 }
-document.fonts.ready.then(() => { if (VAR === "spread") buildSpreads(); else buildBTN(); window.__ready = true; });
+document.fonts.ready.then(() => { if (VAR === "spread") buildSpreads(); else buildBTN();
+  /* PDF bookmarks: one per table-of-contents entry, at its sheet (sections in order are the PDF's sheets) */
+  window.__outline = [...document.querySelectorAll("section")].map((s, i) => s.dataset.toc ? {t: s.dataset.toc, i} : null).filter(Boolean);
+  window.__ready = true; });
 </script>
 </body>
 </html>

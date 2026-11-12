@@ -147,7 +147,8 @@ def pngs(st: str, sheets: list[int]) -> list[Path]:
     out = []
     for n in sheets:
         if n <= len(pdf):
-            p = d / f"sheet{n:02d}.png"; pdf[n - 1].render(scale=1.0).to_pil().save(p); out.append(p)
+            im = pdf[n - 1].render(scale=1.0).to_pil(); p = d / f"sheet{n:02d}.png"; im.save(p); out.append(p)
+            im.convert("L").save(d / f"sheet{n:02d}_grey.png")   # what an office printer in greyscale shows
     return out
 
 

@@ -1552,6 +1552,14 @@ margins on the outer edge (left page for the first, right page for departures, s
 mirror), and the Sankey fills the rest of both pages. Bars and labels stay clear of the fold; only ribbons cross
 it. Figure and table numbers are assigned in reading order after layout, rails included.
 
+**Wayfinding and print.** The left running head names the profile and the right one names the current section
+("Section 5 · Graduate Research"); every right page in a section carries a crimson thumb tab with the section
+number on its outer edge, one step lower per section; the digital PDF has a bookmark for every table-of-contents
+entry. For greyscale printing, every line end names its series (name above value when both don't fit), U.S. lines
+use heavier long dashes, small segments of 100% bars are labelled above the bar, and secondary text and table
+headers meet 4.5:1 contrast on every background. Small states lose spreads whose data is too thin, and no percent
+change is printed on a base under 50.
+
 International-student counts by year (profile text, Table 1, the country lines) use the same fall snapshot as
 the State Talent Sheet (the month closest to November; 2019 has none), and U.S. totals are the 50 states and DC,
 so a profile's "from 2025" and "since 2015" match its By the Numbers table.

@@ -38,7 +38,7 @@ What it catches, and why each matters:
 ## Look at the pages
 
 Checks pass does not mean the pages read well. After `--png`, open the PNGs in `cache/pdf_qa/<ST>/` (one per
-paired or rail spread) and look at a few for at least the largest and smallest sample state. Look for: a stat
+paired or rail spread, each with a `_grey` copy showing what a greyscale office printer prints) and look at a few for at least the largest and smallest sample state. Look for: a stat
 box crowding the prose, prose cut to one paragraph, a chart squeezed short, labels colliding, a heading at its
 smallest size. These are judgment calls the script cannot make; report them with the sheet number.
 
