@@ -206,8 +206,19 @@ def reclass() -> dict:
             tot = float(ey.reindex(a[a.state == st].index).fillna(0).sum())
             p4 = float(ey.reindex(a[(a.state == st) & (a.sector == "Public 4-year")].index).fillna(0).sum())
             top = ey.reindex(ids).fillna(0).sort_values(ascending=False).head(3)
+            # share of each year's enrollment at colleges that were public 2-year in BASE and public 4-year that year,
+            # so the sector chart can mark the relabelled part of each bar
+            by = {}
+            for y in range(BASE + 1, y1 + 1):
+                if y not in e.index.get_level_values("year"):
+                    continue
+                uy = u[(u.year == y) & (u.state == st)].set_index("unitid")
+                ids_y = uy[uy.sector == "Public 4-year"].index.intersection(b[b.sector == "Public 2-year"].index)
+                ty, ey_ = float(e.xs(y).reindex(uy.index).fillna(0).sum()), e.xs(y)
+                if ty:
+                    by[y] = round(100 * float(ey_.reindex(ids_y).fillna(0).sum()) / ty, 2)
             _RECLASS[st] = {"inst": len(ids), "n": n, "share": 100 * n / tot if tot else None, "share_p4": 100 * n / p4 if p4 else None,
-                            "y0": BASE, "y1": y1, "names": [str(nm.get(i, "")) for i in top.index]}
+                            "y0": BASE, "y1": y1, "names": [str(nm.get(i, "")) for i in top.index], "by_year": by}
     return _RECLASS
 
 

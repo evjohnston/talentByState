@@ -528,10 +528,13 @@ function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [],
   if (heads[1]) h += `<text x="${W - LBr - NW / 2}" y="${8 * fs}" text-anchor="middle" style="font-weight:700;fill:#1c1c1c;font-size:${fz(8.6 * fs).toFixed(1)}px">${esc(heads[1])}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
+/* The k largest flows, plus any that tie the k-th at the printed precision (up to three more), so a state
+   never shows the same label as one folded into "Other states". */
+function topTie(a, k) { let n = Math.min(k, a.length); while (n < a.length && n < k + 3 && sig3(a[n].n) === sig3(a[k - 1].n)) n++; return a.slice(0, n); }
 function sankeySVG(W = FW, H = 270, fs = 1) {
   const stay = M.stay, outN = M.out_total, inN = M.in_total;
-  const topIn = M.in.slice(0, 5), inRest = Math.max(0, inN - topIn.reduce((a, b) => a + b.n, 0));
-  const topOut = M.out.slice(0, 5), outRest = Math.max(0, outN - topOut.reduce((a, b) => a + b.n, 0));
+  const topIn = topTie(M.in, 5), inRest = Math.max(0, inN - topIn.reduce((a, b) => a + b.n, 0));
+  const topOut = topTie(M.out, 5), outRest = Math.max(0, outN - topOut.reduce((a, b) => a + b.n, 0));
   const left = [{id: "res", label: `${NAME} residents`, n: stay + outN, c: CRIM}, ...topIn.map(x => ({id: "i" + x.k, label: x.k === "Abroad" ? "From abroad" : x.name, n: x.n, c: x.k === "Abroad" ? cssv("--orange") : TEAL})), {id: "ir", label: "Other states", n: inRest, c: cssv("--grey")}];
   const right = [{id: "inst", label: `${NAME} institutions`, n: stay + inN, c: CRIM}, ...topOut.map(x => ({id: "o" + x.k, label: x.name, n: x.n, c: TEAL})), {id: "or", label: "Other states", n: outRest, c: cssv("--grey")}];
   const links = [{s: "res", t: "inst", v: stay, c: CRIM}, ...topIn.map(x => ({s: "i" + x.k, t: "inst", v: x.n})), {s: "ir", t: "inst", v: inRest}, ...topOut.map(x => ({s: "res", t: "o" + x.k, v: x.n})), {s: "res", t: "or", v: outRest}];
@@ -568,7 +571,7 @@ Object.assign(SHORT, {naep_math8: "Grade 8 math score (NAEP)", naep_math8_prof: 
 function statRow(title) {
   const ms = STATS[title] || []; if (!ms.length) return "";
   return `<div class="stats" style="--n:${ms.length}">${ms.map(m => { const r = row(m); const c = chg(r);
-    return `<div class="stat">${VAR === "score" && r.rank ? `<span class="rk">#${r.rank}</span>` : ""}<div class="v">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l">${esc(SHORT[m] || r.title)}, ${r.y1}</div><div class="c">U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>${r.rank && VAR !== "score" ? ` · <b>${ord(r.rank)}</b> of ${r.n}` : ""}${c.t !== "–" ? ` · ${c.t} since ${r.y0}` : ""}</div></div>`; }).join("")}</div>`;
+    return `<div class="stat">${VAR === "score" && r.rank ? `<span class="rk">#${r.rank}</span>` : ""}<div class="v">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l">${esc(SHORT[m] || r.title)}, ${r.y1}</div><div class="c">${[r.us1 != null ? `U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>` : "", r.rank && VAR !== "score" ? `<b>${ord(r.rank)}</b> of ${r.n}` : "", c.t !== "–" ? `${c.t} since ${r.y0}` : ""].filter(Boolean).join(" · ")}</div></div>`; }).join("")}</div>`;
 }
 function chapter(title, lead, body) {
   chapN++; SECTION_TITLES.push(title);
@@ -796,7 +799,7 @@ function buildSpreads() {
   const spread = (title, L, Rt, over = "", lcls = "", rcls = "") => { const n = FOL; if (title) TOC.push([n, title]); FOL += 2;
     doc.insertAdjacentHTML("beforeend", `<section class="spread"${title ? ` data-toc="${esc(title)}"` : ""}><div class="pg ${lcls}">${page(n, "L")}${L}</div><div class="pg ${rcls}">${page(n + 1, "R")}${Rt}</div>${over}</section>`);
     theDC(doc.lastElementChild); };   // before any fitting, so the longer wording is measured
-  const tile = m => { const r = row(m), c = chg(r); return `<div class="t9">${r.rank ? `<span class="rk">#${r.rank}</span>` : ""}<div class="v">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l">${esc(SHORT[m] || r.title)}, ${r.y1}</div><div class="c">U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>${c.t !== "–" ? ` · ${c.t} since ${r.y0}` : ""}</div></div>`; };
+  const tile = m => { const r = row(m), c = chg(r); return `<div class="t9">${r.rank ? `<span class="rk">#${r.rank}</span>` : ""}<div class="v">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l">${esc(SHORT[m] || r.title)}, ${r.y1}</div><div class="c">${[r.us1 != null ? `U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>` : "", c.t !== "–" ? `${c.t} since ${r.y0}` : ""].filter(Boolean).join(" · ")}</div></div>`; };
   const F = (title, body, src) => fig(title, body, src);
 
   /* ---------- front matter, after the Talent Report ---------- */
@@ -899,7 +902,7 @@ function buildSpreads() {
 
   /* ---------- layout kit: hero spreads, single pages, blank pages ---------- */
   const H2 = (kick, title) => `<div class="kick">${kick}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">${title}</div><div class="sp-rule"></div>`;
-  const statsH = ms => `<div class="stats" style="--n:${ms.length};margin:0">${ms.map(m => { if (typeof m === "object") return `<div class="stat" style="border-top:0;padding-top:0"><div class="v" style="font-size:32px">${m.v}</div><div class="l" style="font-size:10.4px">${esc(m.l)}</div><div class="c" style="font-size:9.4px">${m.c || ""}</div></div>`; const r = row(m), c = chg(r); return `<div class="stat" style="border-top:0;padding-top:0"><div class="v" style="font-size:32px">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l" style="font-size:10.4px">${esc((SHORT[m] || r.title).replace(/^International share of /, "Int. share of "))}, ${r.y1}</div><div class="c" style="font-size:9.4px">${r.us1 != null ? `U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>` : ""}${r.rank ? ` · <b>${ord(r.rank)}</b> of ${r.n}` : ""}${c.t !== "–" ? ` · ${c.t} since ${r.y0}` : ""}</div></div>`; }).join("")}</div>`;
+  const statsH = ms => `<div class="stats" style="--n:${ms.length};margin:0">${ms.map(m => { if (typeof m === "object") return `<div class="stat" style="border-top:0;padding-top:0"><div class="v" style="font-size:32px">${m.v}</div><div class="l" style="font-size:10.4px">${esc(m.l)}</div><div class="c" style="font-size:9.4px">${m.c || ""}</div></div>`; const r = row(m), c = chg(r); return `<div class="stat" style="border-top:0;padding-top:0"><div class="v" style="font-size:32px">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l" style="font-size:10.4px">${esc((SHORT[m] || r.title).replace(/^International share of /, "Int. share of "))}, ${r.y1}</div><div class="c" style="font-size:9.4px">${[r.us1 != null ? `U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>` : "", r.rank ? `<b>${ord(r.rank)}</b> of ${r.n}` : "", c.t !== "–" ? `${c.t} since ${r.y0}` : ""].filter(Boolean).join(" · ")}</div></div>`; }).join("")}</div>`;
   let SEC = 0; const sec = name => { CURSEC = {n: ++SEC, name}; return `Section ${SEC}`; };
   const mv = (s, u = "%") => moved(s, u) || "little changed";
   const PW = 624, SW = 1440, SRCC = "Data from NCES, IPEDS Completions.";
@@ -1142,9 +1145,9 @@ function buildSpreads() {
   }
   /* ===== 3  Where students come from: Sankey across the spread ===== */
   hero("Where students come from", {head: "Where Students Come From", title: `First-Time Students by Home and Destination, Fall ${M.year}`, chart: H => sankeySVG(SW, H + 40, 1.45),
-    src: `Home of first-time degree-seeking undergraduates (left) and the state of the institution entered (right); the five largest sources and destinations, the rest grouped. Data from NCES, IPEDS Fall Enrollment.`,
+    src: `Home of first-time degree-seeking undergraduates (left) and the state of the institution entered (right); the five largest sources and destinations (more when states tie at the printed figure), the rest grouped; ties are ordered by exact count. Data from NCES, IPEDS Fall Enrollment.`,
     paras: [`${nf(M.stay)} residents stayed in ${esc(NAME)} for college in fall ${M.year}; ${nf(domIn)} students arrived from other states and ${nf(abroadN)} from abroad, while ${nf(M.out_total)} residents left.`,
-      `Each band runs from a student's home on the left to the state where they enrolled on the right. ${pct(ins.v1)} of the state's first-time students are residents (U.S. ${pct(ins.us1)}).`],
+      `Each band runs from a student's home on the left to the state where they enrolled on the right. ${pct(ins.v1)} of the state's first-time students are residents${ins.us1 != null ? ` (U.S. ${pct(ins.us1)})` : ""}.`],
     stats: ["instate_share_ft", "foreign_share_ft", "net_migration_ft"]});
 
 
@@ -1155,7 +1158,7 @@ function buildSpreads() {
       paras: [`Since ${D.base}, the number of residents staying in state for college is ${mv(kser(M.flows, "Stayed in state"), "n").replace(/ since \d+$/, "")}, arrivals from other states are ${mv(kser(M.flows, "Arrived from other states"), "n").replace(/ since \d+$/, "")}, and residents leaving are ${mv(kser(M.flows, "Left for other states"), "n").replace(/ since \d+$/, "")}.`,
         `Net migration was ${fmtSpec(nr.v1, nr.fmt, nr.unit)} per 100 resident first-time students (${rk("net_migration_ft")}).${outTop ? ` The top destination for residents who left was ${esc(outTop.name)} (${nf(outTop.n)}).` : ""}`],
     });
-    const top = a => a.slice(0, 12), rest = (a, t) => Math.max(0, t - top(a).reduce((s, x) => s + x.n, 0));
+    const top = a => topTie(a, 12), rest = (a, t) => Math.max(0, t - top(a).reduce((s, x) => s + x.n, 0));
     const iN = top(M.in), iR = rest(M.in, M.in_total), oN = top(M.out), oR = rest(M.out, M.out_total), GR = cssv("--grey"), OR = cssv("--orange");
     const sIn = (H, W = PW) => sankeyDraw({left: [...iN.map(x => ({id: "i" + x.k, label: x.k === "Abroad" ? "Abroad" : x.name, n: x.n, c: x.k === "Abroad" ? OR : TEAL})), ...(iR ? [{id: "ir", label: "All other states", n: iR, c: GR}] : [])],
       right: [{id: "in", lines: [NAME, "institutions"], n: M.in_total, c: CRIM}], links: [...iN.map(x => ({s: "i" + x.k, t: "in", v: x.n})), ...(iR ? [{s: "ir", t: "in", v: iR}] : [])],
@@ -1163,7 +1166,7 @@ function buildSpreads() {
     const sOut = (H, W = PW) => sankeyDraw({left: [{id: "res", lines: [NAME, "residents"], n: M.out_total, c: CRIM}], right: [...oN.map(x => ({id: "o" + x.k, label: x.name, n: x.n, c: TEAL})), ...(oR ? [{id: "or", label: "All other states", n: oR, c: GR}] : [])],
       links: [...oN.map(x => ({s: "res", t: "o" + x.k, v: x.n, c: TEAL})), ...(oR ? [{s: "res", t: "or", v: oR, c: GR}] : [])],
       W, H, LBl: W > 900 ? 200 : 130, LBr: W > 900 ? 230 : 180, heads: ["Home", "Enrolled in"], fs: W > 900 ? 1.5 : 1.25});
-    const srcM = `First-time degree-seeking undergraduates, fall ${M.year}; the 12 largest flows. Data from NCES, IPEDS Fall Enrollment.`;
+    const srcM = `First-time degree-seeking undergraduates, fall ${M.year}; the 12 largest flows (more when states tie at the printed figure), ordered by exact count. Data from NCES, IPEDS Fall Enrollment.`;
     const fl = k => kser(M.flows, k), fy = y => `fall ${y}`, top3 = a => andList(a.filter(x => x.k !== "Abroad").slice(0, 3).map(x => `${esc(x.name)} (${nf(x.n)})`));
     const mIn = one(null,
         `The bands show where first-time degree-seeking undergraduates who enrolled at ${esc(NAME)}'s institutions in fall ${M.year} but did not live in the state came from: the 12 largest home states and students from abroad, with all other states grouped. Band widths are proportional to the number of students. Home is the state where the student lived when admitted.`,
@@ -1418,7 +1421,7 @@ function buildSpreads() {
         `The number of institutions is ${mv(tot, "n")}. ${pct(row("share_public").v1)} of students attend public institutions and ${pct(row("share_forprofit").v1)} attend for-profit ones.`],
       stats: ["share_public", "share_forprofit", "share_online_only"]});
     const ti = P.inst.top_intl.filter(r => (r.ms_stem_intl || 0) + (r.phd_stem_intl || 0) > 0).slice(0, 14), te = P.inst.top_enroll.slice(0, 15), yrs = P.inst.years, sh = (a, b) => b ? pct(100 * a / b) : "–";
-    const t1 = (k = ti.length, H = 500) => fig(`Which Institutions Train the Most International STEM Graduates?`, `<table class="dt" style="--pad:${Math.min(+padFor(H, k), 9)}px;font-size:11px"><tr><th>Institution</th><th>Intl STEM master's</th><th>Int. share</th><th>Intl STEM doctorates</th><th>Int. share</th></tr>${ti.slice(0, k).map(r => `<tr><td>${esc(r.name)}<small>${esc(r.city || "")} · ${esc(r.sector || "")}</small></td><td class="focus">${nf(r.ms_stem_intl)}</td><td>${sh(r.ms_stem_intl, r.ms_stem)}</td><td>${nf(r.phd_stem_intl)}</td><td>${sh(r.phd_stem_intl, r.phd_stem)}</td></tr>`).join("")}</table>`, `Degrees awarded in ${yrs.completions}. Data from NCES, IPEDS.`, {table: true});
+    const t1 = (k = ti.length, H = 500) => fig(`Which Institutions Train the Most International STEM Graduates?`, `<table class="dt" style="--pad:${Math.min(+padFor(H, k), 9)}px;font-size:11px"><tr><th>Institution</th><th>Intl STEM total</th><th>Intl STEM master's</th><th>Int. share</th><th>Intl STEM doctorates</th><th>Int. share</th></tr>${ti.slice(0, k).map(r => `<tr><td>${esc(r.name)}<small>${esc(r.city || "")} · ${esc(r.sector || "")}</small></td><td class="focus">${nf((r.ms_stem_intl || 0) + (r.phd_stem_intl || 0))}</td><td>${nf(r.ms_stem_intl)}</td><td>${sh(r.ms_stem_intl, r.ms_stem)}</td><td>${nf(r.phd_stem_intl)}</td><td>${sh(r.phd_stem_intl, r.phd_stem)}</td></tr>`).join("")}</table>`, `Ranked by the total (shaded) of international STEM master's degrees and research doctorates. Degrees awarded in ${yrs.completions}. Data from NCES, IPEDS.`, {table: true});
     const t2 = (k = te.length, H = 500) => fig(`What Are ${esc(NAME)}'s Largest Institutions?`, `<table class="dt" style="--pad:${padFor(H, k)}px;font-size:11px"><tr><th>Institution</th><th>Enrollment</th><th>Int. share, grad</th><th>STEM bachelor's</th><th>Six-year grad rate</th><th>Admit rate</th></tr>${te.slice(0, k).map(r => `<tr><td>${esc(r.name)}</td><td class="focus">${nf(r.enroll)}</td><td>${pct(r.intl_grad)}</td><td>${nf(r.ba_stem)}</td><td>${pct(r.grad6)}</td><td>${r.admit != null ? pct(r.admit) : "–"}</td></tr>`).join("")}</table>`, `Fall ${yrs.enroll} enrollment; degrees ${yrs.completions}. Data from NCES, IPEDS.`, {table: true});
     const kRows = H => Math.max(5, Math.floor((H - 70) / 31));
     THIN = [ti.length < 3, te.length < 3];
