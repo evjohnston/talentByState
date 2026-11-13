@@ -1,0 +1,1052 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="465.408pt" height="352.8pt" viewBox="0 0 465.408 352.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-11-07T11:01:41.053193</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M -0 352.8 
+L 465.408 352.8 
+L 465.408 0 
+L -0 0 
+z
+" style="fill: #fcfcfb"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 66.816 77.094 
+L 91.44 77.094 
+Q 94.032 77.094 94.032 74.502 
+L 94.032 49.878 
+Q 94.032 47.286 91.44 47.286 
+L 66.816 47.286 
+Q 64.224 47.286 64.224 49.878 
+L 64.224 74.502 
+Q 64.224 77.094 66.816 77.094 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #85b5ef; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 423.216 77.094 
+L 447.84 77.094 
+Q 450.432 77.094 450.432 74.502 
+L 450.432 49.878 
+Q 450.432 47.286 447.84 47.286 
+L 423.216 47.286 
+Q 420.624 47.286 420.624 49.878 
+L 420.624 74.502 
+Q 420.624 77.094 423.216 77.094 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #68a4eb; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 261.216 109.494 
+L 285.84 109.494 
+Q 288.432 109.494 288.432 106.902 
+L 288.432 82.278 
+Q 288.432 79.686 285.84 79.686 
+L 261.216 79.686 
+Q 258.624 79.686 258.624 82.278 
+L 258.624 106.902 
+Q 258.624 109.494 261.216 109.494 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #3482e0; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 390.816 109.494 
+L 415.44 109.494 
+Q 418.032 109.494 418.032 106.902 
+L 418.032 82.278 
+Q 418.032 79.686 415.44 79.686 
+L 390.816 79.686 
+Q 388.224 79.686 388.224 82.278 
+L 388.224 106.902 
+Q 388.224 109.494 390.816 109.494 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #2b79d7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 423.216 109.494 
+L 447.84 109.494 
+Q 450.432 109.494 450.432 106.902 
+L 450.432 82.278 
+Q 450.432 79.686 447.84 79.686 
+L 423.216 79.686 
+Q 420.624 79.686 420.624 82.278 
+L 420.624 106.902 
+Q 420.624 109.494 423.216 109.494 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #66a3eb; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 99.216 141.894 
+L 123.84 141.894 
+Q 126.432 141.894 126.432 139.302 
+L 126.432 114.678 
+Q 126.432 112.086 123.84 112.086 
+L 99.216 112.086 
+Q 96.624 112.086 96.624 114.678 
+L 96.624 139.302 
+Q 96.624 141.894 99.216 141.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #1f61b3; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 131.616 141.894 
+L 156.24 141.894 
+Q 158.832 141.894 158.832 139.302 
+L 158.832 114.678 
+Q 158.832 112.086 156.24 112.086 
+L 131.616 112.086 
+Q 129.024 112.086 129.024 114.678 
+L 129.024 139.302 
+Q 129.024 141.894 131.616 141.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #9dc5f4; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 164.016 141.894 
+L 188.64 141.894 
+Q 191.232 141.894 191.232 139.302 
+L 191.232 114.678 
+Q 191.232 112.086 188.64 112.086 
+L 164.016 112.086 
+Q 161.424 112.086 161.424 114.678 
+L 161.424 139.302 
+Q 161.424 141.894 164.016 141.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #76aded; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 196.416 141.894 
+L 221.04 141.894 
+Q 223.632 141.894 223.632 139.302 
+L 223.632 114.678 
+Q 223.632 112.086 221.04 112.086 
+L 196.416 112.086 
+Q 193.824 112.086 193.824 114.678 
+L 193.824 139.302 
+Q 193.824 141.894 196.416 141.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #bdd7f7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 228.816 141.894 
+L 253.44 141.894 
+Q 256.032 141.894 256.032 139.302 
+L 256.032 114.678 
+Q 256.032 112.086 253.44 112.086 
+L 228.816 112.086 
+Q 226.224 112.086 226.224 114.678 
+L 226.224 139.302 
+Q 226.224 141.894 228.816 141.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #4890e6; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 261.216 141.894 
+L 285.84 141.894 
+Q 288.432 141.894 288.432 139.302 
+L 288.432 114.678 
+Q 288.432 112.086 285.84 112.086 
+L 261.216 112.086 
+Q 258.624 112.086 258.624 114.678 
+L 258.624 139.302 
+Q 258.624 141.894 261.216 141.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #19539c; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 293.616 141.894 
+L 318.24 141.894 
+Q 320.832 141.894 320.832 139.302 
+L 320.832 114.678 
+Q 320.832 112.086 318.24 112.086 
+L 293.616 112.086 
+Q 291.024 112.086 291.024 114.678 
+L 291.024 139.302 
+Q 291.024 141.894 293.616 141.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #5196e7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 358.416 141.894 
+L 383.04 141.894 
+Q 385.632 141.894 385.632 139.302 
+L 385.632 114.678 
+Q 385.632 112.086 383.04 112.086 
+L 358.416 112.086 
+Q 355.824 112.086 355.824 114.678 
+L 355.824 139.302 
+Q 355.824 141.894 358.416 141.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #19549d; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 390.816 141.894 
+L 415.44 141.894 
+Q 418.032 141.894 418.032 139.302 
+L 418.032 114.678 
+Q 418.032 112.086 415.44 112.086 
+L 390.816 112.086 
+Q 388.224 112.086 388.224 114.678 
+L 388.224 139.302 
+Q 388.224 141.894 390.816 141.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #0d366b; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 99.216 174.294 
+L 123.84 174.294 
+Q 126.432 174.294 126.432 171.702 
+L 126.432 147.078 
+Q 126.432 144.486 123.84 144.486 
+L 99.216 144.486 
+Q 96.624 144.486 96.624 147.078 
+L 96.624 171.702 
+Q 96.624 174.294 99.216 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #89b8f0; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 131.616 174.294 
+L 156.24 174.294 
+Q 158.832 174.294 158.832 171.702 
+L 158.832 147.078 
+Q 158.832 144.486 156.24 144.486 
+L 131.616 144.486 
+Q 129.024 144.486 129.024 147.078 
+L 129.024 171.702 
+Q 129.024 174.294 131.616 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #b4d1f6; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 164.016 174.294 
+L 188.64 174.294 
+Q 191.232 174.294 191.232 171.702 
+L 191.232 147.078 
+Q 191.232 144.486 188.64 144.486 
+L 164.016 144.486 
+Q 161.424 144.486 161.424 147.078 
+L 161.424 171.702 
+Q 161.424 174.294 164.016 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #aaccf5; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 196.416 174.294 
+L 221.04 174.294 
+Q 223.632 174.294 223.632 171.702 
+L 223.632 147.078 
+Q 223.632 144.486 221.04 144.486 
+L 196.416 144.486 
+Q 193.824 144.486 193.824 147.078 
+L 193.824 171.702 
+Q 193.824 174.294 196.416 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #5095e7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 228.816 174.294 
+L 253.44 174.294 
+Q 256.032 174.294 256.032 171.702 
+L 256.032 147.078 
+Q 256.032 144.486 253.44 144.486 
+L 228.816 144.486 
+Q 226.224 144.486 226.224 147.078 
+L 226.224 171.702 
+Q 226.224 174.294 228.816 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #64a1ea; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 261.216 174.294 
+L 285.84 174.294 
+Q 288.432 174.294 288.432 171.702 
+L 288.432 147.078 
+Q 288.432 144.486 285.84 144.486 
+L 261.216 144.486 
+Q 258.624 144.486 258.624 147.078 
+L 258.624 171.702 
+Q 258.624 174.294 261.216 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #2b79d7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 293.616 174.294 
+L 318.24 174.294 
+Q 320.832 174.294 320.832 171.702 
+L 320.832 147.078 
+Q 320.832 144.486 318.24 144.486 
+L 293.616 144.486 
+Q 291.024 144.486 291.024 147.078 
+L 291.024 171.702 
+Q 291.024 174.294 293.616 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #5699e7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 326.016 174.294 
+L 350.64 174.294 
+Q 353.232 174.294 353.232 171.702 
+L 353.232 147.078 
+Q 353.232 144.486 350.64 144.486 
+L 326.016 144.486 
+Q 323.424 144.486 323.424 147.078 
+L 323.424 171.702 
+Q 323.424 174.294 326.016 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #2266b9; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 358.416 174.294 
+L 383.04 174.294 
+Q 385.632 174.294 385.632 171.702 
+L 385.632 147.078 
+Q 385.632 144.486 383.04 144.486 
+L 358.416 144.486 
+Q 355.824 144.486 355.824 147.078 
+L 355.824 171.702 
+Q 355.824 174.294 358.416 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #4f94e7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 390.816 174.294 
+L 415.44 174.294 
+Q 418.032 174.294 418.032 171.702 
+L 418.032 147.078 
+Q 418.032 144.486 415.44 144.486 
+L 390.816 144.486 
+Q 388.224 144.486 388.224 147.078 
+L 388.224 171.702 
+Q 388.224 174.294 390.816 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #0d376d; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 423.216 174.294 
+L 447.84 174.294 
+Q 450.432 174.294 450.432 171.702 
+L 450.432 147.078 
+Q 450.432 144.486 447.84 144.486 
+L 423.216 144.486 
+Q 420.624 144.486 420.624 147.078 
+L 420.624 171.702 
+Q 420.624 174.294 423.216 174.294 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #0d366b; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_27">
+    <path d="M 99.216 206.694 
+L 123.84 206.694 
+Q 126.432 206.694 126.432 204.102 
+L 126.432 179.478 
+Q 126.432 176.886 123.84 176.886 
+L 99.216 176.886 
+Q 96.624 176.886 96.624 179.478 
+L 96.624 204.102 
+Q 96.624 206.694 99.216 206.694 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #0d366b; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_28">
+    <path d="M 131.616 206.694 
+L 156.24 206.694 
+Q 158.832 206.694 158.832 204.102 
+L 158.832 179.478 
+Q 158.832 176.886 156.24 176.886 
+L 131.616 176.886 
+Q 129.024 176.886 129.024 179.478 
+L 129.024 204.102 
+Q 129.024 206.694 131.616 206.694 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #bcd7f7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_29">
+    <path d="M 164.016 206.694 
+L 188.64 206.694 
+Q 191.232 206.694 191.232 204.102 
+L 191.232 179.478 
+Q 191.232 176.886 188.64 176.886 
+L 164.016 176.886 
+Q 161.424 176.886 161.424 179.478 
+L 161.424 204.102 
+Q 161.424 206.694 164.016 206.694 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #7aafee; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_30">
+    <path d="M 196.416 206.694 
+L 221.04 206.694 
+Q 223.632 206.694 223.632 204.102 
+L 223.632 179.478 
+Q 223.632 176.886 221.04 176.886 
+L 196.416 176.886 
+Q 193.824 176.886 193.824 179.478 
+L 193.824 204.102 
+Q 193.824 206.694 196.416 206.694 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #8bb9f0; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_31">
+    <path d="M 228.816 206.694 
+L 253.44 206.694 
+Q 256.032 206.694 256.032 204.102 
+L 256.032 179.478 
+Q 256.032 176.886 253.44 176.886 
+L 228.816 176.886 
+Q 226.224 176.886 226.224 179.478 
+L 226.224 204.102 
+Q 226.224 206.694 228.816 206.694 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #80b2ee; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_32">
+    <path d="M 261.216 206.694 
+L 285.84 206.694 
+Q 288.432 206.694 288.432 204.102 
+L 288.432 179.478 
+Q 288.432 176.886 285.84 176.886 
+L 261.216 176.886 
+Q 258.624 176.886 258.624 179.478 
+L 258.624 204.102 
+Q 258.624 206.694 261.216 206.694 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #b9d5f7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_33">
+    <path d="M 293.616 206.694 
+L 318.24 206.694 
+Q 320.832 206.694 320.832 204.102 
+L 320.832 179.478 
+Q 320.832 176.886 318.24 176.886 
+L 293.616 176.886 
+Q 291.024 176.886 291.024 179.478 
+L 291.024 204.102 
+Q 291.024 206.694 293.616 206.694 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #cde2fb; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_34">
+    <path d="M 326.016 206.694 
+L 350.64 206.694 
+Q 353.232 206.694 353.232 204.102 
+L 353.232 179.478 
+Q 353.232 176.886 350.64 176.886 
+L 326.016 176.886 
+Q 323.424 176.886 323.424 179.478 
+L 323.424 204.102 
+Q 323.424 206.694 326.016 206.694 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #6aa5eb; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_35">
+    <path d="M 358.416 206.694 
+L 383.04 206.694 
+Q 385.632 206.694 385.632 204.102 
+L 385.632 179.478 
+Q 385.632 176.886 383.04 176.886 
+L 358.416 176.886 
+Q 355.824 176.886 355.824 179.478 
+L 355.824 204.102 
+Q 355.824 206.694 358.416 206.694 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #5b9ce8; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_36">
+    <path d="M 390.816 206.694 
+L 415.44 206.694 
+Q 418.032 206.694 418.032 204.102 
+L 418.032 179.478 
+Q 418.032 176.886 415.44 176.886 
+L 390.816 176.886 
+Q 388.224 176.886 388.224 179.478 
+L 388.224 204.102 
+Q 388.224 206.694 390.816 206.694 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #bbd6f7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_37">
+    <path d="M 131.616 239.094 
+L 156.24 239.094 
+Q 158.832 239.094 158.832 236.502 
+L 158.832 211.878 
+Q 158.832 209.286 156.24 209.286 
+L 131.616 209.286 
+Q 129.024 209.286 129.024 211.878 
+L 129.024 236.502 
+Q 129.024 239.094 131.616 239.094 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #cde2fb; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_38">
+    <path d="M 164.016 239.094 
+L 188.64 239.094 
+Q 191.232 239.094 191.232 236.502 
+L 191.232 211.878 
+Q 191.232 209.286 188.64 209.286 
+L 164.016 209.286 
+Q 161.424 209.286 161.424 211.878 
+L 161.424 236.502 
+Q 161.424 239.094 164.016 239.094 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #b3d1f6; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_39">
+    <path d="M 196.416 239.094 
+L 221.04 239.094 
+Q 223.632 239.094 223.632 236.502 
+L 223.632 211.878 
+Q 223.632 209.286 221.04 209.286 
+L 196.416 209.286 
+Q 193.824 209.286 193.824 211.878 
+L 193.824 236.502 
+Q 193.824 239.094 196.416 239.094 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #adcdf5; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_40">
+    <path d="M 228.816 239.094 
+L 253.44 239.094 
+Q 256.032 239.094 256.032 236.502 
+L 256.032 211.878 
+Q 256.032 209.286 253.44 209.286 
+L 228.816 209.286 
+Q 226.224 209.286 226.224 211.878 
+L 226.224 236.502 
+Q 226.224 239.094 228.816 239.094 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #b7d3f6; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_41">
+    <path d="M 261.216 239.094 
+L 285.84 239.094 
+Q 288.432 239.094 288.432 236.502 
+L 288.432 211.878 
+Q 288.432 209.286 285.84 209.286 
+L 261.216 209.286 
+Q 258.624 209.286 258.624 211.878 
+L 258.624 236.502 
+Q 258.624 239.094 261.216 239.094 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #a4c9f5; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_42">
+    <path d="M 293.616 239.094 
+L 318.24 239.094 
+Q 320.832 239.094 320.832 236.502 
+L 320.832 211.878 
+Q 320.832 209.286 318.24 209.286 
+L 293.616 209.286 
+Q 291.024 209.286 291.024 211.878 
+L 291.024 236.502 
+Q 291.024 239.094 293.616 239.094 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #2977d4; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_43">
+    <path d="M 326.016 239.094 
+L 350.64 239.094 
+Q 353.232 239.094 353.232 236.502 
+L 353.232 211.878 
+Q 353.232 209.286 350.64 209.286 
+L 326.016 209.286 
+Q 323.424 209.286 323.424 211.878 
+L 323.424 236.502 
+Q 323.424 239.094 326.016 239.094 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #9dc5f4; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_44">
+    <path d="M 358.416 239.094 
+L 383.04 239.094 
+Q 385.632 239.094 385.632 236.502 
+L 385.632 211.878 
+Q 385.632 209.286 383.04 209.286 
+L 358.416 209.286 
+Q 355.824 209.286 355.824 211.878 
+L 355.824 236.502 
+Q 355.824 239.094 358.416 239.094 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #5d9de9; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_45">
+    <path d="M 196.416 271.494 
+L 221.04 271.494 
+Q 223.632 271.494 223.632 268.902 
+L 223.632 244.278 
+Q 223.632 241.686 221.04 241.686 
+L 196.416 241.686 
+Q 193.824 241.686 193.824 244.278 
+L 193.824 268.902 
+Q 193.824 271.494 196.416 271.494 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #bbd6f7; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_46">
+    <path d="M 228.816 271.494 
+L 253.44 271.494 
+Q 256.032 271.494 256.032 268.902 
+L 256.032 244.278 
+Q 256.032 241.686 253.44 241.686 
+L 228.816 241.686 
+Q 226.224 241.686 226.224 244.278 
+L 226.224 268.902 
+Q 226.224 271.494 228.816 271.494 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #83b4ef; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_47">
+    <path d="M 261.216 271.494 
+L 285.84 271.494 
+Q 288.432 271.494 288.432 268.902 
+L 288.432 244.278 
+Q 288.432 241.686 285.84 241.686 
+L 261.216 241.686 
+Q 258.624 241.686 258.624 244.278 
+L 258.624 268.902 
+Q 258.624 271.494 261.216 271.494 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #c3dbf9; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_48">
+    <path d="M 293.616 271.494 
+L 318.24 271.494 
+Q 320.832 271.494 320.832 268.902 
+L 320.832 244.278 
+Q 320.832 241.686 318.24 241.686 
+L 293.616 241.686 
+Q 291.024 241.686 291.024 244.278 
+L 291.024 268.902 
+Q 291.024 271.494 293.616 271.494 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #afcff5; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_49">
+    <path d="M 326.016 271.494 
+L 350.64 271.494 
+Q 353.232 271.494 353.232 268.902 
+L 353.232 244.278 
+Q 353.232 241.686 350.64 241.686 
+L 326.016 241.686 
+Q 323.424 241.686 323.424 244.278 
+L 323.424 268.902 
+Q 323.424 271.494 326.016 271.494 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #6da7ec; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_50">
+    <path d="M 66.816 303.894 
+L 91.44 303.894 
+Q 94.032 303.894 94.032 301.302 
+L 94.032 276.678 
+Q 94.032 274.086 91.44 274.086 
+L 66.816 274.086 
+Q 64.224 274.086 64.224 276.678 
+L 64.224 301.302 
+Q 64.224 303.894 66.816 303.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #cde2fb; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_51">
+    <path d="M 196.416 303.894 
+L 221.04 303.894 
+Q 223.632 303.894 223.632 301.302 
+L 223.632 276.678 
+Q 223.632 274.086 221.04 274.086 
+L 196.416 274.086 
+Q 193.824 274.086 193.824 276.678 
+L 193.824 301.302 
+Q 193.824 303.894 196.416 303.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #72aaed; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_52">
+    <path d="M 358.416 303.894 
+L 383.04 303.894 
+Q 385.632 303.894 385.632 301.302 
+L 385.632 276.678 
+Q 385.632 274.086 383.04 274.086 
+L 358.416 274.086 
+Q 355.824 274.086 355.824 276.678 
+L 355.824 301.302 
+Q 355.824 303.894 358.416 303.894 
+z
+" clip-path="url(#pb9b5eebfb5)" style="fill: #b7d3f6; stroke: #fcfcfb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="79.128" y="60.19" transform="rotate(-0 79.128 60.19)">AK</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="79.128" y="70.572" transform="rotate(-0 79.128 70.572)">0.9%</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="435.528" y="60.19" transform="rotate(-0 435.528 60.19)">ME</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="435.528" y="70.572" transform="rotate(-0 435.528 70.572)">1.0%</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="273.528" y="92.59" transform="rotate(-0 273.528 92.59)">WI</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="273.528" y="102.972" transform="rotate(-0 273.528 102.972)">1.3%</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="403.128" y="92.59" transform="rotate(-0 403.128 92.59)">VT</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="403.128" y="102.972" transform="rotate(-0 403.128 102.972)">1.4%</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="435.528" y="92.59" transform="rotate(-0 435.528 92.59)">NH</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="435.528" y="102.972" transform="rotate(-0 435.528 102.972)">1.0%</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="111.528" y="124.99" transform="rotate(-0 111.528 124.99)">WA</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="111.528" y="135.372" transform="rotate(-0 111.528 135.372)">1.6%</text>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="143.928" y="124.99" transform="rotate(-0 143.928 124.99)">ID</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="143.928" y="135.372" transform="rotate(-0 143.928 135.372)">0.7%</text>
+   </g>
+   <g id="text_15">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="176.328" y="124.99" transform="rotate(-0 176.328 124.99)">MT</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="176.328" y="135.372" transform="rotate(-0 176.328 135.372)">0.9%</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="124.99" transform="rotate(-0 208.728 124.99)">ND</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="135.372" transform="rotate(-0 208.728 135.372)">0.6%</text>
+   </g>
+   <g id="text_19">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="241.128" y="124.99" transform="rotate(-0 241.128 124.99)">MN</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="241.128" y="135.372" transform="rotate(-0 241.128 135.372)">1.2%</text>
+   </g>
+   <g id="text_21">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="273.528" y="124.99" transform="rotate(-0 273.528 124.99)">IL</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="273.528" y="135.372" transform="rotate(-0 273.528 135.372)">1.7%</text>
+   </g>
+   <g id="text_23">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="305.928" y="124.99" transform="rotate(-0 305.928 124.99)">MI</text>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="305.928" y="135.372" transform="rotate(-0 305.928 135.372)">1.1%</text>
+   </g>
+   <g id="text_25">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="370.728" y="124.99" transform="rotate(-0 370.728 124.99)">NY</text>
+   </g>
+   <g id="text_26">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="370.728" y="135.372" transform="rotate(-0 370.728 135.372)">1.7%</text>
+   </g>
+   <g id="text_27">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="403.128" y="124.99" transform="rotate(-0 403.128 124.99)">MA</text>
+   </g>
+   <g id="text_28">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="403.128" y="135.372" transform="rotate(-0 403.128 135.372)">2.0%</text>
+   </g>
+   <g id="text_29">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="111.528" y="157.39" transform="rotate(-0 111.528 157.39)">OR</text>
+   </g>
+   <g id="text_30">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="111.528" y="167.772" transform="rotate(-0 111.528 167.772)">0.8%</text>
+   </g>
+   <g id="text_31">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="143.928" y="157.39" transform="rotate(-0 143.928 157.39)">NV</text>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="143.928" y="167.772" transform="rotate(-0 143.928 167.772)">0.6%</text>
+   </g>
+   <g id="text_33">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="176.328" y="157.39" transform="rotate(-0 176.328 157.39)">WY</text>
+   </g>
+   <g id="text_34">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="176.328" y="167.772" transform="rotate(-0 176.328 167.772)">0.7%</text>
+   </g>
+   <g id="text_35">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="157.39" transform="rotate(-0 208.728 157.39)">SD</text>
+   </g>
+   <g id="text_36">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="167.772" transform="rotate(-0 208.728 167.772)">1.1%</text>
+   </g>
+   <g id="text_37">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="241.128" y="157.39" transform="rotate(-0 241.128 157.39)">IA</text>
+   </g>
+   <g id="text_38">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="241.128" y="167.772" transform="rotate(-0 241.128 167.772)">1.0%</text>
+   </g>
+   <g id="text_39">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="273.528" y="157.39" transform="rotate(-0 273.528 157.39)">IN</text>
+   </g>
+   <g id="text_40">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="273.528" y="167.772" transform="rotate(-0 273.528 167.772)">1.4%</text>
+   </g>
+   <g id="text_41">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="305.928" y="157.39" transform="rotate(-0 305.928 157.39)">OH</text>
+   </g>
+   <g id="text_42">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="305.928" y="167.772" transform="rotate(-0 305.928 167.772)">1.1%</text>
+   </g>
+   <g id="text_43">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="338.328" y="157.39" transform="rotate(-0 338.328 157.39)">PA</text>
+   </g>
+   <g id="text_44">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="338.328" y="167.772" transform="rotate(-0 338.328 167.772)">1.5%</text>
+   </g>
+   <g id="text_45">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="370.728" y="157.39" transform="rotate(-0 370.728 157.39)">NJ</text>
+   </g>
+   <g id="text_46">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="370.728" y="167.772" transform="rotate(-0 370.728 167.772)">1.1%</text>
+   </g>
+   <g id="text_47">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="403.128" y="157.39" transform="rotate(-0 403.128 157.39)">CT</text>
+   </g>
+   <g id="text_48">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="403.128" y="167.772" transform="rotate(-0 403.128 167.772)">2.0%</text>
+   </g>
+   <g id="text_49">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="435.528" y="157.39" transform="rotate(-0 435.528 157.39)">RI</text>
+   </g>
+   <g id="text_50">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="435.528" y="167.772" transform="rotate(-0 435.528 167.772)">2.5%</text>
+   </g>
+   <g id="text_51">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="111.528" y="189.79" transform="rotate(-0 111.528 189.79)">CA</text>
+   </g>
+   <g id="text_52">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="111.528" y="200.172" transform="rotate(-0 111.528 200.172)">2.0%</text>
+   </g>
+   <g id="text_53">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="143.928" y="189.79" transform="rotate(-0 143.928 189.79)">UT</text>
+   </g>
+   <g id="text_54">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="143.928" y="200.172" transform="rotate(-0 143.928 200.172)">0.6%</text>
+   </g>
+   <g id="text_55">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="176.328" y="189.79" transform="rotate(-0 176.328 189.79)">CO</text>
+   </g>
+   <g id="text_56">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="176.328" y="200.172" transform="rotate(-0 176.328 200.172)">0.9%</text>
+   </g>
+   <g id="text_57">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="189.79" transform="rotate(-0 208.728 189.79)">NE</text>
+   </g>
+   <g id="text_58">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="200.172" transform="rotate(-0 208.728 200.172)">0.8%</text>
+   </g>
+   <g id="text_59">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="241.128" y="189.79" transform="rotate(-0 241.128 189.79)">MO</text>
+   </g>
+   <g id="text_60">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="241.128" y="200.172" transform="rotate(-0 241.128 200.172)">0.9%</text>
+   </g>
+   <g id="text_61">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="273.528" y="189.79" transform="rotate(-0 273.528 189.79)">KY</text>
+   </g>
+   <g id="text_62">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="273.528" y="200.172" transform="rotate(-0 273.528 200.172)">0.6%</text>
+   </g>
+   <g id="text_63">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="305.928" y="189.79" transform="rotate(-0 305.928 189.79)">WV</text>
+   </g>
+   <g id="text_64">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="305.928" y="200.172" transform="rotate(-0 305.928 200.172)">0.4%</text>
+   </g>
+   <g id="text_65">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="338.328" y="189.79" transform="rotate(-0 338.328 189.79)">VA</text>
+   </g>
+   <g id="text_66">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="338.328" y="200.172" transform="rotate(-0 338.328 200.172)">1.0%</text>
+   </g>
+   <g id="text_67">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="370.728" y="189.79" transform="rotate(-0 370.728 189.79)">MD</text>
+   </g>
+   <g id="text_68">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="370.728" y="200.172" transform="rotate(-0 370.728 200.172)">1.1%</text>
+   </g>
+   <g id="text_69">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="403.128" y="189.79" transform="rotate(-0 403.128 189.79)">DE</text>
+   </g>
+   <g id="text_70">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="403.128" y="200.172" transform="rotate(-0 403.128 200.172)">0.6%</text>
+   </g>
+   <g id="text_71">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="143.928" y="222.19" transform="rotate(-0 143.928 222.19)">AZ</text>
+   </g>
+   <g id="text_72">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="143.928" y="232.572" transform="rotate(-0 143.928 232.572)">0.3%</text>
+   </g>
+   <g id="text_73">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="176.328" y="222.19" transform="rotate(-0 176.328 222.19)">NM</text>
+   </g>
+   <g id="text_74">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="176.328" y="232.572" transform="rotate(-0 176.328 232.572)">0.6%</text>
+   </g>
+   <g id="text_75">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="222.19" transform="rotate(-0 208.728 222.19)">KS</text>
+   </g>
+   <g id="text_76">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="232.572" transform="rotate(-0 208.728 232.572)">0.6%</text>
+   </g>
+   <g id="text_77">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="241.128" y="222.19" transform="rotate(-0 241.128 222.19)">AR</text>
+   </g>
+   <g id="text_78">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="241.128" y="232.572" transform="rotate(-0 241.128 232.572)">0.6%</text>
+   </g>
+   <g id="text_79">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="273.528" y="222.19" transform="rotate(-0 273.528 222.19)">TN</text>
+   </g>
+   <g id="text_80">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="273.528" y="232.572" transform="rotate(-0 273.528 232.572)">0.7%</text>
+   </g>
+   <g id="text_81">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="305.928" y="222.19" transform="rotate(-0 305.928 222.19)">NC</text>
+   </g>
+   <g id="text_82">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #ffffff" x="305.928" y="232.572" transform="rotate(-0 305.928 232.572)">1.4%</text>
+   </g>
+   <g id="text_83">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="338.328" y="222.19" transform="rotate(-0 338.328 222.19)">SC</text>
+   </g>
+   <g id="text_84">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="338.328" y="232.572" transform="rotate(-0 338.328 232.572)">0.7%</text>
+   </g>
+   <g id="text_85">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="370.728" y="222.19" transform="rotate(-0 370.728 222.19)">DC</text>
+   </g>
+   <g id="text_86">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="370.728" y="232.572" transform="rotate(-0 370.728 232.572)">1.1%</text>
+   </g>
+   <g id="text_87">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="254.59" transform="rotate(-0 208.728 254.59)">OK</text>
+   </g>
+   <g id="text_88">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="264.972" transform="rotate(-0 208.728 264.972)">0.6%</text>
+   </g>
+   <g id="text_89">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="241.128" y="254.59" transform="rotate(-0 241.128 254.59)">LA</text>
+   </g>
+   <g id="text_90">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="241.128" y="264.972" transform="rotate(-0 241.128 264.972)">0.9%</text>
+   </g>
+   <g id="text_91">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="273.528" y="254.59" transform="rotate(-0 273.528 254.59)">MS</text>
+   </g>
+   <g id="text_92">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="273.528" y="264.972" transform="rotate(-0 273.528 264.972)">0.5%</text>
+   </g>
+   <g id="text_93">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="305.928" y="254.59" transform="rotate(-0 305.928 254.59)">AL</text>
+   </g>
+   <g id="text_94">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="305.928" y="264.972" transform="rotate(-0 305.928 264.972)">0.6%</text>
+   </g>
+   <g id="text_95">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="338.328" y="254.59" transform="rotate(-0 338.328 254.59)">GA</text>
+   </g>
+   <g id="text_96">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="338.328" y="264.972" transform="rotate(-0 338.328 264.972)">1.0%</text>
+   </g>
+   <g id="text_97">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="79.128" y="286.99" transform="rotate(-0 79.128 286.99)">HI</text>
+   </g>
+   <g id="text_98">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="79.128" y="297.372" transform="rotate(-0 79.128 297.372)">0.4%</text>
+   </g>
+   <g id="text_99">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="286.99" transform="rotate(-0 208.728 286.99)">TX</text>
+   </g>
+   <g id="text_100">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="208.728" y="297.372" transform="rotate(-0 208.728 297.372)">1.0%</text>
+   </g>
+   <g id="text_101">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="370.728" y="286.99" transform="rotate(-0 370.728 286.99)">FL</text>
+   </g>
+   <g id="text_102">
+    <text style="font-size: 6px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0b0b0b" x="370.728" y="297.372" transform="rotate(-0 370.728 297.372)">0.6%</text>
+   </g>
+   <g id="axes_2">
+    <g id="patch_53">
+     <path d="M 160.128 60.57 
+L 341.568 60.57 
+L 341.568 54.09 
+L 160.128 54.09 
+z
+" style="fill: #ffffff"/>
+    </g>
+    <image xlink:href="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAvQAAAAbCAYAAAATURtoAAABfklEQVR4nO3WW27CMBAFULf731o3wTYqJf2AUlvFxcZJpSud80NQBmf8ILpvH5fPvdzs96tSqsuyVzeamtn6pqZT3625fm4Ttet9Pa7ZXuz973HG+9kOmlM7zsKcOvVj8xs/W9uJ5+pXvyM9jsx1csxHezI71/485vpa2r+RPkd6u32Z/2/NvbNG9m/k3TN7Dp7Vt3vZOTNLZ6++87xmtv7VMc94Zr0g9VqWvTqJzTid3w7U9J/VuW72dvv3Xnrj9NavrSmHPOu7Zq2X49esO87Rvz3hmWev2VHrfZ9X5729tJdlZS0n3w2TPfxcHzPee1UBAACEEegBACCYQA8AAMEEegAACCbQAwBAMIEeAACCCfQAABBMoAcAgGACPQAABBPoAQAgmEAPAADBBHoAAAgm0AMAQDCBHgAAggn0AAAQTKAHAIBgAj0AAAQT6AEAIJhADwAAwQR6AAAIJtADAEAwgR4AAIIJ9AAAEEygBwCAYAI9AAAEE+gBAKDk+gJCMubyUEDrXQAAAABJRU5ErkJggg==" id="image7bcf51aa25" transform="scale(1 -1) translate(0 -6.48)" x="160.08" y="-53.76" width="181.44" height="6.48"/>
+    <g id="matplotlib.axis_1">
+     <g id="xtick_1">
+      <g id="line2d_1"/>
+      <g id="text_103">
+       <text style="font-size: 7px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #52514e" x="160.128" y="69.57" transform="rotate(-0 160.128 69.57)">≤0.5%</text>
+      </g>
+     </g>
+     <g id="xtick_2">
+      <g id="line2d_2"/>
+      <g id="text_104">
+       <text style="font-size: 7px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #52514e" x="250.848" y="69.57" transform="rotate(-0 250.848 69.57)">1.2%</text>
+      </g>
+     </g>
+     <g id="xtick_3">
+      <g id="line2d_3"/>
+      <g id="text_105">
+       <text style="font-size: 7px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #52514e" x="341.568" y="69.57" transform="rotate(-0 341.568 69.57)">≥2.0%</text>
+      </g>
+     </g>
+    </g>
+    <g id="matplotlib.axis_2"/>
+    <g id="LineCollection_1"/>
+   </g>
+  </g>
+  <g id="text_106">
+   <text style="font-weight: 700; font-size: 11.5px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #0b0b0b" x="7.2" y="18.7" transform="rotate(-0 7.2 18.7)">Share of bachelor's in mathematics &amp; statistics, 2025</text>
+  </g>
+  <g id="text_107">
+   <text style="font-size: 8px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #52514e" x="7.2" y="33.2" transform="rotate(-0 7.2 33.2)">Darker = higher. U.S. 1.2%</text>
+  </g>
+  <g id="text_108">
+   <text style="font-size: 6.5px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; fill: #52514e" transform="translate(7.2 334.342)">International = US nonresidents (students on temporary visas). Completions count first majors; STEM = CIP families 03, 04, 11, 14, 15, 26, 27, 40.</text>
+   <text style="font-size: 6.5px; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', 'DejaVu Sans', sans-serif; fill: #52514e" transform="translate(7.2 343.221)">Source: IPEDS (harmonized panels). Institutions in each state; degree-granting, Title IV from 1996.</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pb9b5eebfb5">
+   <rect x="56.448" y="41.13" width="401.76" height="270.54"/>
+  </clipPath>
+ </defs>
+</svg>
