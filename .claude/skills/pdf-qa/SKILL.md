@@ -33,6 +33,9 @@ What it catches, and why each matters:
   mismatch means the box and the table read different sources or months (the SEVIS 2025 count once did).
   When you add a stat built by hand (`{v, l, c}`), add `m:` if it stands for a measure, so it is checked too.
 - **Figure numbers** in reading order, rails included (a final pass renumbers `.fig .ft em` and `.prail .fno`).
+- **Empty comparisons**: "U.S. –" (a U.S. comparison with no value; drop it instead), a stat caption that opens
+  on "·", and signed zeros ("+0.0 pp", "−0.0%"), which read as a change. Build caption parts as a list and
+  `.filter(Boolean).join(" · ")`; use `sgn1()` for signed one-decimal changes.
 - **Margins, NaN/undefined, browser errors**, and with `--pdf`: fonts embedded, no Type3, even print page count.
 
 ## Look at the pages

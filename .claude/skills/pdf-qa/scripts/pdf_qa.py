@@ -45,6 +45,7 @@ JS = r"""(() => {
   /* reconciliation: numbers that must agree with each other */
   const usHundred = (txt.match(/U\.S\.\s*100(\.0)?%/g) || []).length;          // share-of-U.S. measures have no U.S. value
   const dotLead = [...document.querySelectorAll('.stat .c, .t9 .c')].filter(e => /^\s*·/.test(e.textContent)).length;   // caption opening on a separator
+  const szEx = [...txt.matchAll(/.{0,70}[+−-]0\.0(?!\d)\s*(pp|pts|points|%)/g)].map(m => m[0]), signedZero = szEx.length;   // '+0.0 pp' reads as a change
   const usDash = (txt.match(/U\.S\.\s*[–-]\s*[)·,;]/g) || []).length;          // a U.S. comparison with no value
   const isec = P.institutions && P.institutions.sectors, nInst = isec ? isec.v.reduce((a, s) => a + (s[s.length - 1] || 0), 0) : null;
   const instBox = sel('.stat').filter(e => /^Degree-granting institutions/.test(e.querySelector('.l')?.textContent || '')).map(e => e.querySelector('.v').textContent.trim());
@@ -62,7 +63,7 @@ JS = r"""(() => {
       const b = l.getBBox(), d = x => Math.min(Math.abs(b.x - x), Math.abs(b.x + b.width - x)), fx = +f.getAttribute('cx'), ox = +o.getAttribute('cx');
       if (Math.abs(fx - ox) > 14 && d(ox) < d(fx) - 2) dumbBad.push(l.textContent.trim()); }); });
   return {
-    usHundred, usDash, dotLead, instMismatch, sevisNoteMissing, dumbBad: dumbBad.slice(0, 6), dumbBadN: dumbBad.length,
+    usHundred, usDash, dotLead, signedZero, szEx: szEx.slice(0, 2), instMismatch, sevisNoteMissing, dumbBad: dumbBad.slice(0, 6), dumbBadN: dumbBad.length,
     pairs: sel('.phead').length, rails: sel('.prail').length, sheets: sections.length,
     errorsNan: [txt.split('NaN').length - 1, txt.split('undefined').length - 1],
     overflow: {lede: sel('.plede').filter(over).length, head: sel('.phead').filter(over).length, rail: sel('.prail').filter(over).length},
@@ -116,6 +117,7 @@ def flags(r: dict) -> list[str]:
     if r.get("sboxHigh"): out.append(f"{r['sboxHigh']} stat box(es) reach the prose")
     if r.get("ledeKept") and min(r["ledeKept"]) < 1: out.append("a paired page lost all its prose")
     if r.get("dotLead"): out.append(f"{r['dotLead']} stat caption(s) start with '·'")
+    if r.get("signedZero"): out.append(f"signed zero change (+0.0/−0.0) printed {r['signedZero']} time(s): {r.get('szEx')}")
     if r.get("usDash"): out.append(f"'U.S. –' printed {r['usDash']} time(s) (drop the comparison when the U.S. value is missing)")
     if r.get("usHundred"): out.append(f"'U.S. 100%' printed {r['usHundred']} time(s) (share-of-U.S. measures have no U.S. value)")
     if r.get("instMismatch"): out.append(f"institution count {r['instMismatch']}")

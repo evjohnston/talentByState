@@ -1543,7 +1543,12 @@ fills the lower half. Where a page has no natural partner (small states with too
 right page is a facts table of the box's measures. Charts here are drawn for reading: the country mix is a dot
 plot with State / U.S. / Gap columns and a callout; race and ethnicity, and funding by source, are paired bars
 (state over U.S.) with the change or dollars at right; enrollment by sector and faculty by tenure status are
-100% bars for the base, middle and latest years, joined so the shift reads as a shape. Prose drops its last
+100% bars for the base, middle and latest years, joined so the shift reads as a shape. In the sector bars, a
+hatched band inside "Public 4-year" marks colleges that were public 2-year in the base year and that IPEDS moved
+to public 4-year once they awarded a bachelor's degree (`state_pdf.reclass()`, `by_year`: that year's enrollment
+at those colleges as a share of the state total). Migration Sankeys show the k largest flows plus any that tie
+the k-th at three significant figures, so no state shares a printed figure with one folded into "Other states";
+Table 7 shades the total (international STEM master's plus doctorates) it is ranked by. Prose drops its last
 paragraphs, then steps its type down from 16 px, until it fits; figures shrink until they fit.
 
 **Rail spreads.** Every Sankey gets a spread of its own (STEM students by country and level; newcomers; residents

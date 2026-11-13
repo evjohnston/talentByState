@@ -310,6 +310,8 @@ const last = s => s && s.v && s.v.length ? s.v[s.v.length - 1] : null, lastY = s
 const at = (s, y) => { if (!s) return null; const i = s.y.indexOf(y); return i < 0 ? null : s.v[i]; };
 const kser = (o, k) => ({y: o.y, v: o.v[o.k.indexOf(k)]});
 const first = (s, y0) => { if (!s) return [null, null]; for (let i = 0; i < s.y.length; i++) if (s.y[i] >= y0 && s.v[i] != null) return [s.y[i], s.v[i]]; return [null, null]; };
+/* signed change to one decimal; no sign when it rounds to zero */
+const sgn1 = d => Math.abs(d) < .05 ? "0.0" : (d > 0 ? "+" : "−") + nf(Math.abs(d), 1);
 function chg(r) {
   if (r.v0 == null || r.v1 == null) return {t: "–", s: 0};
   const d = r.v1 - r.v0, s = Math.sign(Math.round(d * 100));
@@ -317,7 +319,8 @@ function chg(r) {
   if (r.v0 <= 0) return {t: "–", s};
   /* never a percent change on a count under 50 (a few students either way swings it by hundreds of percent) */
   if (r.v0 < 50 && r.unit !== "$ millions" && !(r.fmt && r.fmt.pre === "$")) return {t: "–", s: 0};
-  const q = r.v1 / r.v0; return {t: q >= 2 ? nf(q, 2) + "×" : (q >= 1 ? "+" : "−") + nf(Math.abs(q - 1) * 100, Math.abs(q - 1) < .1 ? 1 : 0) + "%", s};
+  const q = r.v1 / r.v0; if (Math.abs(q - 1) < .0005) return {t: "0.0%", s: 0};
+  return {t: q >= 2 ? nf(q, 2) + "×" : (q >= 1 ? "+" : "−") + nf(Math.abs(q - 1) * 100, Math.abs(q - 1) < .1 ? 1 : 0) + "%", s};
 }
 const row = m => R[m] || {};
 /* prose helpers */
@@ -479,7 +482,7 @@ function dumbCols(rows, {W = 624, H = 400, callout} = {}) {
   return legendHTML([{n: NAME, c: CRIM, kind: "dot"}, {n: "United States", c: TEAL, kind: "ring"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 /* paired bars: state (crimson) over U.S. (grey) per row, with the state's change at the right. rows [{name, st, us, d}] */
-function pairBars(rows, {W = 624, H = 400, dHead = "Change", dFmt = d => (d >= 0 ? "+" : "−") + nf(Math.abs(d), 1) + " pts", stName = NAME} = {}) {
+function pairBars(rows, {W = 624, H = 400, dHead = "Change", dFmt = d => sgn1(d) + " pts", stName = NAME} = {}) {
   const n = rows.length, lw = 160, cw = 90, top = 22, rh = (H - top - 4) / Math.max(1, n), x0 = lw + 10, x1 = W - cw - 56;
   const mx = Math.max(10, ...rows.flatMap(r => [r.st, r.us].filter(v => v != null))) * 1.05, X = v => x0 + (x1 - x0) * v / mx;
   let h = `<text x="${W}" y="8" text-anchor="end" style="fill:#111;font-weight:600">${esc(dHead)}</text>`;
@@ -492,7 +495,8 @@ function pairBars(rows, {W = 624, H = 400, dHead = "Change", dFmt = d => (d >= 0
   return legendHTML([{n: stName, c: CRIM, kind: "sq"}, {n: "United States", c: "#b9b3aa", kind: "sq"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 /* 100% bars for a few years, joined by translucent bands so a shift in the mix reads as a shape. o = {y, k, v} (counts) */
-function stackYears(o, years, {W = 624, H = 400} = {}) {
+/* hatch {k, by: {year: % of total}, n}: marks the part of segment k that is relabelled (former community colleges) */
+function stackYears(o, years, {W = 624, H = 400, hatch = null} = {}) {
   const ys = years.filter(y => o.y.includes(y)), lw = 50, bw = W - lw, bh = Math.min(110, (H - 10) / Math.max(1, ys.length) * .52), gap = ys.length > 1 ? (H - 10 - ys.length * bh) / (ys.length - 1) : 0;
   const sh = ys.map(y => { const i = o.y.indexOf(y), t = o.v.reduce((a, s) => a + (s[i] || 0), 0) || 1; return o.k.map((k, j) => 100 * (o.v[j][i] || 0) / t); });
   let h = "";
@@ -502,10 +506,14 @@ function stackYears(o, years, {W = 624, H = 400} = {}) {
       if (i < sh.length - 1) { const nx = sh[i + 1], xa = lw + bw * d.slice(0, j).reduce((a, b) => a + b, 0) / 100, xb = lw + bw * nx.slice(0, j).reduce((a, b) => a + b, 0) / 100, wb = bw * nx[j] / 100;
         h += `<path d="M${xa},${y + bh} L${xa + w},${y + bh} L${xb + wb},${y + bh + gap} L${xb},${y + bh + gap} Z" fill="${PAL[j % PAL.length]}" fill-opacity=".14"/>`; }
       h += `<rect x="${x}" y="${y}" width="${Math.max(w - 2, .5)}" height="${bh}" fill="${PAL[j % PAL.length]}"/>`;
+      const hv = hatch && o.k[j] === hatch.k ? hatch.by[ys[i]] || 0 : 0, hw = Math.min(bw * hv / 100, w - 2);
+      if (hw > 1) h += `<rect x="${x + w - 2 - hw}" y="${y}" width="${hw}" height="${bh}" fill="url(#hatchRC)"/>`;
       if (w > 44) h += `<text x="${x + 8}" y="${y + bh / 2}" dominant-baseline="middle" style="fill:#fff;font-weight:800">${pct(v)}</text>`;
       else if (v >= .5) h += `<text x="${x + w / 2}" y="${y - 6}" text-anchor="middle" style="fill:#111;font-weight:700">${pct(v)}</text>`;   // small segments labelled above the bar
       x += w; }); });
-  return legendHTML(o.k.map((k, j) => ({n: k, c: PAL[j % PAL.length], kind: "sq"}))) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
+  const defs = hatch ? `<defs><pattern id="hatchRC" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="${PAL[o.k.indexOf(hatch.k) % PAL.length]}"/><line x1="0" y1="0" x2="0" y2="6" stroke="#fff" stroke-width="2.4"/></pattern></defs>` : "";
+  const hl = hatch ? [{n: hatch.n, c: `repeating-linear-gradient(135deg, ${PAL[o.k.indexOf(hatch.k) % PAL.length]} 0 2px, #fff 2px 4px)`, kind: "sq"}] : [];
+  return legendHTML([...o.k.map((k, j) => ({n: k, c: PAL[j % PAL.length], kind: "sq"})), ...hl]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${defs}${h}</svg>`;
 }
 /* two-column Sankey: nodes {id, label | lines, n, c}; links {s, t, v, c?} */
 function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [], fs = 1}) {
@@ -1337,13 +1345,13 @@ function buildSpreads() {
     const lcS = t => t.replace(/^(Students|Public|Private|For-profit)\b/, m => m.toLowerCase());
     const sp0 = row("share_public"), r0 = rRows[0] || {}, rr1 = rRows[1] || {};
     pair("", {sec: "Students and money", h: `Who Enrolls in ${esc(NAME)}, and Where?`,
-      stats: [...rRows.slice(0, 2).map(r => ({v: pct(r.st), l: nmR(r.name), c: `U.S. <b>${pct(r.us)}</b>${r.d != null ? ` · ${(r.d >= 0 ? "+" : "−") + nf(Math.abs(r.d), 1)} pp since ${yB}` : ""}`})),
-        ...sRows.slice(0, 2).map(s => ({v: pct(s.v), l: `At ${s.k.toLowerCase()} institutions`, c: s.v0 != null ? `${(s.v - s.v0 >= 0 ? "+" : "−") + nf(Math.abs(s.v - s.v0), 1)} pp since ${yS0}` : ""}))],
+      stats: [...rRows.slice(0, 2).map(r => ({v: pct(r.st), l: nmR(r.name), c: `U.S. <b>${pct(r.us)}</b>${r.d != null ? ` · ${sgn1(r.d)} pp since ${yB}` : ""}`})),
+        ...sRows.slice(0, 2).map(s => ({v: pct(s.v), l: `At ${s.k.toLowerCase()} institutions`, c: s.v0 != null ? `${sgn1(s.v - s.v0)} pp since ${yS0}` : ""}))],
       a: {fig: H => F(`Who Enrolls in ${esc(NAME)}?`, pairBars(rRows, {W: PW, H, dHead: `Change since ${yB}`}), `Share of fall ${yR} headcount enrollment by race and ethnicity; students of unknown race are left out of the chart. Data from NCES, IPEDS.`),
         lede: [r0.name ? `In fall ${yR}, ${nmR(r0.name)} were the largest group at ${esc(NAME)}'s degree-granting institutions, <b>${pct(r0.st)}</b> of enrollment against ${pct(r0.us)} nationally${r0.d != null ? `, ${chgW(r0.st - r0.d, r0.st, "%")} since ${yB}` : ""}.` : "",
           rRows.length > 2 ? `${rSent(rr1)}, and ${lcS(rSent(rRows[2]))}.` : "",
           rRows.length > 4 ? `${rSent(rRows[3])}, and ${lcS(rSent(rRows[4]))}. "International" counts U.S. nonresidents on temporary visas, whatever their race.` : ""].filter(Boolean)},
-      b: {fig: H => F(`Where Do Students Enroll?`, stackYears(sec0, [...new Set([yS0, ySm, yS])], {W: PW, H}), `Share of fall headcount enrollment by sector, ${[...new Set([yS0, ySm, yS])].join(", ")}. Sectors as IPEDS classifies them each year${RC && RC.share >= 1 ? `; ${RC.inst} former public 2-year colleges (${pct(RC.share)} of ${yS} enrollment) count as public 4-year after they began awarding bachelor's degrees` : ""}. Data from NCES, IPEDS.`),
+      b: {fig: H => F(`Where Do Students Enroll?`, stackYears(sec0, [...new Set([yS0, ySm, yS])], {W: PW, H, hatch: RC && RC.share >= 1 && RC.by_year ? {k: "Public 4-year", by: RC.by_year, n: `Of which, public 2-year in ${RC.y0}`} : null}), `Share of fall headcount enrollment by sector, ${[...new Set([yS0, ySm, yS])].join(", ")}. Sectors as IPEDS classifies them each year${RC && RC.share >= 1 ? `; ${RC.inst} colleges that were public 2-year in ${RC.y0} (hatched; ${pct(RC.share)} of ${yS} enrollment) count as public 4-year after they began awarding bachelor's degrees` : ""}. Data from NCES, IPEDS.`),
         lede: [sRows.length > 1 ? `In fall ${yS}, ${lcS(sSent(sRows[0]))}. ${sSent(sRows[1])}.` : "",
           /* IPEDS moves a college to public 4-year once it awards a bachelor's degree; say how much of the shift that is */
           RC && RC.share >= 1 ? `Part of the shift between public sectors is a change of label: ${RC.inst === 1 ? "one community college" : `${RC.inst} community colleges`} that IPEDS counted as public 2-year in ${RC.y0} ${RC.inst === 1 ? "is" : "are"} counted as public 4-year in ${RC.y1} because ${RC.inst === 1 ? "it began" : "they began"} awarding bachelor's degrees. ${RC.inst === 1 ? "It" : "They"} enrolled <b>${KMB(RC.n)}</b> students, ${pct(RC.share)} of the state's total${RC.names.length ? `, the largest being ${andList(RC.names.slice(0, RC.inst > 2 ? 3 : RC.inst).map(esc))}` : ""}.` : "",
