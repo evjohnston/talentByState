@@ -286,6 +286,8 @@ const I = P.international, T = P.talent, L = T.levels, M = P.migration;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v.replace(/var\((.*)\)/, "$1")).trim() || v;
+/* label ink for a fill: dark on light fills (orange, green, grey, rose), so labels survive greyscale printing */
+const inkOn = c => { const m = /^#?([0-9a-f]{6})$/i.exec((c || "").trim()); if (!m) return "#fff"; const n = parseInt(m[1], 16), L = (.2126 * (n >> 16 & 255) + .7152 * (n >> 8 & 255) + .0722 * (n & 255)) / 255; return L > .5 ? "#111" : "#fff"; };
 const PAL = ["--crim", "--teal", "--orange", "--green", "--purple", "--brown", "--rose", "--navy", "--grey"].map(v => cssv(v));
 const PEERC = [cssv("--teal"), cssv("--orange"), cssv("--green"), cssv("--purple"), cssv("--brown")];
 const CRIM = cssv("--crim"), TAUPE = cssv("--taupe"), TEAL = cssv("--teal");
@@ -440,7 +442,7 @@ function stack100(rows, keys, {vertical = false, S: S0} = {}) {
   const donutSVG = (sh, label) => { let a = 0, h = "";
     keys.forEach((k, i) => { const s = sh[k] || 0; if (s <= 0) return; const a1 = a + s / 100 * 2 * Math.PI - (s >= 99.99 ? 1e-4 : 0);
       h += `<path d="${arc(a, a1)}" fill="${PAL[i % PAL.length]}" stroke="#fff" stroke-width="1.5"/>`;
-      if (s >= 7) { const m = (a + a1) / 2, rr = (r0 + r1) / 2; h += `<text x="${S / 2 + rr * Math.sin(m)}" y="${S / 2 - rr * Math.cos(m) + 2.6}" text-anchor="middle" style="fill:#fff;font-weight:700;font-size:${(7.6 * kz).toFixed(1)}px">${nf(s)}%</text>`; }
+      if (s >= 7) { const m = (a + a1) / 2, rr = (r0 + r1) / 2; h += `<text x="${S / 2 + rr * Math.sin(m)}" y="${S / 2 - rr * Math.cos(m) + 2.6}" text-anchor="middle" style="fill:${inkOn(PAL[i % PAL.length])};font-weight:700;font-size:${(7.6 * kz).toFixed(1)}px">${nf(s)}%</text>`; }
       a = a1; });
     const top = keys.reduce((b, k) => (sh[k] || 0) > (sh[b] || 0) ? k : b, keys[0]);
     h += `<text x="${S / 2}" y="${S / 2 - 2 * kz}" text-anchor="middle" class="big" style="fill:#111;font-weight:800;font-size:${Math.max(16, 13 * kz).toFixed(1)}px">${nf(sh[top] || 0)}%</text><text x="${S / 2}" y="${S / 2 + 10 * kz}" text-anchor="middle" style="fill:#5c5752;font-size:${fz(6.8 * kz).toFixed(1)}px">${esc(top.length > 18 ? top.slice(0, 17) + "…" : top)}</text>`;
@@ -508,7 +510,7 @@ function stackYears(o, years, {W = 624, H = 400, hatch = null} = {}) {
       h += `<rect x="${x}" y="${y}" width="${Math.max(w - 2, .5)}" height="${bh}" fill="${PAL[j % PAL.length]}"/>`;
       const hv = hatch && o.k[j] === hatch.k ? hatch.by[ys[i]] || 0 : 0, hw = Math.min(bw * hv / 100, w - 2);
       if (hw > 1) h += `<rect x="${x + w - 2 - hw}" y="${y}" width="${hw}" height="${bh}" fill="url(#hatchRC)"/>`;
-      if (w > 44) h += `<text x="${x + 8}" y="${y + bh / 2}" dominant-baseline="middle" style="fill:#fff;font-weight:800">${pct(v)}</text>`;
+      if (w > 44) h += `<text x="${x + 8}" y="${y + bh / 2}" dominant-baseline="middle" style="fill:${inkOn(PAL[j % PAL.length])};font-weight:800">${pct(v)}</text>`;
       else if (v >= .5) h += `<text x="${x + w / 2}" y="${y - 6}" text-anchor="middle" style="fill:#111;font-weight:700">${pct(v)}</text>`;   // small segments labelled above the bar
       x += w; }); });
   const defs = hatch ? `<defs><pattern id="hatchRC" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="${PAL[o.k.indexOf(hatch.k) % PAL.length]}"/><line x1="0" y1="0" x2="0" y2="6" stroke="#fff" stroke-width="2.4"/></pattern></defs>` : "";
