@@ -307,6 +307,27 @@ ol.bib li .bn { position: absolute; left: 0; font: 700 9px/1.65 Montserrat, sans
 .notes h4 { font: 800 8pt Montserrat, sans-serif; margin: .14in 0 .04in; color: var(--crim); break-after: avoid-column }
 .notes p { break-before: avoid-column }
 .notes p { margin: 0 0 .06in }
+
+/* ---- 2026 US Talent Report type system (96 px per inch: 1 pt = 1.333 px). Montserrat stands in for Gotham and
+   EB Garamond for Adobe Garamond Pro. Body 10/13 pt black in two columns; section heading Gotham Book 26 pt taupe;
+   subhead Gotham Bold 12 pt crimson; figure title Gotham Bold 10.8 pt with the number in crimson; chart text 9 pt
+   #404040; source 7.2 pt #737373; pull quote Gotham Book Italic 13 pt crimson. ---- */
+.spread .rhd { position: absolute; top: 44px; left: 96px; right: 96px; display: flex; justify-content: space-between; align-items: center }
+.spread .rhd .lg img { height: 30px; margin-right: 18px } .spread .rhd .t { text-align: right; font-family: Montserrat, sans-serif }
+.spread .rhd .t b { display: block; font: 700 13.33px/1.3 Montserrat, sans-serif; color: #98002e } .spread .rhd .t span { font: 500 8.67px Montserrat, sans-serif; color: #000 }
+.spread .dark .rhd .t b, .spread .dark .rhd .t span, .spread .fm .rhd { color: #fff } .spread .fm .rhd { display: none }
+.spread .fol { bottom: 40px; font: 400 9.33px Montserrat, sans-serif; color: #000 }
+.spread .rcol h2.r-h2 { font: 400 34.67px/1.2 Montserrat, sans-serif; color: #887e6f; margin: 0 0 18px; letter-spacing: -.005em; text-wrap: balance }
+.spread .rcol h3.r-h3 { font: 700 16px/1.25 Montserrat, sans-serif; color: #98002e; margin: 0 0 8px }
+.spread .rcol .r-body { columns: 2; column-gap: 24px; font: 400 13.33px/17.27px 'EB Garamond', serif; color: #000 }
+.spread .rcol .r-body p { margin: 0 0 9.33px; text-wrap: pretty } .spread .rcol .r-body b { font-weight: 600 }
+.spread .rcol .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 18px 0 4px; max-width: 480px }
+.spread .rcol .r-fig { margin-top: 21px }
+.spread .rcol .fig .ft { font: 700 14.4px/1.3 Montserrat, sans-serif; color: #000; margin: 0 0 10px } .spread .rcol .fig .ft em { color: #98002e; margin-right: 4px }
+.spread .rcol .fig .fs { font: 400 9.6px/1.45 Montserrat, sans-serif; color: #737373; margin-top: 8px }
+.spread .rcol .legend { font: 400 10.8px Montserrat, sans-serif; color: #404040 }
+.xax { text-align: center; font: 400 10.8px Montserrat, sans-serif; color: #404040; margin-top: 4px }
+.spread .rcol table.dt td, .spread .rcol table.dt th { font-size: 10.8px !important }
 </style>
 </head>
 <body>
@@ -411,7 +432,7 @@ let figN = 0, tabN = 0;
 const MINF = (D.variant || "base") === "spread" ? 12 : 0, fz = v => Math.max(MINF, v);
 const FW = 596, HALF = 285;
 function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104, yFmt, fs = 1, gap = 2}) {
-  const EF = fz(7.2 * fs), TF = fz(8.6 * fs), Lm = Math.max(36 * fs, TF * 3.6), Rr = right, Tp = 8 * fs, B = Math.max(20 * fs, TF * 2), tf = TF !== 8.6 ? ` style="font-size:${TF.toFixed(1)}px"` : "";
+  const EF = fz(7.2 * fs), TF = fz(8.6 * fs), Lm = Math.max(36 * fs, TF * 3.6) + TF * 1.5, Rr = right, Tp = 8 * fs, B = Math.max(20 * fs, TF * 2), tf = TF !== 8.6 ? ` style="font-size:${TF.toFixed(1)}px"` : "";
   const all = series.flatMap(s => (s.s && s.s.v ? s.s.v : []).filter(v => v != null)); if (!all.length) return "<svg></svg>";
   const ys = [...new Set(series.flatMap(s => s.s.y))].sort((a, b) => a - b);
   let lo = zero ? Math.min(0, ...all) : Math.min(...all), hi = Math.max(...all); if (hi === lo) hi = lo + 1;
@@ -422,6 +443,8 @@ function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104,
   let h = "";
   for (let t = lo; t <= hi + step / 2; t += step) h += `<line x1="${Lm}" x2="${W - Rr}" y1="${Y(t)}" y2="${Y(t)}" stroke="#e3dfd9" stroke-width=".6"/><text x="${Lm - 5 * fs}" y="${Y(t) + 2.5 * fs}" text-anchor="end"${tf}>${yf(+t.toFixed(6))}</text>`;
   h += `<line x1="${Lm}" x2="${Lm}" y1="${Tp}" y2="${H - B}" stroke="#555" stroke-width=".7"/>`;
+  /* axis title (what is measured), filled in by fig() from the figure's source line */
+  h += `<text class="ylab" transform="translate(${(TF * .95).toFixed(1)},${((Tp + H - B) / 2).toFixed(1)}) rotate(-90)" text-anchor="middle" style="font-size:${(TF * .92).toFixed(1)}px;fill:#404040">__YLAB__</text>`;
   const span = ys[ys.length - 1] - ys[0]; let ts = span > 30 ? 10 : 5; while ((W - Lm - Rr) / (span / ts) < TF * 3.4) ts *= 2;
   for (let y = Math.ceil(ys[0] / ts) * ts; y <= ys[ys.length - 1]; y += ts) h += `<text x="${X(y)}" y="${H - B + TF * 1.3}" text-anchor="middle"${tf}>${y}</text>`;
   const ends = [], mixedEnds = new Set(series.filter(s => s.label !== false && last(s.s) != null).map(s => lastY(s.s))).size > 1;
@@ -437,12 +460,21 @@ function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104,
       ends.push({y: Y(lv), x: X(lastY(s.s)), c: s.c, lines, bold: s.bold}); } }
   ends.sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) { const need = EF * 1.2 * ends[i - 1].lines.length; if (ends[i].y - ends[i - 1].y < need) ends[i].y = ends[i - 1].y + need; }
   h += ends.map(e => `<text x="${e.x + 6 * fs}" y="${e.y + EF * .35}" style="fill:${e.c};font-weight:${e.bold ? 800 : 700};font-size:${EF.toFixed(1)}px">${e.lines.map((t, j) => `<tspan x="${e.x + 6 * fs}" dy="${j ? EF * 1.15 : 0}">${esc(t)}</tspan>`).join("")}</text>`).join("");
-  return `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
+  return `<svg data-ax="y" viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 function legendHTML(items) { return `<div class="legend">${items.map(i => `<span><i class="${i.kind || ""}" style="background:${i.c};color:${i.c}"></i>${esc(i.n)}</span>`).join("")}</div>`; }
+/* what a figure measures, for its axis title: the description that opens its source line ("International share of
+   degrees awarded, all fields; ...") up to the first semicolon or sentence end, trimmed to fit */
+const axisLabel = src => { let t = String(src || "").replace(/<[^>]+>/g, "").split(/;|\.\s|\.$/)[0].trim();
+  if (/^(Data from|Source)/i.test(t) || t.length < 4) return "";
+  t = t.replace(/,?\s*(fall |FY|fiscal years? )?(19|20)\d\d([–-]((19|20)?\d\d))?$/, "");
+  if (t.length > 58 && t.includes(",")) t = t.slice(0, t.indexOf(","));
+  return t.length > 64 ? t.slice(0, t.lastIndexOf(" ", 62)) : t; };
+const BYLINE = String(((D.front || {}).byline) || "").replace(/^By /, "");
 function fig(title, body, source, {table = false} = {}) {
-  const n = table ? ++tabN : ++figN;
-  return `<div class="fig"><div class="ft"><em>${table ? "Table" : "Figure"} ${n}</em> ${title}</div>${body}<div class="fs">${source}</div></div>`;
+  const n = table ? ++tabN : ++figN, ax = esc(axisLabel(source));
+  body = String(body).replace(/__YLAB__/g, ax).replace(/(<svg data-ax="x"[\s\S]*?<\/svg>)/, ax ? `$1<div class="xax">${ax}</div>` : "$1");
+  return `<div class="fig"><div class="ft"><em>${table ? "Table" : "Figure"} ${n}</em> ${title}</div>${body}<div class="fs">${source}${BYLINE ? `<br>${table ? "Table" : "Chart"} by ${esc(BYLINE)}, Stanford University` : ""}</div></div>`;
 }
 const duo = (a, b) => `<div class="duo">${a}${b}</div>`;
 function pairs(list, opt = {}) {
@@ -466,7 +498,7 @@ function dumbbell(rows, {W = FW, Lw = 170, max, rh = 16, fs = 1} = {}) {
        read as the U.S. figure; it goes left only when the state is below the U.S. and there is room before the axis */
     if (b != null) { const left = a != null && a > b && X(b) - Lw > 44 * fs;
       h += `<circle cx="${X(b)}" cy="${y}" r="${4.2 * fs}" fill="${CRIM}"/><text x="${left ? X(b) - 8 * fs : (a != null && a > b ? X(a) + 8 * fs : X(b) + 8 * fs)}" y="${y + 2.5 * fs}" ${left ? 'text-anchor="end"' : ""} style="fill:${CRIM};font-weight:700;${tf}">${a != null && a > b && !left ? `${esc(ST)} ` : ""}${pct(b)}</text>`; } });
-  return legendHTML([{n: NAME, c: CRIM, kind: "dot"}, {n: "United States", c: TEAL, kind: "ring"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
+  return legendHTML([{n: NAME, c: CRIM, kind: "dot"}, {n: "United States", c: TEAL, kind: "ring"}]) + `<svg data-ax="x" viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 /* part-of-whole as donuts: rows [{label, parts:[{k, v}]}]; one donut per row, legend with each row's share */
 function stack100(rows, keys, {vertical = false, S: S0} = {}) {
@@ -495,7 +527,7 @@ function bars2(rows, la, lb, {W = FW, Lw = 170, fmt = nf, fs = 1, rh: RH} = {}) 
     h += `<text x="${Lw - 8 * fs}" y="${y + rh / 2 + 2.5 * fs}" text-anchor="end" style="fill:#1c1c1c;font-size:${fz(7.5 * fs).toFixed(1)}px">${esc(r.name)}</text>`;
     [[r.a, CRIM, rh / 2 - bh - 1 * fs], [r.b, TEAL, rh / 2 + 1 * fs]].forEach(([v, c, o]) => { if (v == null) return; const x0 = Math.min(X(0), X(v)), w = Math.abs(X(v) - X(0));
       h += `<rect x="${x0}" y="${y + o}" width="${Math.max(.5, w)}" height="${bh}" fill="${c}"/><text x="${v >= 0 ? X(v) + 4 * fs : X(v) - 4 * fs}" y="${y + o + bh - .5}" text-anchor="${v >= 0 ? "start" : "end"}" style="fill:${c};font-weight:700;font-size:${fz(6.6 * fs).toFixed(1)}px">${v > 0 ? "+" : ""}${fmt(v)}</text>`; }); });
-  return legendHTML([{n: la, c: CRIM, kind: "sq"}, {n: lb, c: TEAL, kind: "sq"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
+  return legendHTML([{n: la, c: CRIM, kind: "sq"}, {n: lb, c: TEAL, kind: "sq"}]) + `<svg data-ax="x" viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 /* dot plot with value columns: state (filled crimson) vs U.S. (open teal) on a share axis, then State / U.S. / Gap
    columns, banded rows, and an optional callout under the first row. rows [{name, st, us}] */
@@ -516,7 +548,7 @@ function dumbCols(rows, {W = 624, H = 400, callout} = {}) {
     h += T(cx + 56, y, pct(r.st), `fill:${CRIM};font-weight:800`) + T(cx + 114, y, pct(r.us), `fill:${TEAL}`) + T(cx + 174, y, gap == null ? "–" : (gap >= 0 ? "+" : "−") + nf(Math.abs(gap), 1), "fill:#111;font-weight:600"); });
   if (callout && n > 3 && rows[0].st != null) { const y = top + rh * .5, a = X(rows[0].st), bx = X(mx * .32), by = top + rh * 2.6;
     if (a - bx > 150) h += `<path d="M${a},${y + 7} L${a},${by - 4}" stroke="#111" fill="none"/><circle cx="${a}" cy="${by - 4}" r="1.8" fill="#111"/><foreignObject x="${bx}" y="${by}" width="${a - bx + 14}" height="${rh * 2.2}"><div xmlns="http://www.w3.org/1999/xhtml" style="font:500 11px/1.35 Montserrat,sans-serif;color:#111;background:#fff;padding:2px 0">${callout}</div></foreignObject>`; }
-  return legendHTML([{n: NAME, c: CRIM, kind: "dot"}, {n: "United States", c: TEAL, kind: "ring"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
+  return legendHTML([{n: NAME, c: CRIM, kind: "dot"}, {n: "United States", c: TEAL, kind: "ring"}]) + `<svg data-ax="x" viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 /* paired bars: state (crimson) over U.S. (grey) per row, with the state's change at the right. rows [{name, st, us, d}] */
 function pairBars(rows, {W = 624, H = 400, dHead = "Change", dFmt = d => sgn1(d) + " pts", stName = NAME} = {}) {
@@ -529,7 +561,7 @@ function pairBars(rows, {W = 624, H = 400, dHead = "Change", dFmt = d => sgn1(d)
     if (r.us != null) h += `<rect x="${x0}" y="${y + 13}" width="${Math.max(X(r.us) - x0, 1)}" height="7" fill="#b9b3aa" rx="1"/><text x="${X(r.us) + 6}" y="${y + 17}" dominant-baseline="middle" style="fill:#5c5752">U.S. ${pct(r.us)}</text>`;
     if (r.d != null) h += `<text x="${W}" y="${y + 6}" text-anchor="end" dominant-baseline="middle" style="fill:#111;font-weight:700">${dFmt(r.d)}</text>`;
     if (i < n - 1) h += `<line x1="0" x2="${W}" y1="${top + rh * (i + 1) - 4}" y2="${top + rh * (i + 1) - 4}" stroke="#e6e2dc"/>`; });
-  return legendHTML([{n: stName, c: CRIM, kind: "sq"}, {n: "United States", c: "#b9b3aa", kind: "sq"}]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
+  return legendHTML([{n: stName, c: CRIM, kind: "sq"}, {n: "United States", c: "#b9b3aa", kind: "sq"}]) + `<svg data-ax="x" viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 /* 100% bars for a few years, joined by translucent bands so a shift in the mix reads as a shape. o = {y, k, v} (counts) */
 /* hatch {k, by: {year: % of total}, n}: marks the part of segment k that is relabelled (former community colleges) */
@@ -550,7 +582,7 @@ function stackYears(o, years, {W = 624, H = 400, hatch = null} = {}) {
       x += w; }); });
   const defs = hatch ? `<defs><pattern id="hatchRC" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="${PAL[o.k.indexOf(hatch.k) % PAL.length]}"/><line x1="0" y1="0" x2="0" y2="6" stroke="#fff" stroke-width="2.4"/></pattern></defs>` : "";
   const hl = hatch ? [{n: hatch.n, c: `repeating-linear-gradient(135deg, ${PAL[o.k.indexOf(hatch.k) % PAL.length]} 0 2px, #fff 2px 4px)`, kind: "sq"}] : [];
-  return legendHTML([...o.k.map((k, j) => ({n: k, c: PAL[j % PAL.length], kind: "sq"})), ...hl]) + `<svg viewBox="0 0 ${W} ${H}" height="${H}">${defs}${h}</svg>`;
+  return legendHTML([...o.k.map((k, j) => ({n: k, c: PAL[j % PAL.length], kind: "sq"})), ...hl]) + `<svg data-ax="x" viewBox="0 0 ${W} ${H}" height="${H}">${defs}${h}</svg>`;
 }
 /* two-column Sankey: nodes {id, label | lines, n, c}; links {s, t, v, c?} */
 function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [], fs = 1}) {
@@ -838,12 +870,17 @@ function buildSpreads() {
      page in a section carries a crimson thumb tab with the section number on its outer edge, one step lower per
      section, so a section can be found with the book closed. CURSEC is set by sec(name). */
   let CURSEC = null;
-  const PX = 96, page = (n, side) => `<div class="rh2" style="${side === "L" ? "left:84px" : "right:84px;text-align:right"}">${side === "R" && CURSEC ? (CURSEC.n ? `<b>Section ${CURSEC.n}</b> · ${esc(CURSEC.name)}` : `<b>${esc(CURSEC.name)}</b>`) : `<b>${esc(NAME)}</b> · State Talent Profile`}</div><div class="fol" style="${side === "L" ? "left:84px" : "right:84px"}">${n}</div>`
+  const PX = 96, LOGO = dark => ((D.logos || {})[dark ? "dark" : "light"] || []).map(u => `<img src="${u}" alt="">`).join("");
+  const page = (n, side, dark = false) => `<div class="rhd"><div class="lg">${LOGO(dark)}</div><div class="t"><b>${esc(NAME)} State Talent Profile</b><span>${CURSEC ? (CURSEC.n ? `Section ${CURSEC.n}: ${esc(CURSEC.name)}` : esc(CURSEC.name)) : ""}</span></div></div><div class="fol" style="${side === "L" ? "left:96px" : "right:96px"}">${n}</div>`
     + (side === "R" && CURSEC && CURSEC.n ? `<div class="ttab" style="top:${110 + (CURSEC.n - 1) * 46}px">${CURSEC.n}</div>` : "");
   let FOL = 2; const TOC = [];
-  const spread = (title, L, Rt, over = "", lcls = "", rcls = "") => { const n = FOL; if (title) TOC.push([n, title]); FOL += 2;
-    doc.insertAdjacentHTML("beforeend", `<section class="spread"${title ? ` data-toc="${esc(title)}"` : ""}><div class="pg ${lcls}">${page(n, "L")}${L}</div><div class="pg ${rcls}">${page(n + 1, "R")}${Rt}</div>${over}</section>`);
+  const spread0 = (title, L, Rt, over = "", lcls = "", rcls = "") => { const n = FOL; if (title) TOC.push([n, title]); FOL += 2;
+    const dk = c => /\b(dark|fm)\b/.test(c);
+    doc.insertAdjacentHTML("beforeend", `<section class="spread"${title ? ` data-toc="${esc(title)}"` : ""}><div class="pg ${lcls}">${page(n, "L", dk(lcls))}${L}</div><div class="pg ${rcls}">${page(n + 1, "R", dk(rcls))}${Rt}</div>${over}</section>`);
     theDC(doc.lastElementChild); };   // before any fitting, so the longer wording is measured
+  /* a single page waiting for its partner (see pageUnit); any full spread first closes it */
+  let PEND = null;
+  const spread = (...a) => spread0(...a);
   const tile = m => { const r = row(m), c = chg(r); return `<div class="t9">${r.rank ? `<span class="rk">#${r.rank}</span>` : ""}<div class="v">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l">${esc(SHORT[m] || r.title)}, ${r.y1}</div><div class="c">${[r.us1 != null ? `U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>` : "", c.t !== "–" ? `${c.t} since ${r.y0}` : ""].filter(Boolean).join(" · ")}</div></div>`; };
   const F = (title, body, src) => fig(title, body, src);
 
@@ -948,9 +985,10 @@ function buildSpreads() {
   /* ---------- layout kit: hero spreads, single pages, blank pages ---------- */
   const H2 = (kick, title) => `<div class="kick">${kick}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">${title}</div><div class="sp-rule"></div>`;
   const statsH = ms => `<div class="stats" style="--n:${ms.length};margin:0">${ms.map(m => { if (typeof m === "object") return `<div class="stat" style="border-top:0;padding-top:0"><div class="v" style="font-size:32px">${m.v}</div><div class="l" style="font-size:10.4px">${esc(m.l)}</div><div class="c" style="font-size:9.4px">${m.c || ""}</div></div>`; const r = row(m), c = chg(r); return `<div class="stat" style="border-top:0;padding-top:0"><div class="v" style="font-size:32px">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l" style="font-size:10.4px">${esc((SHORT[m] || r.title).replace(/^International share of /, "Int. share of "))}, ${r.y1}</div><div class="c" style="font-size:9.4px">${[r.us1 != null ? `U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>` : "", r.rank ? `<b>${ord(r.rank)}</b> of ${r.n}` : "", c.t !== "–" ? `${c.t} since ${r.y0}` : ""].filter(Boolean).join(" · ")}</div></div>`; }).join("")}</div>`;
-  let SEC = 0; const sec = name => { CURSEC = {n: ++SEC, name}; return `Section ${SEC}`; };
+  let SEC = 0; const sec = name => { flushPend(); CURSEC = {n: ++SEC, name, ms: []}; return `Section ${SEC}`; };
+  const noteMs = ms => { if (CURSEC && CURSEC.ms) (ms || []).forEach(m => typeof m === "string" && !CURSEC.ms.includes(m) && CURSEC.ms.push(m)); };
   const mv = (s, u = "%") => moved(s, u) || "little changed";
-  const PW = 624, SW = 1440, SRCC = "Data from NCES, IPEDS Completions.";
+  const PW = 624, SW = 624, SRCC = "Data from NCES, IPEDS Completions.";
   const blank = `<div class="abs" style="left:96px;right:96px;top:96px;bottom:96px;display:grid;place-items:center"><div class="blank">This page intentionally left blank.</div></div>`;
   const onPage = html => `<div class="abs pgF" style="left:96px;right:96px;top:96px">${html}</div>`;
   const pages = (toc, Lh, Rh, lcls = "", rcls = "") => spread(toc, Lh, Rh, "", lcls, rcls);
@@ -999,21 +1037,37 @@ function buildSpreads() {
   const fitFig = (box, draw, H0, maxH) => { const n0 = [figN, tabN]; let H = H0;
     const put = () => { [figN, tabN] = n0; box.innerHTML = draw(H); }; put();
     while (box.scrollHeight > maxH + 1 && H > 140) { H -= 12; put(); } };
+  /* ---- report page kit, after the 2026 US Talent Report: a taupe section heading or a crimson subhead, two
+     columns of 10 pt Garamond, an optional crimson pull quote, then one figure drawn in the height the page leaves.
+     A page whose figure would be shorter than minH drops its last paragraph and tries again. ---- */
+  const RTOP = 132, RBOT = 984, RW_ = 624;
+  const rpage = (pg, {h2, h3, paras = [], quote, fig: fg, minH = 300}) => {
+    const col = document.createElement("div"); col.className = "abs rcol"; col.style.cssText = `left:96px;top:${RTOP}px;width:${RW_}px`; pg.appendChild(col);
+    const pr = pg.getBoundingClientRect(), n0 = [figN, tabN]; let ps = (paras || []).filter(Boolean);
+    for (;;) { [figN, tabN] = n0;
+      col.innerHTML = `${h2 ? `<h2 class="r-h2">${h2}</h2>` : ""}${h3 ? `<h3 class="r-h3">${h3}</h3>` : ""}${ps.length ? `<div class="r-body">${ps.map(p => `<p>${p}</p>`).join("")}</div>` : ""}${quote ? `<div class="r-quote">${quote}</div>` : ""}${fg ? '<div class="pgF r-fig"></div>' : ""}`;
+      if (!fg) { if (col.getBoundingClientRect().bottom - pr.top > RBOT && ps.length > 1) { ps.pop(); continue; } break; }
+      /* 18 px held back: the final pass renumbers figures in reading order, and a longer number can wrap a title */
+      const box = col.querySelector(".r-fig"), H = RBOT - 18 - (box.getBoundingClientRect().top - pr.top);
+      if (H < minH && ps.length > 1) { ps.pop(); continue; }
+      fitFig(box, fg, H - 86, H);
+      if (box.getBoundingClientRect().bottom - pr.top > RBOT - 14 && ps.length > 1) { ps.pop(); continue; }   // a table that cannot shrink: give up a paragraph
+      break; } };
+  /* the key numbers of the current section as a report-style table (the page partner of a single page) */
+  const keyNums = () => { const k = CURSEC && Object.keys(STATS).find(x => x.toLowerCase() === String(CURSEC.name).toLowerCase()), ms = [...new Set([...((CURSEC || {}).ms || []), ...(k ? STATS[k] : [])])];
+    return ms.filter(m => row(m).v1 != null).length ? factsT(`Key Numbers: ${esc(CURSEC.name)}`, ms, "Data from NCES, IPEDS; values for the latest year each source has.") : null; };
+  function flushPend() { if (!PEND) return; const a = PEND; PEND = null; spread0(a.toc, "", ""); const sp = doc.lastElementChild;
+    rpage(sp.children[0], a); rpage(sp.children[1], {fig: keyNums()}); }
+  /* one page of text and a figure; two in a row share a spread */
+  const pageUnit = spec => { if (!PEND) { PEND = spec; return; } const a = PEND; PEND = null; spread0(a.toc || spec.toc, "", ""); const sp = doc.lastElementChild;
+    rpage(sp.children[0], a); rpage(sp.children[1], spec); };
+  /* paired spread: the question as the left page's section heading over its text and figure; the right page opens
+     with the section's headline fact as a pull quote, then its text and figure. o = {sec, h, stats, a: {fig(H), lede[]}, b} */
   const pair = (toc, o) => {
-    const ph = p => `<div class="abs plede" style="left:96px;width:624px;top:${PLT}px;height:${PLH}px">${p.lede.map(t => `<p class="sp-p">${t}</p>`).join("")}</div>`
-      + `<div class="abs prule" style="left:96px;width:624px;top:${PFT - 16}px"></div><div class="abs pgF" style="left:96px;width:624px;top:${PFT}px"></div>`;
-    const headL = `<div class="abs phead" style="left:96px;width:624px;top:92px;height:${PLT - 102}px;overflow:hidden"><div class="psec">${CURSEC && CURSEC.n ? `Section ${CURSEC.n} · ${esc(CURSEC.name)}` : esc(o.sec)}</div><div class="ph">${o.h}</div><div class="sp-rule" style="margin:14px 0 0"></div></div>`;
-    const headR = `<div class="abs" style="left:96px;width:624px;top:92px">${sbox(o.stats || [])}</div>`;
-    spread(toc, headL + ph(o.a), headR + ph(o.b)); const sp = doc.lastElementChild;
-    const hd = sp.children[0].querySelector(".phead"); let hs = 34; while (hd.scrollHeight > hd.clientHeight + 1 && hs > 24) hd.style.setProperty("--hs", (hs -= 2) + "px");
-    /* the stat box must end above the prose: shrink its figures, then drop its fourth number */
-    const sb = sp.children[1].querySelector(".sbox"), sbOver = () => sb && sb.offsetHeight > PLT - 92 - 12;
-    let sv = 31; while (sbOver() && sv > 24) { sv -= 1; sb.querySelectorAll(".stat .v").forEach(e => e.style.fontSize = sv + "px"); }
-    if (sbOver()) sb.querySelectorAll(".stat .l").forEach(e => e.style.lineHeight = "1.18");
-    while (sbOver() && sb.querySelectorAll(".stat").length > 3) { sb.querySelector(".stat:last-child").remove(); sb.querySelector(".stats").style.setProperty("--n", sb.querySelectorAll(".stat").length); }
-    [o.a, o.b].forEach((p, i) => { const pg = sp.children[i];
-      fitFig(pg.querySelector(".pgF"), p.fig, PFH - 74, PFH);
-      fitText(pg.querySelector(".plede"), "p", 16, 14); }); };
+    noteMs(o.stats); spread(toc, "", ""); const sp = doc.lastElementChild;
+    const q = o.quote !== undefined ? o.quote : headline((o.stats || []).filter(m => typeof m === "string"));
+    rpage(sp.children[0], {h2: o.h, paras: o.a.lede, fig: o.a.fig});
+    rpage(sp.children[1], {h3: o.h3, quote: q, paras: o.b.lede, fig: o.b.fig}); };
   /* the same from two one() objects: their "about" text and facts become the prose (facts as run-in paragraphs); with
      no partner page (b blank) the right page carries a facts table of the stat measures and the rest of a's prose */
   /* thin data: set THIN = [a too thin, b too thin] just before a pairOne call. A spread whose pages are both thin is
@@ -1032,15 +1086,11 @@ function buildSpreads() {
      the outer edge of one page (side "L" or "R"); the figure fills the rest of the spread. o = {title, lede[], stats,
      legend, chart(W, H), src} */
   const RW = 262, RFW = 1632 - 192 - RW - 40;
-  const rail = (toc, o, side = "L") => {
-    const n = ++figN, rx = side === "L" ? 96 : 1632 - 96 - RW, fx = side === "L" ? 96 + RW + 40 : 96;
-    const st = (o.stats || []).map(bandStat).filter(Boolean).slice(0, 3);
-    const box = `<div class="abs prail" style="left:${rx}px;top:92px;width:${RW}px;height:870px"><div class="fno">Figure ${n}</div><div class="rh">${o.title}</div><div class="rr"></div><div class="rp">${o.lede.filter(Boolean).map(t => `<p>${t}</p>`).join("")}</div>${statDivs(st, true)}</div>`;
-    spread(toc, "", "", box + `<div class="abs pgF railF" style="left:${fx}px;top:100px;width:${RFW}px"></div>`); const sp = doc.lastElementChild;
-    fitFig(sp.querySelector(".railF"), H => `<div class="fig">${o.legend || ""}${o.chart(RFW, H)}<div class="fs">${o.src}</div></div>`, 790, 860);
-    const rb = sp.querySelector(".prail"), rp = rb.querySelector(".rp"), over = () => rb.scrollHeight > rb.clientHeight + 1;
-    while (over() && rp.children.length > 1) rp.lastElementChild.remove();
-    let f = 15.4; while (over() && f > 13) { f -= .4; rb.style.setProperty("--fs", f + "px"); } };
+  const rail = (toc, o) => {
+    spread(toc, "", ""); const sp = doc.lastElementChild, st = (o.stats || []).filter(m => typeof m === "string"); noteMs(st);
+    const grp = st[0] && row(st[0]).group, ms = [...new Set([...st, ...(grp ? Object.keys(R).filter(m => R[m].group === grp) : [])])].filter(m => row(m).v1 != null).slice(0, 8);
+    rpage(sp.children[0], {h2: o.title, paras: o.lede, fig: ms.length ? factsT("Key Numbers", ms, (String(o.src).match(/Data from[^]*$/) || ["Data from NCES, IPEDS."])[0]) : null, minH: 220});
+    rpage(sp.children[1], {fig: H => fig(o.title, (o.legend || "") + o.chart(RW_, H - 30), o.src), minH: 600}); };
   /* a facts table as a figure: measure, base year, previous year, latest, change, U.S., rank */
   const factsT = (title, ms, src) => H => { const rs = ms.filter(m => row(m).v1 != null); if (!rs.length) return "";
     return fig(title, `<table class="dt" style="--pad:${padFor(H, rs.length)}px;font-size:11.4px"><tr><th>Measure</th><th>${D.base}</th><th>Previous</th><th>Latest</th><th>Change</th><th>U.S.</th><th>Rank</th></tr>${rs.map(m => { const r = row(m), f = v => fmtSpec(v, r.fmt, r.unit);
@@ -1055,17 +1105,19 @@ function buildSpreads() {
     t = r.unit === "%" ? `the ${/share|rate/i.test(t) ? t : `share of ${t}`}` : /^(average|median)\b/i.test(t) ? `the ${t}` : t;   // shares and averages take "the"; counts read bare
     return `${esc(NAME)} ranks ${ord(r.rank)} of ${r.n} on ${esc(t)}, at ${f(r.v1)} in ${r.y1}${r.us1 != null ? ` against ${f(r.us1)} for the U.S.` : "."}`; };
   const hero = (toc, o) => {
-    const hl = o.head ? headline(o.stats) : "";
-    const head = o.head ? `<div class="abs" style="left:96px;top:96px;width:1200px"><div class="kick">${sec(o.head)}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">${o.head}</div>${hl ? `<div class="sec-hl">${hl}</div>` : ""}</div>` : "";
-    const top = o.head ? (hl ? 262 : 196) : 96, H = (o.H || 500) + (o.head ? (hl ? -66 : 0) : 100);
-    const ps = o.paras.filter(Boolean).map(p => `<p class="sp-p">${p}</p>`).join("");
-    const txt = o.stats ? `<div style="display:grid;grid-template-columns:${PW}px ${PW}px;column-gap:192px;align-items:start"><div class="cols2">${ps}</div>${statsH(o.stats)}</div>` : `<div class="cols2" style="column-gap:192px">${ps}</div>`;
-    const n0 = [figN, tabN], draw = h => F(o.title, (o.legend || "") + o.chart(h), o.src);
-    spread(toc, "", "", `${head}<div class="abs heroF" style="left:96px;right:96px;top:${top}px">${draw(H)}</div><div class="abs htxt" style="left:96px;right:96px;bottom:96px"><div class="sp-rule" style="width:100%;margin:0 0 18px"></div>${txt}</div>`);
-    /* the chart shrinks until its caption clears the text block below (long captions, headlines) */
-    const sp = doc.lastElementChild, hf = sp.querySelector(".heroF"), ht = sp.querySelector(".htxt"), gap = () => ht.getBoundingClientRect().top - hf.getBoundingClientRect().bottom;
-    let h = H; while (gap() < 10 && h > 200) { h -= 12; [figN, tabN] = n0; hf.innerHTML = draw(h); } };
-  const HL = (series, H, o = {}) => lineSVG({series, W: SW, H, right: 210, fs: 1.45, ...o});
+    if (o.head) sec(o.head);
+    const ps = (o.paras || []).filter(Boolean), st = (o.stats || []).filter(m => typeof m === "string"); noteMs(st);
+    const draw = H => F(o.title, (o.legend || "") + o.chart(H), o.src), hl = st.length ? headline(st) : "";
+    if (!st.length) return pageUnit({toc, h2: o.head || null, paras: ps, fig: draw, minH: 360});
+    /* text, pull quote and the section's key numbers on the left page; the chart at full height on the right */
+    const srcD = (String(o.src).match(/Data from[^]*$/) || ["Data from NCES, IPEDS."])[0];
+    const kk = Object.keys(STATS).find(x => x.toLowerCase() === String((CURSEC || {}).name).toLowerCase());
+    const grp = st[0] && row(st[0]).group, more = grp ? Object.keys(R).filter(m => R[m].group === grp && (!R[m].level || R[m].level === "master" || R[m].level === "all")) : [];
+    const ms = [...new Set([...st, ...((CURSEC || {}).ms || []), ...(kk ? STATS[kk] : []), ...more])].filter(m => row(m).v1 != null).slice(0, 8);
+    spread(toc, "", ""); const sp = doc.lastElementChild;
+    rpage(sp.children[0], {h2: o.head || null, paras: ps, quote: hl, fig: factsT(`How Does ${esc(NAME)} Compare?`, ms, srcD), minH: 240});
+    rpage(sp.children[1], {fig: draw, minH: 600}); };
+  const HL = (series, H, o = {}) => lineSVG({series, W: SW, H, right: 150, ...o});
 
   /* ===== 1  International dependence ===== */
   hero("International dependence", {head: "International Dependence", title: `What Share of ${esc(NAME)}'s Degrees Go to International Students?`,
@@ -1189,7 +1241,7 @@ function buildSpreads() {
       stats: ["intl_share_master", "intl_share_stem_master", "stem_master_per_doc"]});
   }
   /* ===== 3  Where students come from: Sankey across the spread ===== */
-  hero("Where students come from", {head: "Where Students Come From", title: `First-Time Students by Home and Destination, Fall ${M.year}`, chart: H => sankeySVG(SW, H + 40, 1.45),
+  hero("Where students come from", {head: "Where Students Come From", title: `First-Time Students by Home and Destination, Fall ${M.year}`, chart: H => sankeySVG(SW, H, 1.1),
     src: `Home of first-time degree-seeking undergraduates (left) and the state of the institution entered (right); the five largest sources and destinations (more when states tie at the printed figure), the rest grouped; ties are ordered by exact count. Data from NCES, IPEDS Fall Enrollment.`,
     paras: [`${nf(M.stay)} residents stayed in ${esc(NAME)} for college in fall ${M.year}; ${nf(domIn)} students arrived from other states and ${nf(abroadN)} from abroad, while ${nf(M.out_total)} residents left.`,
       `Each band runs from a student's home on the left to the state where they enrolled on the right. ${pct(ins.v1)} of the state's first-time students are residents${ins.us1 != null ? ` (U.S. ${pct(ins.us1)})` : ""}.`],
@@ -1335,10 +1387,10 @@ function buildSpreads() {
     hero("Fields of study", {head: "Fields of Study", title: `How Many Degrees Does ${esc(NAME)} Award?`, legend: legendHTML(aw.k.map((k, i) => ({n: k, c: PAL[i]}))),
       chart: H => HL(multi(aw), H, {unit: "n", right: 270}), src: `Degrees awarded by level, first majors. ${SRCC}`,
       paras: [`In ${lastY(aw)}, ${esc(NAME)}'s institutions awarded ${awL.map(x => `${sig3(x.v)} ${esc(x.k.toLowerCase())} degrees`).join(", ")}.`, `Since ${D.base}: ${awL.map(x => `${esc(x.k.toLowerCase())} ${mv(kser(aw, x.k), "n").replace(/ since \d+$/, "")}`).join("; ")}. The state awards ${nf(row("bach_per_100_ug").v1, 1)} bachelor's degrees for every 100 undergraduates (U.S. ${nf(row("bach_per_100_ug").us1, 1)}).`]});
-    hero("", {title: `What Do ${esc(NAME)}'s Bachelor's Graduates Study?`, chart: H => dumbbell(tb, {W: SW, Lw: 330, rh: Math.min(44, (H - 40) / Math.max(1, tb.length)), max: mx(tb), fs: 1.4}),
+    hero("", {title: `What Do ${esc(NAME)}'s Bachelor's Graduates Study?`, chart: H => dumbbell(tb, {W: SW, Lw: 200, rh: Math.min(44, (H - 40) / Math.max(1, tb.length)), max: mx(tb), fs: 1.4}),
       src: `Share of bachelor's degrees by field, ${P.degrees.lq_year}. Data from NCES, IPEDS.`,
       paras: [tb.length ? `${esc(NAME)}'s largest bachelor's fields are ${lg3(tb)}.` : "", concT], stats: ["field_share_cs_bach", "field_share_eng_bach", "field_share_business_bach"]});
-    hero("", {title: `What Do ${esc(NAME)}'s Master's Graduates Study?`, chart: H => dumbbell(tm, {W: SW, Lw: 330, rh: Math.min(44, (H - 40) / Math.max(1, tm.length)), max: mx(tm), fs: 1.4}),
+    hero("", {title: `What Do ${esc(NAME)}'s Master's Graduates Study?`, chart: H => dumbbell(tm, {W: SW, Lw: 200, rh: Math.min(44, (H - 40) / Math.max(1, tm.length)), max: mx(tm), fs: 1.4}),
       src: `Share of master's degrees by field, ${P.degrees.lq_year}; largest fields. Data from NCES, IPEDS.`,
       paras: [tm.length ? `${esc(NAME)}'s largest master's fields are ${lg3(tm)}.` : "", `International students earn ${pct(row("intl_share_master").v1)} of all master's degrees in the state (U.S. ${pct(row("intl_share_master").us1)}), and STEM fields account for ${pct(row("stem_share_master").v1)} of them.`],
       stats: ["stem_share_master", "intl_share_master", "intl_share_cs_master"]});
@@ -1499,7 +1551,7 @@ function buildSpreads() {
       <h4>Visas and green cards</h4><p>DOL labor condition applications (H-1B positions) are counted by worksite and include renewals and job changes; USCIS approvals are counted by the employer's address and split into new and continuing. PERM certifications are the employer's step toward a green card.</p>
       <h4>Patents</h4><p>Patents are counted two ways. By owner, a patent goes to the state of its assignee, so a company headquartered in another state takes its patents there. By inventor, it is split across the states where its inventors live; inventors abroad take their share out of the U.S. total. "Owned outside the state" is the share of the state's invented patents with an owner but none in the state. Both counts are fractional.</p>
       <h4>Years</h4><p>Each measure uses its latest year, so years differ across a page; every figure, table and statement gives its year, and lines that stop early are labeled with their last year.</p></div>`;
-    CURSEC = {n: null, name: "About These Data"};
+    flushPend(); CURSEC = {n: null, name: "About These Data"};
     pages("About These Data", onPage(`<div class="kick">Notes</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">About These Data</div><div class="sp-rule"></div>${notes}`), onPage(`<div class="kick">Notes</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">How the Numbers Are Counted</div><div class="sp-rule"></div>${notes2}`)); }
 
 
@@ -1570,6 +1622,7 @@ function buildSpreads() {
         + `<td class="chg">${cB.t} ${arrow(cB)}</td><td class="num">${f(r.us1)}</td><td class="chg">${cU.t} ${arrow(cU)}</td>`
         + `<td class="rk">${r.rank ? "#" + r.rank : "–"}</td><td class="src">[${NUM[srcKey(r)]}]</td></tr>`; };
     const note = `<div class="tnote">Superscript years mark the year observed; changes since ${D.base} start from ${D.base} or the first later year with data. Rank is among the 50 states and DC (1 = highest). “pp” is percentage points. Dollars are 2024 dollars (CPI-U) unless the measure is labeled nominal. Counts and dollars are rounded to three significant figures (K, M, B). Arrow colors show direction only. Source numbers refer to the list of sources that follows the tables.</div>`;
+    flushPend();   // a single page still waiting for its partner closes before By the Numbers
     let firstPg = true;
     const landPage = (toc, inner) => { const n = FOL++; if (toc) TOC.push([n, toc]);
       doc.insertAdjacentHTML("beforeend", `<section class="land"${toc ? ` data-toc="${esc(toc)}"` : ""}><div class="rh2" style="left:96px"><b>${esc(NAME)}</b> · State Talent Profile · ${toc || "By the Numbers"}</div><div class="fol" style="right:96px">${n}</div><div class="abs" style="left:96px;right:96px;top:84px">${inner}</div></section>`);

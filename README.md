@@ -1587,35 +1587,44 @@ These are followed by Competitors, Fields, Students and money, Outcomes and facu
 notes, and By the Numbers. Layouts are measured so nothing overruns a page, and small states get extra
 figures where there is room.
 
-**Paired spreads** (two facing pages with one figure or table each, rather than one chart across the spread)
-read as one spread. The left page opens with a section label, a question and a crimson rule; the right page
-opens with a crimson box of up to four key numbers (bold white figures, light Montserrat descriptions with the
-U.S. value and rank). Both pages then carry two or three paragraphs of plain reporting (values, the U.S.
-figure, rank, and the change from the previous year and since 2015; no interpretation), and the figure or table
-fills the lower half. Where a page has no natural partner (small states with too few doctoral fields), the
-right page is a facts table of the box's measures. Charts here are drawn for reading: the country mix is a dot
-plot with State / U.S. / Gap columns and a callout; race and ethnicity, and funding by source, are paired bars
-(state over U.S.) with the change or dollars at right; enrollment by sector and faculty by tenure status are
-100% bars for the base, middle and latest years, joined so the shift reads as a shape. In the sector bars, a
-hatched band inside "Public 4-year" marks colleges that were public 2-year in the base year and that IPEDS moved
-to public 4-year once they awarded a bachelor's degree (`state_pdf.reclass()`, `by_year`: that year's enrollment
-at those colleges as a share of the state total). Migration Sankeys show the k largest flows plus any that tie
-the k-th at three significant figures, so no state shares a printed figure with one folded into "Other states";
-Table 7 shades the total (international STEM master's plus doctorates) it is ranked by. Prose drops its last
-paragraphs, then steps its type down from 16 px, until it fits; figures shrink until they fit.
+**Type and page design follow the 2026 US Talent Report** (`Hoover_HAI_TalentReport_Final.pdf`, measured from
+the PDF; 1 pt = 1.333 px on the 96 px/in pages). Montserrat stands in for Gotham and EB Garamond for Adobe Garamond
+Pro, since the report's fonts are licensed. Body text is Garamond 10 pt on 13 pt, black, in two columns; section
+headings Gotham Book 26 pt in taupe (#887e6f); subheads Gotham Bold 12 pt in crimson (#98002e); figure titles
+Gotham Bold 10.8 pt with "Figure n" in crimson; chart text 9 pt #404040; source lines 7.2 pt #737373 with the
+report's "Chart by Emerson Johnston and Amy Zegart, Stanford University"; pull quotes Gotham Book Italic 13 pt in
+crimson (Montserrat italic, `reference/fonts/montserrat-latin-400-italic.woff2`). Every page carries the report's
+running head: the logos at left, the profile title in crimson and the section at right. Every figure has an axis
+title saying what it measures (line charts on the y-axis, bar and dot charts under the x-axis), taken from the
+description that opens its source line (`axisLabel` in the template).
 
-**Rail spreads.** Every Sankey gets a spread of its own (STEM students by country and level; newcomers; residents
-who leave): the figure number, question, prose and up to three key numbers sit in a crimson box inside the
-margins on the outer edge (left page for the first, right page for departures, so the two migration spreads
-mirror), and the Sankey fills the rest of both pages. Bars and labels stay clear of the fold; only ribbons cross
-it. Figure and table numbers are assigned in reading order after layout, rails included.
+**Pages: text plus one figure** (`rpage` in `buildSpreads`). A page holds a taupe section heading or a crimson
+subhead, two columns of text, an optional pull quote, and one figure or table drawn in the height the page leaves;
+a page whose figure would be too short drops its last paragraph and tries again. Nothing is added to fill space,
+and body text never grows. The builders:
+- `pair` (two facing pages, one figure each): the question as the left page's heading; the right page opens with
+  the section's headline fact as a pull quote.
+- `hero` (a section's main chart): the heading, all the text, the pull quote and a table of the section's key
+  numbers (up to eight measures from the section's State Talent Sheet group) on the left; the chart at full page
+  height on the right. A chart with no key numbers is a single page (`pageUnit`); two in a row share a spread, and
+  one left alone at a section's end faces the section's key numbers.
+- `rail` (each Sankey): the question, text and key numbers on the left; the Sankey at full height on the right.
+Charts here are drawn for reading: the country mix is a dot plot with State / U.S. / Gap columns and a callout;
+race and ethnicity, and funding by source, are paired bars (state over U.S.) with the change or dollars at right;
+enrollment by sector and faculty by tenure status are 100% bars for the base, middle and latest years, joined so
+the shift reads as a shape. In the sector bars, a hatched band inside "Public 4-year" marks colleges that were
+public 2-year in the base year and that IPEDS moved to public 4-year once they awarded a bachelor's degree
+(`state_pdf.reclass()`, `by_year`: that year's enrollment at those colleges as a share of the state total).
+Migration Sankeys show the k largest flows plus any that tie the k-th at three significant figures, so no state
+shares a printed figure with one folded into "Other states"; Table 7 shades the total (international STEM
+master's plus doctorates) it is ranked by. Figure and table numbers are assigned in reading order after layout,
+and each page holds 18 px back so a longer number never wraps a title past the margin.
 
-**Wayfinding and print.** The left running head names the profile and the right one names the current section
-("Section 5 · Graduate Research"); every right page in a section carries a crimson thumb tab with the section
-number on its outer edge, one step lower per section; the digital PDF has a bookmark for every table-of-contents
-entry. Each section opener carries one headline sentence under its title, on the left page: where the state ranks
-among the 51 on the section's most distinctive key measure (the one ranked nearest the top or bottom), with its value
-and the U.S. figure. In the District of Columbia's profile, running text says "the District of Columbia". For greyscale printing, every line end names its series (name above value when both don't fit), U.S. lines
+**Wayfinding and print.** The running head on every page names the profile and the current section ("Section 5:
+Graduate Research"); every right page in a section carries a crimson thumb tab with the section number on its
+outer edge, one step lower per section; the digital PDF has a bookmark for every table-of-contents entry. Each
+section's headline fact, set as a crimson pull quote, is where the state ranks among the 51 on the section's most
+distinctive key measure (the one ranked nearest the top or bottom), with its value and the U.S. figure. In the District of Columbia's profile, running text says "the District of Columbia". For greyscale printing, every line end names its series (name above value when both don't fit), U.S. lines
 use heavier long dashes, small segments of 100% bars are labelled above the bar, and secondary text and table
 headers meet 4.5:1 contrast on every background. Small states lose spreads whose data is too thin, and no percent
 change is printed on a base under 50.

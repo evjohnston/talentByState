@@ -87,6 +87,8 @@ def font_css() -> str:
     css = [face(fam, static_font(fam, src, w).read_bytes(), "ttf", w) for fam, src, ws in VARIABLE_FONTS for w in ws]
     # the italic is already a static font; declared at 400 only so Chrome never synthesizes a bold italic (Type3)
     css.append(face("EB Garamond", (FONTS / "eb-garamond-latin-400-italic.woff2").read_bytes(), "woff2", 400, "italic"))
+    # Montserrat italic (pull quotes, as in the 2026 US Talent Report), static files from Fontsource
+    css.append(face("Montserrat", (FONTS / "montserrat-latin-400-italic.woff2").read_bytes(), "woff2", 400, "italic"))
     return "".join(css)
 
 

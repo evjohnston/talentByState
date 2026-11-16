@@ -10,7 +10,7 @@ Checks, per state, on the rendered HTML (what the PDF prints):
   nan          "NaN" or "undefined" anywhere in the text
   overflow     a box whose content runs past it, vertically OR sideways (two-column prose spills sideways,
                which a height-only check misses): paired-spread prose and headings, rails, stat boxes
-  margin       a figure whose bottom passes the bottom margin (y > 962 px of 1056)
+  margin       a figure whose bottom passes the bottom margin (y > 990 px of 1056; the report's live area ends at 984)
   figures      figure numbers not 1, 2, 3, ... in reading order (rails included)
   statbox      a stat-box number tagged with a measure (data-m) that differs from that measure's latest value,
                formatted the way By the Numbers formats it
@@ -67,7 +67,7 @@ JS = r"""(() => {
     pairs: sel('.phead').length, rails: sel('.prail').length, sheets: sections.length,
     errorsNan: [txt.split('NaN').length - 1, txt.split('undefined').length - 1],
     overflow: {lede: sel('.plede').filter(over).length, head: sel('.phead').filter(over).length, rail: sel('.prail').filter(over).length},
-    margin: sel('.pgF').map(rel).filter(v => v > 962).length,
+    margin: sel('.pgF').map(rel).filter(v => v > 990).length,
     heroClash: sel('section').filter(s => { const f = s.querySelector('.heroF'), t = s.querySelector('.htxt'); return f && t && f.getBoundingClientRect().bottom > t.getBoundingClientRect().top - 4; }).length,
     tableClash: sel('section').filter(s => { const t = s.querySelector('table.dt'), b = s.querySelector('.band'); return t && b && t.getBoundingClientRect().bottom > b.getBoundingClientRect().top + 1; }).length,
     figGaps: [...seqBad(fn), ...seqBad(tn).map(n => 'T' + n)],

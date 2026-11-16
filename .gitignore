@@ -34,3 +34,6 @@ CLAUDE.md
 # knowledge graph (graphify)
 graphify-out/
 .ruff_cache/
+
+# the 2026 US Talent Report, kept here as the style reference for the PDFs (not tracked)
+Hoover_HAI_TalentReport_Final.pdf
