@@ -37,7 +37,7 @@ BASE = 2015
 EXT_LINES = ["naep_math8", "naep_math8_prof", "naep_math4", "naep_read8", "gss_grad_se_tv_share", "gss_postdoc_se_tv_share",
              "dol_h1b_positions", "dol_perm_cert", "dol_perm_f1_share", "dol_perm_india_share", "dol_h1b_stem_share",
              "h1b_initial", "acs_stem_fb_share", "acs_stem_grad_fb_share", "acs_stem_phd_fb_share", "pat_patents",
-             "pat_share_digital", "pat_share_life", "pseo_instate_bach_y1", "pseo_instate_bach_y5", "pseo_instate_master_y1",
+             "pat_share_digital", "pat_share_life", "pat_inv_patents", "pat_inv_share_of_us", "pat_inv_owned_elsewhere", "pseo_instate_bach_y1", "pseo_instate_bach_y5", "pseo_instate_master_y1",
              "opt_retention", "mig_net_ba_plus_per_1000", "rd_herd", "rd_ffs", "rd_usa_rd", "rd_herd_fed_share"]
 PEER_ROWS = ["enroll_total", "share_grad", "stem_share_bach", "stem_share_master", "intl_stem_master_count",
              "share_of_us_intl_stem_master", "intl_share_stem_master", "intl_share_stem_doc", "intl_share_enroll_grad",

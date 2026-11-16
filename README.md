@@ -71,7 +71,8 @@ sources/                   every raw download, as received (read-only; never edi
   nsf_sed/                 NSF/NCSES Survey of Earned Doctorates tables, by download/release
   dol_oflc/                DOL Office of Foreign Labor Certification disclosure files (LCA, PERM, PW, H-2A/B, CW-1)
   uscis_h1b/               USCIS H-1B Employer Data Hub exports, one file (.xlsx or .csv) per fiscal year
-  uspto_patents/           PatentsView annualized patent files, one zip per grant year
+  uspto_patents/           PatentsView annualized patent files, one zip per grant year; bulk/: inventor and
+                           location tables (inventor residence); bulk_unused/: bulk tables not used
   dhs_yearbook/            DHS Yearbook of Immigration Statistics (PDFs FY1996-2022, Excel FY2023-24;
                            excel/: the yearbooks' Excel table zips FY1996-2021 and tables8-11newadj)
   dhs_sevis/annual_reports/  SEVIS by the Numbers reports (2017 biannual, CY2018-24), OPT, F-1 to H-1B,
@@ -120,6 +121,7 @@ data/                      everything the pipeline writes (safe to delete and re
   h1b/                     USCIS H-1B approvals by employer state     (python -m ipeds_clean.h1b)
   dol/                     DOL LCA worksites and PERM by state        (python -m ipeds_clean.dol)
   patents/                 USPTO patents by assignee state            (python -m ipeds_clean.patents)
+                           and by inventor state                      (python -m ipeds_clean.patents_inventors)
   digest_k12/, crdc/       K-12 spending, graduation rates, graduates, teachers, course access
   digest_state/            Digest residence and migration of first-time college students
   ice_foia/, j1/           OPT retention and STEM OPT; J-1 exchange visitors
@@ -1174,6 +1176,46 @@ and grant year:
   - Life sciences: 45% of Massachusetts'.
   - Energy and engines: 15% of Michigan's.
 
+### Patents by inventor residence (`patents_inventors.py`)
+
+The same granted patents counted by where their inventors live, so a profile can set what the state's residents
+invent beside what its companies own. Sources, in `sources/uspto_patents/bulk/` (PatentsView bulk tables from the
+USPTO Open Data Portal, March 2026 release; downloading them needs a USPTO.gov account):
+- `g_inventor_disambiguated.tsv.zip`: one row per patent × inventor, with the inventor's `location_id` and
+  PatentsView's gender inference from the first name.
+- `g_location_disambiguated.tsv.zip`: `location_id` → city, state, country.
+- `data_dictionary_PVPGPUBDIS.xlsx`: the bulk-table dictionary.
+
+Grant year and technology field come from the annualized files above, so both counts cover the same patents (every
+patent in the annual files matched). `bulk_unused/` holds two bulk tables downloaded but not used (`g_uspc_at_issue`,
+the retired U.S. classification; `pg_sorted_org_not_disambiguated`, pre-grant publications), and the inventor oath
+signature images (`35_series_oath_documents.zip`) are in `sources/_not_data/uspto/`.
+
+```bash
+.venv/bin/python -m ipeds_clean.patents_inventors   # -> data/patents/patents_inventor_*.csv (~6 min, 9 GB RAM;
+                                                    #    caches cache/patents/*.parquet, later runs ~1 min)
+```
+
+**Counting:**
+- `patents`: patents with at least one inventor living in the state.
+- `patents_frac`: each patent split evenly across all its inventors, wherever they live, so inventors abroad take
+  their share out of the U.S. total. The U.S. row is the 50 states and DC, and the states add up to it.
+- `share_owned_elsewhere`: of the state's invented patents with an owner, the share with no owner in the state
+  (including owners abroad). Unassigned patents are left out.
+- `women_share_of_inventors`, `share_digital`, `share_life_sciences` and the other groups, as for owners.
+
+About 45% of inventor records on U.S. patents are U.S. residents; inventors with no location (about 1%) count
+toward a patent's inventor total but toward no state.
+
+**2025 figures:** 132.9k U.S.-invented patents (fractional). California 38.9k (29%), Texas 9.8k, Massachusetts
+7.0k, New York 6.0k, Washington 5.6k. The two counts part most where companies incorporate or are headquartered:
+Delaware owns 1.93k patents but its residents invented 347; New York owns 7.8k and invented 6.0k; Washington
+owns 4.9k and invented 5.6k; Vermont owns 136 and invented 269. The share of invented patents owned outside the
+state runs from 31% (California) to 90% (Alaska).
+
+In the Sheet and profiles these are the `pat_inv_*` measures (`external.patents`), and the profile's patent spread
+reports both counts.
+
 ## More pipeline sources (added November 2026)
 
 Each source below has its own module. `python -m ipeds_clean.<module>` rebuilds its folder in `data/`, and each folder
@@ -1437,7 +1479,7 @@ the web profiles and the PDF profiles:
 | H-1B jobs & green cards (DOL) | certified H-1B positions by worksite; STEM share; median wage; H-1B-dependent share; PERM certifications; India, F-1, graduate-degree and STEM shares |
 | H-1B petitions by employer (USCIS) | new and continuing approvals; denial rate; sector mix; top-five concentration |
 | Workforce: foreign-born STEM workers (ACS) | STEM workers; foreign-born shares (all, graduate degree, doctorate, recent arrivals, India); noncitizen share; foreign-born share of residents and of graduate-degree holders |
-| Patents (USPTO) | patents (fractional); share of U.S.; digital, life-science and semiconductor shares; women's share of inventors |
+| Patents (USPTO) | by owner: patents (fractional); share of U.S.; digital, life-science and semiconductor shares; women's share of inventors. By inventor residence: patents (fractional); share of U.S.; share owned outside the state; digital and life-science shares; women's share |
 | K-12 preparation (NCES Digest, CRDC) | per-pupil spending; graduation rates (ACGR, AFGR); teacher salary; enrollment; high schools offering calculus, physics, chemistry, Algebra II, computer science, AP, dual enrollment; AP, calculus, physics and SAT/ACT per 100; gifted per 100 |
 | Do graduates stay? (Census PSEO) | bachelor's, STEM, master's and doctoral graduates working in the state 1, 5 and 10 years out; median earnings |
 | Graduate migration (ACS) | net domestic migration of bachelor's-plus and graduate-degree adults (count, per 1,000); in and out rates; arrivals from abroad |

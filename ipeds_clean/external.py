@@ -250,7 +250,30 @@ def patents():
             "fractionally counted across co-owners; not where inventors live. Unassigned patents (about 5%) have no "
             "location. Technology groups use the WIPO "
             "field of the patent's first classification.")
-    return _long(w, "grant_year", cols, pct), m, {k: note for k in m}
+    d, notes = _long(w, "grant_year", cols, pct), {k: note for k in m}
+    # the same patents counted by where their inventors live (patents_inventors.py), when that build exists
+    p = DATA / "patents" / "patents_inventor_state_wide.csv"
+    if p.exists():
+        wi = pd.read_csv(p)
+        ci = {"patents_frac": "pat_inv_patents", "share_of_us_frac": "pat_inv_share_of_us",
+              "share_owned_elsewhere": "pat_inv_owned_elsewhere", "share_digital": "pat_inv_share_digital",
+              "share_life_sciences": "pat_inv_share_life", "women_share_of_inventors": "pat_inv_women_share"}
+        mi = {"pat_inv_patents": ("Patents by inventors living in the state (USPTO)", "patents", F_N),
+              "pat_inv_share_of_us": ("Share of U.S.-invented patents (USPTO)", PCT, F_PCT),
+              "pat_inv_owned_elsewhere": ("Share of the state's invented patents owned outside the state (USPTO)", PCT, F_PCT),
+              "pat_inv_share_digital": ("Share of the state's invented patents in digital technologies (USPTO)", PCT, F_PCT),
+              "pat_inv_share_life": ("Share of the state's invented patents in life sciences (USPTO)", PCT, F_PCT),
+              "pat_inv_women_share": ("Women's share of inventors living in the state (USPTO)", PCT, F_PCT)}
+        ni = ("USPTO via PatentsView bulk tables (inventors and locations, March 2026 release), by grant year and the "
+              "state where each inventor lived, fractionally counted across all of a patent's inventors; the U.S. "
+              "total is the 50 states and DC. Owned outside the state: of the state's invented patents with an owner, "
+              "the share with no owner in the state. Gender is PatentsView's inference from first names. Technology "
+              "groups use the WIPO field of the patent's first classification.")
+        d = pd.concat([d, _long(wi, "grant_year", ci, set(ci) - {"patents_frac"})], ignore_index=True)
+        # the U.S. row's "owned elsewhere" is not computed (it would mean owned abroad)
+        d = d[~((d.measure == "pat_inv_owned_elsewhere") & (d.state == "US"))]
+        m.update(mi); notes.update({k: ni for k in mi})
+    return d, m, notes
 
 
 def migration():
