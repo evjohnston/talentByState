@@ -47,8 +47,8 @@ table footnotes define it), ARMED_FORCES, UNKNOWN, OTHER_OR_UNKNOWN kept as thei
   codes by keyword, INS_NI). Every class x state (h1b, f1, j1, l1, o1, tn, h1b1, e3, ...; principals and
   dependants as separate classes): FY2002 Table 611 (Excel only; "Nonimmigrants admitted by state of destination
   and class of admission"; its j1 / l1 / tn give way to Table 30's) and Nonimmigrant Supplemental Table 3,
-  FY2005-2020 and FY2022-24 (the NI2003-04 supplements have country tables only, and no FY2021 supplement is
-  here). Single fiscal years, taken from the table title: 1996, 1998-2024. FY1997 does not exist: the 1997
+  FY2005-24 (the NI2003-04 supplements have country tables only; FY2021 comes from the separately released
+  excel/2022_0712_plcy_nonimmigrants_fy2021_supplemental_tables_0.zip). Single fiscal years, taken from the table title: 1996, 1998-2024. FY1997 does not exist: the 1997
   yearbook's Table 43 is titled FISCAL YEAR 1996 and
   is the FY1996 table reprinted cell for cell (INS published no FY1997 nonimmigrant detail; later national tables
   also skip 1997), kept as the latest FY1996 release.

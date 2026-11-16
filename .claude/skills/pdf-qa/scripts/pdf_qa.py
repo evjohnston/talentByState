@@ -78,6 +78,48 @@ JS = r"""(() => {
 })()"""
 
 
+SUMJS = r"""(() => { const ps = [...document.querySelectorAll('.sum')], o = {pages: ps.length, clash: [], wide: []};
+  ps.forEach((p, i) => { const f = p.querySelector('.foot').getBoundingClientRect().top;
+    const bot = Math.max(...[...p.querySelectorAll('.body *')].map(k => k.getBoundingClientRect().bottom));
+    if (bot > f - 4) o.clash.push(i + 1); if (p.scrollWidth > p.clientWidth + 1) o.wide.push(i + 1); });
+  const t = document.body.innerText;
+  o.nan = (t.match(/NaN|undefined|Infinity/g) || []).length;
+  o.usDash = (t.match(/U\.S\.\s*[–-]\s*[)·,;]/g) || []).length;
+  o.signedZero = (t.match(/[+−-]0\.0(?!\d)\s*(pp|pts|%)/g) || []).length;
+  o.dcThe = D.st === 'DC' ? (t.match(/(^|[^Tt]he )District of Columbia('s)? (ranks|compares|and states|\d)/gm) || []).length : 0;
+  return o; })()"""
+
+
+def summary_layout(states: list[str]) -> dict:
+    """The two-sided summary (variant "summary"): two pages, nothing into the footer or off the page edge."""
+    from playwright.sync_api import sync_playwright
+    from ipeds_clean import state_pdf as sp
+    from ipeds_clean.peers import presets
+    Pn = sp.Panel(); peers = presets(Pn.sp)["size"]["peers"]; fonts = sp.font_css()
+    res = {}
+    with sync_playwright() as pw:
+        b = pw.chromium.launch(channel="chrome")
+        for st in states:
+            pg = b.new_page(); errs = []
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            pg.goto(sp.write_html(Pn, st, peers[st], fonts, "summary").as_uri())
+            try:
+                pg.wait_for_function("window.__ready === true", timeout=40000)
+                r = pg.evaluate(SUMJS)
+            except Exception as e:
+                r = {"pages": 0}; errs.append(str(e)[:120])
+            out = [f"summary: {e}" for e in errs[:2]]
+            if r.get("pages") != 2: out.append(f"summary: {r.get('pages')} pages, not 2")
+            if r.get("clash"): out.append(f"summary: content runs into the footer on page(s) {r['clash']}")
+            if r.get("wide"): out.append(f"summary: content wider than the page on page(s) {r['wide']}")
+            for k, lab in (("nan", "NaN/undefined"), ("usDash", "'U.S. –'"), ("signedZero", "signed zero"), ("dcThe", "'District of Columbia' without 'the'")):
+                if r.get(k): out.append(f"summary: {lab} printed {r[k]} time(s)")
+            res[st] = out
+            pg.close()
+        b.close()
+    return res
+
+
 def layout(states: list[str]) -> dict:
     from playwright.sync_api import sync_playwright
     from ipeds_clean import state_pdf as sp
@@ -146,6 +188,17 @@ def pdf_checks(states: list[str]) -> dict:
                     if fd is not None and not any(k in fd.get_object() for k in ("/FontFile", "/FontFile2", "/FontFile3")):
                         issues.append(f"{p.name}: {f.get('/BaseFont')} not embedded")
         res[st] = sorted(set(issues))
+    sp.render(states, "summary")
+    for st in states:
+        p = sp.OUT / f"{st}_summary.pdf"; r = PdfReader(p); issues = []
+        if len(r.pages) != 2:
+            issues.append(f"{p.name}: {len(r.pages)} pages, not 2")
+        for pg in r.pages:
+            for _, f in ((pg.get("/Resources") or {}).get("/Font") or {}).items():
+                f = f.get_object()
+                if f.get("/Subtype") == "/Type3":
+                    issues.append(f"{p.name}: Type3 font")
+        res[st] = sorted(set(res[st] + issues))
     return res
 
 
@@ -167,10 +220,11 @@ def main(argv: list[str]) -> int:
     opts = {a for a in argv if a.startswith("--")}
     sts = [a.upper() for a in argv if not a.startswith("--")] or (list(S.TILES) if "--all" in opts else SAMPLE)
     lay = layout(sts)
+    summ = summary_layout(sts)
     pdfr = pdf_checks(sts) if ("--pdf" in opts or "--png" in opts) else {}
     bad = 0
     for st in sts:
-        f = flags(lay[st]) + pdfr.get(st, [])
+        f = flags(lay[st]) + summ.get(st, []) + pdfr.get(st, [])
         bad += bool(f)
         r = lay[st]
         print(f"{st}: {'OK' if not f else 'FLAGGED'}  sheets {r.get('sheets')}, paired {r.get('pairs')}, rails {r.get('rails')}, "

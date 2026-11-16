@@ -82,6 +82,11 @@ tr.d td{padding:0 0 18px;border-bottom:2px solid var(--ink);background:var(--bg)
 .fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 32px}
 @media (max-width:900px){.fgrid{grid-template-columns:1fr}}
 .foot{font-size:12.5px;color:var(--ink-3);margin-top:14px;max-width:110ch;line-height:1.55}
+.foot h2{font-size:13px;font-weight:700;color:var(--ink-2);margin:0 0 6px}
+.foot dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0}
+.foot dt{font-weight:600;color:var(--ink-2)} .foot dd{margin:0}
+.foot p{margin:8px 0 0}
+@media (max-width:640px){.foot dl{grid-template-columns:1fr}.foot dd{margin-bottom:6px}}
 .empty-row td{padding:28px 10px;color:var(--ink-2)}
 @media (max-width:900px){
   .wrapx{overflow-x:auto}
@@ -129,17 +134,24 @@ tr.d td{padding:0 0 18px;border-bottom:2px solid var(--ink);background:var(--bg)
   <p class="swipe" id="swipe">Swipe the table sideways to see the other states →</p>
   <div class="wrapx" id="sheetwrap"><table class="sheet" id="sheet"><thead></thead><tbody></tbody></table></div>
   <section id="flows" hidden>
-    <div class="fhead"><div><h2>Talent flows</h2><p>Saturated bars are the totals at each end; dots travel in the direction students and degrees flow. Hover a ribbon for its size.</p></div>
+    <div class="fhead"><div><h2>Talent flows</h2><p>The solid bars at each end are totals. Dots move the way students and degrees flow. Hover over a ribbon to see its size.</p></div>
       <div class="grp"><span class="lab">State</span><span class="seg" id="fstate" role="group" aria-label="State shown"></span></div></div>
     <div class="fcard"><div class="fh"><h3 id="pipe-h"></h3><span class="seg" id="plevel" role="group" aria-label="Levels shown"><button data-k="all" aria-pressed="true">All levels</button><button data-k="bach" aria-pressed="false">Bachelor's</button><button data-k="master" aria-pressed="false">Master's</button><button data-k="doc_res" aria-pressed="false">Doctorates</button></span></div>
       <p id="pipe-p"></p><div id="pipe"></div></div>
-    <label class="lab" style="display:inline-flex;gap:8px;align-items:center;margin:4px 0 6px"><input type="checkbox" id="instate"> Include students who stay in their home state (they are most of every class, which shrinks the out-of-state flows)</label>
+    <label class="lab" style="display:inline-flex;gap:8px;align-items:center;margin:4px 0 6px"><input type="checkbox" id="instate"> Include students who stay in their home state (they are most of every class, so including them shrinks the out-of-state flows)</label>
     <div class="fgrid">
       <div class="fcard"><div class="fh"><h3 id="in-h"></h3></div><p id="in-p"></p><div id="inflow"></div></div>
       <div class="fcard"><div class="fh"><h3 id="out-h"></h3></div><p id="out-p"></p><div id="outflow"></div></div>
     </div>
   </section>
-  <p class="foot">Source: IPEDS, harmonized state panel (degree-granting institutions located in each state; Title IV participants from 1996). International = U.S. nonresidents. Rows marked (SEVIS) come from DHS, SEVIS by the Numbers: active F-1/M-1 students at schools in each state, one fall snapshot a year (the month is shown), every level from primary school to doctorate; they are not the same population as IPEDS nonresidents. Rows marked with another source in parentheses come from that source (Census ACS, NAEP, NSF GSS and SED, USCIS, DOL, USPTO); each names its source under its chart and explains its year and coverage in the ⓘ note. Years are each source's own: fall survey year, fiscal year or grant year. STEM = CIP 03, 04, 11, 14, 15, 26, 27, 40. IPEDS dollars are in constant <span id="rb"></span> dollars (CPI-U); rows named "nominal" are in the dollars of each year. <sup class="prov">p</sup> = provisional (latest IPEDS release, may be revised). Rank 1 = highest value among the 50 states and DC, which is not always better. ● marks the highest value among the states shown. † marks a state whose totals include a nationwide online university. Change is in points for percentages and per-100 measures, percent otherwise. Click any row to compare it in charts.</p>
+  <section class="foot" aria-labelledby="foot-h"><h2 id="foot-h">How to read this sheet</h2><dl>
+    <dt>Sources</dt><dd>Rows with no source in their name come from IPEDS, the federal census of colleges and universities: degree-granting institutions located in each state, Title IV participants from 1996. Rows with a source in parentheses (Census ACS, NAEP, NSF GSS and SED, USCIS, DOL, USPTO) come from that source. Each chart names its source, and the ⓘ note gives its years and coverage.</dd>
+    <dt>International</dt><dd>U.S. nonresidents, students on temporary visas. Rows marked (SEVIS) count a different group: active F-1 and M-1 students at schools in the state, at every level from primary school to doctorate, in one fall snapshot a year (the month is shown).</dd>
+    <dt>STEM</dt><dd>CIP families 03, 04, 11, 14, 15, 26, 27 and 40.</dd>
+    <dt>Years and dollars</dt><dd>Each source keeps its own year: the fall survey year, the fiscal year or the grant year. IPEDS dollars are in constant <span id="rb"></span> dollars (CPI-U). Rows named "nominal" are in the dollars of each year.</dd>
+    <dt>Ranks and change</dt><dd>Rank 1 is the highest value among the 50 states and DC, which is not always the best. Change is in points for percentages and per-100 measures, and in percent otherwise.</dd>
+    <dt>Marks</dt><dd>● the highest value among the states shown. <sup class="prov">p</sup> provisional: the latest IPEDS release, which may be revised. † the state's totals include a nationwide online university.</dd>
+  </dl><p>Click any row to compare the states in charts.</p></section>
 </main>
 <div class="tip" id="tip" role="status" aria-live="polite"></div>
 <div class="toast" id="toast" role="status"></div>
@@ -409,7 +421,7 @@ function renderFlows() {
   const tot = links.slice(0, lvs.length * 2).reduce((a, l) => a + l.v, 0), intl = links.slice(0, lvs.length * 2).filter(l => l.t === "Ri").reduce((a, l) => a + l.v, 0);
   const stemI = lvs.reduce((a, l) => a + v[li(l)][1].slice(0, stemN).reduce((x, y) => x + y, 0), 0);
   $("pipe-h").textContent = `${nm}: who earns degrees, and in what, ${PL.year}`;
-  $("pipe-p").textContent = `${tot.toLocaleString("en-US")} degrees${st.plv === "all" ? " at the bachelor's, master's and research-doctorate levels" : ""}; international graduates earned ${(100 * intl / (tot || 1)).toFixed(1)}%, and ${(100 * stemI / (intl || 1)).toFixed(0)}% of their degrees were in STEM (blue fields).`;
+  $("pipe-p").textContent = `${tot.toLocaleString("en-US")} degrees${st.plv === "all" ? " at the bachelor's, master's and research-doctorate levels" : ""}; international graduates earned ${(100 * intl / (tot || 1)).toFixed(1)}% of them, and ${(100 * stemI / (intl || 1)).toFixed(0)}% of their degrees were in STEM (the blue fields).`;
   sankey($("pipe"), {nodes, links, H: 440, labelW: 240, colLabels: ["Degree level", "Who earned it", "Field"], unit: "degrees", tip: sankTip, label: `${nm} degree pipeline`});
   /* migration: origins -> state, residents -> destinations */
   const si = F.states.indexOf(s), row = F.m[si], hi = h => F.homes.indexOf(h);
@@ -431,7 +443,7 @@ function renderFlows() {
     ...topL.map(([d]) => ({id: d, label: D.names[d], col: 1, color: pc(d)})), {id: "oth", label: "Other states", col: 1, color: css("--s0")}];
   const outLinks = [...(st.inst ? [{s: "res", t: "stay", v: stay}] : []), ...topL.map(([d, n]) => ({s: "res", t: d, v: n})), {s: "res", t: "oth", v: restL}];
   $("out-h").textContent = `Where ${nm}'s residents enroll, fall ${F.year}`;
-  $("out-p").textContent = `${outTot.toLocaleString("en-US")} first-time students from ${nm}: ${(100 * stay / (outTot || 1)).toFixed(0)}% stayed, ${(100 * (outTot - stay) / (outTot || 1)).toFixed(0)}% left; the largest draw is ${topL[0] ? D.names[topL[0][0]] : "–"}.`;
+  $("out-p").textContent = `${outTot.toLocaleString("en-US")} first-time students from ${nm}: ${(100 * stay / (outTot || 1)).toFixed(0)}% stayed, ${(100 * (outTot - stay) / (outTot || 1)).toFixed(0)}% left, most often for ${topL[0] ? D.names[topL[0][0]] : "–"}.`;
   sankey($("outflow"), {nodes: outNodes, links: outLinks, H: 380, colLabels: ["Residents", "Enrolled in"], unit: "students", tip: sankTip, labelW: 150, gap: 6, label: `Where ${nm} residents enroll`});
 }
 /* ---------- tooltip, toast, csv ---------- */

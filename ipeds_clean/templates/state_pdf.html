@@ -77,6 +77,8 @@ p { margin: 0 0 .11in; orphans: 3; widows: 3 }
 .legend { display: flex; flex-wrap: wrap; gap: 3px 12px; font: 500 7pt Montserrat, sans-serif; color: var(--ink); margin: 0 0 4px }
 .legend i { display: inline-block; width: 14px; height: 3px; margin-right: 5px; vertical-align: middle }
 .legend i.dash { height: 0; border-top: 2px dashed currentColor; background: none !important }
+.legend i.ldot { height: 0; border-top: 3px dotted currentColor; background: none !important }
+.legend i.solid { height: 0; border-top: 2.5px solid currentColor; background: none !important }
 .legend i.dot { width: 8px; height: 8px; border-radius: 50% }
 .legend i.ring { width: 8px; height: 8px; border-radius: 50%; background: none !important; border: 2px solid var(--teal) }
 .legend i.sq { width: 9px; height: 9px }
@@ -220,6 +222,39 @@ table.dt tr.s td:first-child { text-align: left }
 /* By the Numbers: landscape pages, one table each */
 @page land { size: 11in 8.5in; margin: 0 }
 .v-spread .land { page: land; break-after: page }
+/* ---- two-sided summary (variant "summary"): one sheet for readers who will not open the full profile ---- */
+.v-summary body { background: #3a3a3a }
+.v-summary .sum { page: cover; width: 816px; height: 1056px; position: relative; overflow: hidden; background: #fff; margin: 0 auto 40px; break-after: page; font-family: 'EB Garamond', serif; color: var(--body) }
+@media print { .v-summary body { background: #fff } .v-summary .sum { margin: 0 !important } }
+.sum .band { background: var(--crim); color: #fff; padding: 40px 56px 26px }
+.sum .kick { font: 700 9.5px Montserrat, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #f6dbe2 }
+.sum h1 { font: 800 46px/1 Montserrat, sans-serif; margin: 10px 0 8px; letter-spacing: -.01em }
+.sum .by { font: 300 11px Montserrat, sans-serif; color: #f6dbe2 }
+.sum .body { padding: 22px 56px 0 }
+.sum .lede { font-size: 15.5px; line-height: 1.42; margin: 0 0 16px }
+.sum h2 { font: 800 12.5px Montserrat, sans-serif; color: var(--ink); margin: 0 0 8px; letter-spacing: .01em }
+.sum h2 em { font-style: normal; color: var(--crim); margin-right: 6px }
+.sum .grp { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 18px; margin-bottom: 14px }
+.sum .gcol .gh { font: 700 8.6px Montserrat, sans-serif; letter-spacing: .09em; text-transform: uppercase; color: var(--crim); border-bottom: 1.5px solid var(--crim); padding-bottom: 4px; margin-bottom: 6px }
+.sum .tile { padding: 5px 0 7px; border-bottom: 1px solid var(--rule) }
+.sum .tile .v { font: 800 21px/1.05 Montserrat, sans-serif; color: var(--ink) }
+.sum .tile .l { font: 500 8.8px/1.3 Montserrat, sans-serif; color: var(--ink); margin-top: 2px }
+.sum .tile .c { font: 400 8.2px/1.3 Montserrat, sans-serif; color: var(--muted); margin-top: 2px } .sum .tile .c b { color: var(--ink); font-weight: 700 }
+.sum .fs { font: 400 8.4px/1.35 Montserrat, sans-serif; color: var(--muted); margin-top: 4px }
+.sum .legend { font-size: 8.6px }
+.sum svg { display: block; width: 100%; overflow: visible }
+.sum svg text { font-family: Montserrat, sans-serif; font-size: 8.6px; fill: #5d5953 }
+.sum table.pt { width: 100%; border-collapse: collapse; font: 400 9.2px Montserrat, sans-serif; font-variant-numeric: tabular-nums }
+.sum table.pt th { font-weight: 700; text-align: right; padding: 0 0 4px 6px; border-bottom: 1.5px solid #222; vertical-align: bottom }
+.sum table.pt th:first-child, .sum table.pt td:first-child { text-align: left; padding-left: 0 }
+.sum table.pt td { text-align: right; padding: 3.6px 0 3.6px 6px; border-bottom: 1px solid var(--rule) }
+.sum table.pt .me { background: var(--pink); font-weight: 700 }
+.sum ul.out { margin: 0; padding: 0 0 0 16px; font-size: 13.4px; line-height: 1.38 } .sum ul.out li { margin-bottom: 4px }
+.sum .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px }
+.sum .foot { position: absolute; left: 56px; right: 56px; bottom: 34px; font: 400 8.2px/1.45 Montserrat, sans-serif; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 8px }
+.sum .foot b { color: var(--ink) }
+.sum .hd2 { display: flex; justify-content: space-between; align-items: baseline; padding: 30px 56px 0; font: 700 9px Montserrat, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--muted) }
+.sum .hd2 b { color: var(--crim); font-size: 13px; letter-spacing: 0; text-transform: none }
 .land { width: 1056px; height: 816px; position: relative; margin: 0 auto 40px; background: var(--paper); overflow: hidden }
 .land .abs { position: absolute }
 .land .rh2 { position: absolute; top: 40px; font: 700 8.2px/1.3 Montserrat, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
@@ -392,7 +427,7 @@ function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104,
   const ends = [], mixedEnds = new Set(series.filter(s => s.label !== false && last(s.s) != null).map(s => lastY(s.s))).size > 1;
   for (const s of [...series].reverse()) { let p = "", pen = false;
     s.s.y.forEach((y, i) => { const v = s.s.v[i]; if (v == null || (i && y - s.s.y[i - 1] > gap)) pen = false; if (v != null) { p += (pen ? "L" : "M") + X(y).toFixed(1) + " " + Y(v).toFixed(1); pen = true; } });
-    h += `<path d="${p}" fill="none" stroke="${s.c}" stroke-width="${(s.w || 1.6) * (fs > 1 ? 1.4 : 1)}" ${s.dash ? `stroke-dasharray="${7 * fs} ${3.5 * fs}"` : ""} stroke-linejoin="round"/>`;
+    h += `<path d="${p}" fill="none" stroke="${s.c}" stroke-width="${(s.w || 1.6) * (fs > 1 ? 1.4 : 1)}" ${s.dash ? `stroke-dasharray="${7 * fs} ${3.5 * fs}"` : s.dot ? `stroke-dasharray="${.1 * fs} ${4.2 * fs}" stroke-linecap="round"` : ""} stroke-linejoin="round"/>`;
     const lv = last(s.s); if (lv != null && s.label !== false) { const vt0 = unit === "%" ? pct(lv) : unit === "$" ? usd(lv) : yFmt ? yFmt(lv) : sig3(lv), ly = lastY(s.s);
       const vt = mixedEnds ? `${vt0} (${ly})` : vt0, full = `${s.short || s.name} - ${vt}`;   // when lines end in different years, each says when
       /* every line end carries its name (greyscale prints can't tell lines apart by colour): on one line when it
@@ -1265,13 +1300,16 @@ function buildSpreads() {
         stats: ok(["acs_stem_fb_share", "acs_stem_grad_fb_share", "acs_stem_noncit_share"])}); }
     if (has("pat_patents")) { const a = row("pat_patents");
       hero("Patents", {head: "Patents", title: `What Kinds of Technology Does ${esc(NAME)} Patent?`,
-        legend: legP([["pat_share_digital", "Digital technologies"], ["pat_share_life", "Life sciences"]]),
-        chart: H => HL(pr([["pat_share_digital", "Digital technologies"], ["pat_share_life", "Life sciences"]]), H),
-        src: `Share of patents granted to owners in the state, by WIPO technology field of the first classification; state solid, U.S. dashed. Fractional counts by the owner's (assignee's) location, not where inventors live. ${srcOf("pat_patents")}.`,
+        /* owner basis solid (U.S. dashed); the same fields counted by where inventors live, dotted (patents_inventors.py) */
+        legend: legendHTML([{n: "Digital technologies", c: PAL[0], kind: "sq"}, {n: "Life sciences", c: PAL[1], kind: "sq"}, {n: "By owner's state", c: "#333", kind: "solid"},
+          ...(has("pat_inv_share_digital") ? [{n: "By inventors' state", c: "#333", kind: "ldot"}] : []), {n: "U.S., by owner (dashed)", c: "#333", kind: "dash"}]),
+        chart: H => HL([...pr([["pat_share_digital", "Digital, by owner"], ["pat_share_life", "Life sciences, by owner"]]),
+          ...[["pat_inv_share_digital", "Digital, by inventor", PAL[0]], ["pat_inv_share_life", "Life sciences, by inventor", PAL[1]]].filter(([m]) => has(m)).map(([m, name, c]) => ({name, s: E[m][ST], c, dot: true, w: 2.2}))], H, {right: 250}),
+        src: `Share of the state's patents by WIPO technology field of the first classification. Solid: patents granted to owners (assignees) in the state; dashed: the same for all U.S. owners; dotted: patents by inventors living in the state, split across each patent's inventors. ${srcOf("pat_patents")}.`,
         paras: [`Organizations and people in ${esc(NAME)} were granted ${fv("pat_patents")} U.S. patents in ${a.y1}, ${fv("pat_share_of_us")} of all patents with a U.S. owner${rkx("pat_patents") ? ` (${rkx("pat_patents")})` : ""}.`,
           /* the same patents counted where their inventors live (patents_inventors.py) */
           row("pat_inv_patents").v1 != null ? `Counted by where inventors live instead, ${esc(NAME)}'s residents were named on ${fv("pat_inv_patents")} patents, ${fv("pat_inv_share_of_us")} of those invented in the U.S.${rkx("pat_inv_patents") ? ` (${rkx("pat_inv_patents")})` : ""}.${row("pat_inv_owned_elsewhere").v1 != null ? ` ${fv("pat_inv_owned_elsewhere")} of the state's invented patents with an owner were owned by companies or institutions outside the state.` : ""}` : "",
-          row("pat_share_digital").v1 != null ? `${fv("pat_share_digital")} of patents owned in the state were in digital technologies (U.S. ${fus("pat_share_digital")}) and ${fv("pat_share_life")} in the life sciences (U.S. ${fus("pat_share_life")}).` : ""],
+          row("pat_share_digital").v1 != null ? `${fv("pat_share_digital")} of patents owned in the state were in digital technologies (U.S. ${fus("pat_share_digital")}) and ${fv("pat_share_life")} in the life sciences (U.S. ${fus("pat_share_life")}).${row("pat_inv_share_digital").v1 != null ? ` Of patents by the state's inventors, ${fv("pat_inv_share_digital")} were digital and ${fv("pat_inv_share_life")} in the life sciences.` : ""}` : ""],
         stats: ok(["pat_patents", "pat_inv_patents", "pat_inv_owned_elsewhere"])}); }
   }
 
@@ -1590,7 +1628,51 @@ function theDC(root = document) {
       t = t.replace(/(^|[.!?]\s+)District of Columbia/g, (m, p) => p === "" && !first ? m : `${p}The District of Columbia`);
       t = t.replace(/(?<![Tt]he )District of Columbia/g, "the District of Columbia");
       if (n.nodeValue.trim()) first = false; n.nodeValue = t; } }); }
-document.fonts.ready.then(() => { if (VAR === "spread") buildSpreads(); else buildBTN(); theDC();
+/* Two-sided summary: the profile's headline numbers on one sheet, front and back, drawn from the same rows as the
+   full profile so every number matches it. Front: who the state trains, the four groups of measures, and how its
+   international share of STEM master's compares with its peers. Back: the peer table, student flows, and where
+   the state ranks near the top or bottom. */
+function buildSummary() {
+  doc.innerHTML = ""; figN = 0; tabN = 0;
+  const FM = D.front, YR = (D.built.match(/\d{4}/) || [""])[0], SITE = FM.data_url || "https://www.emersonjohnston.org/talentByState/";
+  const shareUS = r => r.unit === "%" && r.us1 != null && Math.abs(r.us1 - 100) < 1e-6;
+  /* running text names DC with "the" (titles and table headers keep the bare name) */
+  const TN = ST === "DC" ? "the District of Columbia" : esc(NAME), TNc = ST === "DC" ? "The District of Columbia" : esc(NAME);
+  const lc1 = t => /^[A-Z][a-z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t;
+  const tile = (m, lab) => { const r = row(m); if (r.v1 == null) return "";
+    const c = chg(r), bits = [!shareUS(r) && r.us1 != null ? `U.S. <b>${fmtSpec(r.us1, r.fmt, r.unit)}</b>` : "", r.rank ? `<b>${ord(r.rank)}</b> of ${r.n}` : "", c.t !== "–" ? `${c.t} since ${r.y0}` : ""].filter(Boolean).join(" · ");
+    return `<div class="tile" data-m="${m}"><div class="v">${fmtSpec(r.v1, r.fmt, r.unit)}</div><div class="l">${esc(lab || SHORT[m] || r.title)}, ${r.y1}</div><div class="c">${bits}</div></div>`; };
+  const G = [["Students", [["enroll_total"], ["instate_share_ft", "First-time students from in state"], ["net_migration_ft", "Net migration per 100 resident students"]]],
+    ["International talent", [["intl_share_stem_master"], ["intl_stem_master_count"], ["sevis_total", "Active F-1 and M-1 students (SEVIS)"]]],
+    ["STEM and outcomes", [["stem_share_bach"], ["grad_rate_bach6"], ["tuition_pub4_instate"]]],
+    ["Workforce and innovation", [["acs_stem_fb_share", "Foreign-born share of STEM workers"], ["h1b_initial", "New H-1B approvals"], ["pat_inv_patents", "Patents by inventors in the state"]]]];
+  const grid = `<div class="grp">${G.map(([h, ms]) => `<div class="gcol"><div class="gh">${h}</div>${ms.map(([m, l]) => tile(m, l)).join("")}</div>`).join("")}</div>`;
+  const enr = row("enroll_total"), cnt = row("intl_stem_master_count"), sm = row("intl_share_stem_master");
+  const lede = `${TNc}'s ${nf(nInst)} degree-granting institutions enrolled ${KMB(enr.v1)} students in fall ${enr.y1}, ${pct(last(P.students.share_of_us))} of the U.S. total, and awarded ${sig3(cnt.v1)} STEM master's degrees to international students in ${cnt.y1}. International students earned ${pct(sm.v1)} of the state's STEM master's degrees, against ${pct(sm.us1)} nationally${sm.rank ? `, ${ord(sm.rank)} among the 50 states and DC` : ""}. This sheet summarizes the state's full talent profile.`;
+  /* peer trend: the state, its four peers and the U.S. */
+  const pl = D.peer_lines.intl_share_stem_master || {}, cols = [ST, ...PEERS, "US"].filter(s => pl[s]);
+  const ser = cols.map((s, i) => ({name: s === "US" ? "United States" : NM[s], short: s === "US" ? "U.S." : s, s: pl[s], c: s === ST ? CRIM : s === "US" ? TAUPE : PEERC[(i - 1) % PEERC.length], w: s === ST ? 2.6 : 1.4, dash: s === "US"}));
+  const legend = legendHTML(cols.map((s, i) => ({n: s === "US" ? "United States (dashed)" : NM[s], c: s === ST ? CRIM : s === "US" ? TAUPE : PEERC[(i - 1) % PEERC.length], kind: s === "US" ? "dash" : ""})));
+  const fig1 = `<h2><em>Figure 1</em>International share of STEM master's degrees, ${TN} and states of similar size</h2>${legend}${lineSVG({series: ser, W: 704, H: 330, right: 92, fs: 1.15})}<div class="fs">Share of STEM master's degrees awarded to international students (U.S. nonresidents on temporary visas). Peers are the four states closest in total fall enrollment. Data from NCES, IPEDS Completions.</div>`;
+  const foot = n => `<div class="foot"><b>${esc(NAME)} State Talent Profile: Summary</b> · ${esc(FM.byline || "")} · ${esc(D.built)} · page ${n} of 2<br>A companion to <i>${esc(FM.companion || "")}</i>. The full profile, with every source and method, is at ${esc(SITE)}. Ranks are among the 50 states and DC (1 = highest value, which is not always better).</div>`;
+  doc.insertAdjacentHTML("beforeend", `<section class="sum"><div class="band"><div class="kick">State Talent Profile · Summary · ${YR}</div><h1>${esc(NAME)}</h1><div class="by">${esc(FM.byline || "")}</div></div>
+    <div class="body"><p class="lede">${lede}</p>${grid}${fig1}</div>${foot(1)}</section>`);
+  /* back: peer table */
+  const pcols = [ST, ...PEERS, "US"], PT = ["enroll_total", "intl_stem_master_count", "intl_share_stem_master", "intl_share_enroll_grad", "stem_share_bach", "stem_share_master", "grad_rate_bach6", "tuition_pub4_instate", "approp_per_fte", "instate_share_ft", "net_migration_ft"];
+  const prow = m => { const p = D.peer_tab.find(x => x.m === m); if (!p) return ""; const f = v => fmtSpec(v, p.fmt, p.unit);
+    return `<tr><td>${esc(SHORT[m] || p.title)}, ${p.y}</td>${pcols.map(s => `<td class="${s === ST ? "me" : ""}">${p.vals[s] != null && !(s === "US" && p.unit === "%" && Math.abs(p.vals[s] - 100) < 1e-6) ? f(p.vals[s]) : "–"}</td>`).join("")}</tr>`; };
+  const tab = `<h2><em>Table 1</em>How ${TN} compares with states of similar size</h2><table class="pt"><tr><th>Measure</th>${pcols.map(s => `<th class="${s === ST ? "me" : ""}">${s === "US" ? "U.S." : esc(NM[s])}</th>`).join("")}</tr>${PT.map(prow).join("")}</table><div class="fs">Peers are the four states closest in total fall enrollment. Dollars are 2024 dollars (CPI-U). Data from NCES, IPEDS.</div>`;
+  const fig2 = `<h2><em>Figure 2</em>Where first-time students come from, and where residents go, fall ${M.year}</h2>${sankeySVG(704, 290, 1.2)}<div class="fs">Home of first-time degree-seeking undergraduates (left) and the state of the institution they entered (right); the five largest sources and destinations, the rest grouped. Data from NCES, IPEDS Fall Enrollment.</div>`;
+  /* where the state stands out: its nearest-to-the-edge ranks across the profile's headline measures */
+  const pool = [...new Set(Object.values(STATS).flat().concat(["sevis_total", "acs_stem_fb_share", "h1b_initial", "pat_inv_patents", "rd_herd", "opt_retention", "naep_math8_prof"]))]
+    .filter(m => row(m).rank && row(m).v1 != null && !/^share_of_us_|_count$|^enroll_total$|^sevis_total$|^h1b_initial$|^pat_inv_patents$|^rd_herd$/.test(m))
+    .map(m => ({m, r: row(m), d: Math.min(row(m).rank, row(m).n + 1 - row(m).rank)})).sort((a, b) => a.d - b.d).slice(0, 6);
+  const li = ({m, r}) => `<li><b>${ord(r.rank)} of ${r.n}</b> on ${esc(lc1(SHORT[m] || r.title))}: ${fmtSpec(r.v1, r.fmt, r.unit)} in ${r.y1}${!shareUS(r) && r.us1 != null ? ` (U.S. ${fmtSpec(r.us1, r.fmt, r.unit)})` : ""}.</li>`;
+  const out = `<h2>Where ${TN} ranks near the top or bottom</h2><ul class="out">${pool.map(li).join("")}</ul><div class="fs">Rates and shares only, so size alone does not decide the list. Data from the sources named in the full profile.</div>`;
+  doc.insertAdjacentHTML("beforeend", `<section class="sum"><div class="hd2"><b>${esc(NAME)}</b><span>State Talent Profile · Summary</span></div>
+    <div class="body" style="padding-top:16px">${tab}<div style="height:14px"></div>${fig2}<div style="height:12px"></div>${out}</div>${foot(2)}</section>`);
+}
+document.fonts.ready.then(() => { if (VAR === "spread") buildSpreads(); else if (VAR === "summary") buildSummary(); else buildBTN(); theDC();
   /* PDF bookmarks: one per table-of-contents entry, at its sheet (sections in order are the PDF's sheets) */
   window.__outline = [...document.querySelectorAll("section")].map((s, i) => s.dataset.toc ? {t: s.dataset.toc, i} : null).filter(Boolean);
   window.__ready = true; });

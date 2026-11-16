@@ -1329,14 +1329,15 @@ includes `files.csv` (every input file, used or not) and `checks.csv`. The raw f
     - naturalizations by state, FY1986–2024 (no gaps);
     - I-94 admissions by destination state, FY1996 and FY1998–2024: principal classes (F-1/M-1, J-1, L-1, H-1/2/3,
       TN, ...) in FY1996–2004 and DHS broad groups (students and exchange visitors, temporary workers) in FY2005–24;
-    - every class of admission by state (H-1B, F-1, J-1, L-1, O-1, TN, ...) for FY2002 (Table 611) and FY2005–20,
-      FY2022–24 (Nonimmigrant Supplemental Table 3); sheet measures `dhs_i94_h1b`, `dhs_i94_f1`, `dhs_i94_j1`
+    - every class of admission by state (H-1B, F-1, J-1, L-1, O-1, TN, ...) for FY2002 (Table 611) and FY2005–24
+      (Nonimmigrant Supplemental Table 3; FY2021 from its separately released supplement zip); sheet measures `dhs_i94_h1b`, `dhs_i94_f1`, `dhs_i94_j1`
       and their shares of U.S. admissions, plus L-1 and O-1 shares;
     - national LPRs by class and country (new arrivals vs adjustments FY2006–24).
   - **What's not available:** no yearbook table (PDF, Excel or supplemental) splits green cards by state and class
     of admission; the LPR supplemental tables are state × country of birth, metro areas and orphan adoptions. So
-    employment-based green cards are national only. No class-by-state I-94 table exists here for FY1997, FY2003–04
-    (beyond the INS principal classes) or FY2021 (no FY2021 nonimmigrant supplement in the folder).
+    employment-based green cards are national only. No class-by-state I-94 table exists here for FY1997 or FY2003–04
+    (beyond the INS principal classes). The FY2022 LPR and naturalization workbooks and the 2013 refugee and
+    asylee tables (`excel/`) match the values already read or are national only, so they change nothing.
   - **I-94 counting:** admissions count entries, not people. DHS counted land admissions more completely from
     FY2010 and Canadian air/sea admissions from FY2013–14, and COVID-19 cut FY2020–22, so compare counts only within
     FY2010–12, FY2014–19 and FY2022 on; the sheet's shares of U.S. admissions are comparable across years.
@@ -1563,12 +1564,22 @@ data, enrollment and international shares, admissions, price, aid, retention and
 (international and STEM), largest fields, trends, faculty and finance. Data: `python -m ipeds_clean.inst_detail`
 writes `profiles/data/inst/<ST>.json`.
 
-**Printable State Talent Profile:** a booklet in the style of the 2026 US Talent Report, in two formats.
+**Printable State Talent Profile:** a booklet in the style of the 2026 US Talent Report, in two formats, plus a
+two-sided summary sheet.
 
 | Format | File | Pages | Use |
 |---|---|---|---|
 | Digital | `profiles/pdf/<ST>.pdf` | an 8.5×11 cover, 17×11 two-page spreads (pages 2–3, 4–5, …), then 11×8.5 landscape By the Numbers pages | reading on screen |
 | Print | `profiles/pdf/<ST>_print.pdf` | every page 8.5×11 | printing as a booklet |
+| Summary | `profiles/pdf/<ST>_summary.pdf` | one sheet, front and back, 8.5×11 | handing to readers who will not open the full profile |
+
+**Summary sheet** (template variant `summary`, `buildSummary()` in `state_pdf.html`). It is drawn from the same
+rows as the full profile, so every number matches it. Front: a lede, twelve measures in four groups (students,
+international talent, STEM and outcomes, workforce and innovation), each with the U.S. value, rank and change, and
+the international share of STEM master's for the state, its four peers and the U.S. Back: the peer table, the
+first-time student flows Sankey, and the six measures on which the state ranks nearest the top or bottom (rates
+and shares only, so size alone does not decide the list). `pdf-qa` checks every summary: two pages, nothing into
+the footer or past the page edge, no empty values.
 
 **Contents.** At a glance, International dependence, STEM, Where students come from, Migration, then the
 outside sources (K-12 preparation, Graduate research, H-1B jobs and green cards, STEM workforce, Patents).
@@ -1662,17 +1673,17 @@ fonts" check.
   `Montserrat-Bold`.
 - **Change arrows:** the ▲ ▼ arrows in By the Numbers are drawn as small SVG triangles. Montserrat has no
   such glyphs, and the system-font fallback would also print as Type3.
-- **Checking it:** every font in all 102 PDFs is an embedded TrueType subset.
+- **Checking it:** every font in all 153 PDFs is an embedded TrueType subset.
 
 **Viewer and downloads.**
-- "View PDF" on each profile opens `profiles/viewer.html#<ST>`. There, a Digital | Print switch picks the
-  format to view, download, or download for all states.
-- `viewer.html?format=print#TX` opens on the print version.
-- The zips are `pdf/State_Talent_Profiles_all_states.zip` (digital) and
-  `pdf/State_Talent_Profiles_all_states_print.zip` (print). The profiles index links to both.
+- "View PDF" on each profile opens `profiles/viewer.html#<ST>`. There, a Digital | Print | Summary switch picks
+  the format to view, download, or download for all states.
+- `viewer.html?format=print#TX` opens on the print version (`format=summary` on the summary).
+- The zips are `pdf/State_Talent_Profiles_all_states.zip` (digital),
+  `pdf/State_Talent_Profiles_all_states_print.zip` (print) and `pdf/State_Talent_Profiles_all_states_summaries.zip`. The profiles index links to both.
 
 **Building it.** `python -m ipeds_clean.state_pdf --all` (or give state codes) rebuilds both formats, the
-viewer and both zips. The layout is HTML/CSS (`ipeds_clean/templates/state_pdf.html`). Playwright prints it
+summaries, the viewer and the zips. The layout is HTML/CSS (`ipeds_clean/templates/state_pdf.html`). Playwright prints it
 with the installed Chrome, and pypdf merges the pages and makes the print split.
 
 **International Talent** (`international.html`, `python -m ipeds_clean.international`): the national

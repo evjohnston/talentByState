@@ -37,7 +37,7 @@ BASE = 2015
 EXT_LINES = ["naep_math8", "naep_math8_prof", "naep_math4", "naep_read8", "gss_grad_se_tv_share", "gss_postdoc_se_tv_share",
              "dol_h1b_positions", "dol_perm_cert", "dol_perm_f1_share", "dol_perm_india_share", "dol_h1b_stem_share",
              "h1b_initial", "acs_stem_fb_share", "acs_stem_grad_fb_share", "acs_stem_phd_fb_share", "pat_patents",
-             "pat_share_digital", "pat_share_life", "pat_inv_patents", "pat_inv_share_of_us", "pat_inv_owned_elsewhere", "pseo_instate_bach_y1", "pseo_instate_bach_y5", "pseo_instate_master_y1",
+             "pat_share_digital", "pat_share_life", "pat_inv_patents", "pat_inv_share_of_us", "pat_inv_owned_elsewhere", "pat_inv_share_digital", "pat_inv_share_life", "pseo_instate_bach_y1", "pseo_instate_bach_y5", "pseo_instate_master_y1",
              "opt_retention", "mig_net_ba_plus_per_1000", "rd_herd", "rd_ffs", "rd_usa_rd", "rd_herd_fed_share"]
 PEER_ROWS = ["enroll_total", "share_grad", "stem_share_bach", "stem_share_master", "intl_stem_master_count",
              "share_of_us_intl_stem_master", "intl_share_stem_master", "intl_share_stem_doc", "intl_share_enroll_grad",
@@ -311,6 +311,20 @@ def render(states: list[str], variant: str = "spread", out_dir: Path | None = No
             h = write_html(Pn, st, peers[st], fonts, variant)
             page.goto(h.as_uri())
             page.wait_for_function("window.__ready === true", timeout=30000)
+            if variant == "summary":   # two-sided summary sheet: <ST>_summary.pdf beside the full profile
+                out = (out_dir or OUT) / f"{st}_summary.pdf"
+                tmp = HTML_DIR / f"{st}.summary.pdf"
+                page.pdf(path=str(tmp), print_background=True, prefer_css_page_size=True)
+                rd, w = PdfReader(str(tmp)), PdfWriter()
+                for pg_ in rd.pages:
+                    w.add_page(pg_)
+                w.add_metadata({"/Title": f"{NAMES[st]} State Talent Profile: Summary", "/Subject": "Two-sided summary of the state talent profile"})
+                with open(out, "wb") as f:
+                    w.write(f)
+                tmp.unlink(missing_ok=True)
+                done.append(out)
+                print(f"{st} -> {out.name} ({len(rd.pages)} pages)")
+                continue
             if variant == "spread":   # folios and running heads are drawn on the spreads themselves
                 out = (out_dir or OUT) / f"{st}.pdf"
                 out.parent.mkdir(parents=True, exist_ok=True)
@@ -448,17 +462,18 @@ def print_version(digital: Path, page=None) -> Path:
 
 ZIP_NAME = "State_Talent_Profiles_all_states.zip"
 ZIP_PRINT = "State_Talent_Profiles_all_states_print.zip"
+ZIP_SUMMARY = "State_Talent_Profiles_all_states_summaries.zip"
 
 
 def file_name(st: str, kind: str = "digital") -> str:
-    return NAMES[st].replace(" ", "_") + "_State_Talent_Profile" + ("_print" if kind == "print" else "") + ".pdf"
+    return NAMES[st].replace(" ", "_") + "_State_Talent_Profile" + {"print": "_print", "summary": "_Summary"}.get(kind, "") + ".pdf"
 
 
 def zip_all() -> list[Path]:
-    """One zip of the digital PDFs (spreads) and one of the print PDFs (8.5 x 11 pages)."""
+    """One zip each of the digital PDFs (spreads), the print PDFs (8.5 x 11 pages) and the two-sided summaries."""
     import zipfile
     out = []
-    for name, suffix, kind in ((ZIP_NAME, "", "digital"), (ZIP_PRINT, "_print", "print")):
+    for name, suffix, kind in ((ZIP_NAME, "", "digital"), (ZIP_PRINT, "_print", "print"), (ZIP_SUMMARY, "_summary", "summary")):
         z = OUT / name
         with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as f:   # deflate: the print PDFs shrink by half (stays under GitHub's 100 MB file limit)
             for st in sorted(S.TILES, key=lambda s: NAMES[s]):
@@ -477,6 +492,7 @@ def write_viewer() -> Path:
     names = json.dumps({s: NAMES[s] for s in states})
     fnames = json.dumps({s: file_name(s) for s in states})
     pnames = json.dumps({s: file_name(s, "print") for s in states})
+    snames = json.dumps({s: file_name(s, "summary") for s in states})
     dl = '<svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>'
     html = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>State Talent Profile PDF</title><style>{kit_css()}
@@ -493,30 +509,32 @@ main{{flex:1;min-height:0;background:#525659}} iframe{{width:100%;height:100%;bo
 <label class="lab" for="st">State</label><select id="st">{opts}</select>
 <span class="note" id="meta"></span><span class="grow"></span>
 <a class="btn link" id="prof" href="#">Interactive profile</a>
-<div class="seg" role="group" aria-label="PDF format"><button id="fd" aria-pressed="true" title="Two-page spreads, for reading on screen">Digital</button><button id="fp" aria-pressed="false" title="Single 8.5 x 11 in pages in booklet order, for printing">Print</button></div>
+<div class="seg" role="group" aria-label="PDF format"><button id="fd" aria-pressed="true" title="Two-page spreads, for reading on screen">Digital</button><button id="fp" aria-pressed="false" title="Single 8.5 x 11 in pages in booklet order, for printing">Print</button><button id="fs" aria-pressed="false" title="The headline numbers on one sheet, front and back">Summary</button></div>
 <a class="btn primary" id="dl" href="#" download>{dl}Download PDF</a>
 <a class="btn" id="all" href="pdf/{ZIP_NAME}" download="{ZIP_NAME}" title="All 51 state PDFs in one zip file">{dl}Download all PDFs</a></div>
 <p class="fmtnote" id="fmtnote"></p>
 <main><iframe id="pdf" title="State Talent Profile PDF"></iframe></main>
 <script>
-const N = {names}, F = {fnames}, FP = {pnames}, $ = id => document.getElementById(id);
+const N = {names}, F = {fnames}, FP = {pnames}, FS = {snames}, $ = id => document.getElementById(id);
+const SUF = {{digital: "", print: "_print", summary: "_summary"}}, ZIPS = {{digital: "{ZIP_NAME}", print: "{ZIP_PRINT}", summary: "{ZIP_SUMMARY}"}};
 let fmt = "digital", cur = "CA";
 const NOTE = {{digital: "Digital: two-page spreads, as the profile is meant to be read on screen.",
-  print: "Print: every page 8.5 × 11 in, in order for double-sided printing: the cover with a blank back, then two pages per sheet (2 and 3, 4 and 5, …). Print double-sided, flip on the long edge."}};
-function setFmt(f) {{ fmt = f; $("fd").setAttribute("aria-pressed", f === "digital"); $("fp").setAttribute("aria-pressed", f === "print");
-  $("all").href = "pdf/" + (f === "print" ? "{ZIP_PRINT}" : "{ZIP_NAME}"); $("all").setAttribute("download", f === "print" ? "{ZIP_PRINT}" : "{ZIP_NAME}");
+  print: "Print: every page 8.5 × 11 in, in order for double-sided printing: the cover with a blank back, then two pages per sheet (2 and 3, 4 and 5, …). Print double-sided, flip on the long edge.",
+  summary: "Summary: the profile's headline numbers on one sheet, printed front and back (8.5 × 11 in)."}};
+function setFmt(f) {{ fmt = f; $("fd").setAttribute("aria-pressed", f === "digital"); $("fp").setAttribute("aria-pressed", f === "print"); $("fs").setAttribute("aria-pressed", f === "summary");
+  $("all").href = "pdf/" + ZIPS[f]; $("all").setAttribute("download", ZIPS[f]);
   $("fmtnote").textContent = NOTE[f]; show(cur); }}
-$("fd").onclick = () => setFmt("digital"); $("fp").onclick = () => setFmt("print");
-function show(s) {{ if (!N[s]) s = "CA"; cur = s; const file = "pdf/" + s + (fmt === "print" ? "_print" : "") + ".pdf";
+$("fd").onclick = () => setFmt("digital"); $("fp").onclick = () => setFmt("print"); $("fs").onclick = () => setFmt("summary");
+function show(s) {{ if (!N[s]) s = "CA"; cur = s; const file = "pdf/" + s + SUF[fmt] + ".pdf";
   $("st").value = s; $("pdf").src = file + "#view=FitH";
-  $("dl").href = file; $("dl").setAttribute("download", fmt === "print" ? FP[s] : F[s]); $("prof").href = s + ".html";
+  $("dl").href = file; $("dl").setAttribute("download", {{digital: F, print: FP, summary: FS}}[fmt][s]); $("prof").href = s + ".html";
   $("meta").textContent = "Compared with the four states closest in enrollment"; document.title = N[s] + " State Talent Profile PDF";
   try {{ history.replaceState(null, "", "#" + s); }} catch (e) {{}} }}
 $("st").onchange = e => show(e.target.value);
 addEventListener("hashchange", () => show(location.hash.slice(1).toUpperCase()));
 try {{ const t = localStorage.getItem("se-theme"); if (t) document.documentElement.dataset.theme = t; }} catch (e) {{}}
 cur = location.hash.slice(1).toUpperCase() || "CA";   // read the state before setFmt redraws (show() rewrites the hash)
-setFmt(new URLSearchParams(location.search).get("format") === "print" ? "print" : "digital");
+{{ const q = new URLSearchParams(location.search).get("format"); setFmt(SUF[q] !== undefined ? q : "digital"); }}
 </script></body></html>"""
     out = PROF / "viewer.html"
     out.write_text(html)
@@ -527,4 +545,5 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     sts = list(S.TILES) if (not args or "--all" in args) else [a.upper() for a in args]
     render(sts)
+    render(sts, "summary")   # the two-sided summary sheet, <ST>_summary.pdf
     print("viewer:", write_viewer(), "| zips:", ", ".join(p.name for p in zip_all()))

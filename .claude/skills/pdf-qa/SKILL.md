@@ -36,6 +36,9 @@ What it catches, and why each matters:
 - **Empty comparisons**: "U.S. –" (a U.S. comparison with no value; drop it instead), a stat caption that opens
   on "·", and signed zeros ("+0.0 pp", "−0.0%"), which read as a change. Build caption parts as a list and
   `.filter(Boolean).join(" · ")`; use `sgn1()` for signed one-decimal changes.
+- **Summary sheet** (`<ST>_summary.pdf`): exactly two pages, nothing running into the footer or past the page
+  edge, no NaN/undefined, "U.S. –" or signed zeros, and DC named "the District of Columbia" in running text.
+  `--pdf` also renders the summaries and checks their fonts.
 - **Margins, NaN/undefined, browser errors**, and with `--pdf`: fonts embedded, no Type3, even print page count.
 
 ## Look at the pages
