@@ -430,6 +430,8 @@ const rowFact = (m, label) => { const r = row(m); if (r.v1 == null) return ""; c
   const b = r.y0 != null && r.v0 != null && r.y0 < (r.yp ?? r.y1) ? `${p ? " and" : ","} ${chgR(r, r.v0, r.v1)} since ${r.y0}, when it was ${f(r.v0)}` : "";
   return `<b>${label || esc(cleanT0(SHORT[m] || r.title))}.</b> ${/rate\b/i.test(r.title) && r.unit === "%" ? "The rate" : nounU(r.unit, r.fmt)} was ${f(r.v1)} in ${r.y1}${us}${rk}${p}${b}.`; };
 const cleanT0 = t => t.replace(/ \((SEVIS|DOL|USCIS|ACS|IPEDS|PSEO|NSF[^)]*|ICE[^)]*|NAEP)\)$/, "");
+/* a graduation rate of exactly 0 means no cohort that year (a sector with no first-time students), not a rate */
+const noZero = o => o && o.v ? {...o, v: o.v.map(s => s.map(x => x === 0 ? null : x))} : o;
 const shares = o => ({y: o.y, k: o.k, v: o.k.map((_, j) => o.y.map((_, i) => { const t = o.v.reduce((a, s) => a + (s[i] || 0), 0); return t && o.v[j][i] != null ? 100 * o.v[j][i] / t : null; }))});
 
 /* ---------------- charts ---------------- */
@@ -465,6 +467,8 @@ function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104,
       const lines = fit(full) ? [full] : fit(nm) ? [nm, vt] : [...wrap2(nm).slice(0, 2), vt];   // a long name wraps, it is never cut
       ends.push({y: Y(lv), x: mixedEnds ? X(ys[ys.length - 1]) : X(lastY(s.s)), c: s.c, lines, bold: s.bold}); } }
   ends.sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) { const need = EF * 1.2 * ends[i - 1].lines.length + EF * .4; if (ends[i].y - ends[i - 1].y < need) ends[i].y = ends[i - 1].y + need; }
+  /* keep the stack above the x-axis year labels: push the lowest up, then re-space upward */
+  if (ends.length) { const lim = H - B - EF * 1.15 * (ends[ends.length - 1].lines.length - 1) - EF * .5; if (ends[ends.length - 1].y > lim) { ends[ends.length - 1].y = lim; for (let i = ends.length - 2; i >= 0; i--) { const need = EF * 1.2 * ends[i].lines.length + EF * .4; if (ends[i + 1].y - ends[i].y < need) ends[i].y = ends[i + 1].y - need; } } }
   h += ends.map(e => `<text x="${e.x + 6 * fs}" y="${e.y + EF * .35}" style="fill:${e.c};font-weight:${e.bold ? 800 : 700};font-size:${EF.toFixed(1)}px">${e.lines.map((t, j) => `<tspan x="${e.x + 6 * fs}" dy="${j ? EF * 1.15 : 0}">${esc(t)}</tspan>`).join("")}</text>`).join("");
   return `<svg data-ax="y" viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
@@ -536,7 +540,8 @@ function bars2(rows, la, lb, {W = FW, Lw = 170, fmt = nf, fs = 1, rh: RH} = {}) 
   rows.forEach((r, i) => { const y = i * rh;
     h += `<text x="${Lw - 8 * fs}" y="${y + rh / 2 + 2.5 * fs}" text-anchor="end" style="fill:#1c1c1c;font-size:${fz(7.5 * fs).toFixed(1)}px">${esc(r.name)}</text>`;
     [[r.a, CRIM, rh / 2 - bh - 1 * fs], [r.b, TEAL, rh / 2 + 1 * fs]].forEach(([v, c, o]) => { if (v == null) return; const x0 = Math.min(X(0), X(v)), w = Math.abs(X(v) - X(0));
-      h += `<rect x="${x0}" y="${y + o}" width="${Math.max(.5, w)}" height="${bh}" fill="${c}"/><text x="${v >= 0 ? X(v) + 4 * fs : X(v) - 4 * fs}" y="${y + o + bh - .5}" text-anchor="${v >= 0 ? "start" : "end"}" style="fill:${c};font-weight:700;font-size:${fz(6.6 * fs).toFixed(1)}px">${v > 0 ? "+" : ""}${fmt(v)}</text>`; }); });
+      const lt = (v > 0 ? "+" : "") + fmt(v), inL = v < 0 && X(v) - 4 * fs - lt.length * fz(6.6 * fs) * .62 < Lw + 2;
+      h += `<rect x="${x0}" y="${y + o}" width="${Math.max(.5, w)}" height="${bh}" fill="${c}"/><text x="${v >= 0 ? X(v) + 4 * fs : inL ? X(0) + 4 * fs : X(v) - 4 * fs}" y="${y + o + bh - .5}" text-anchor="${v >= 0 || inL ? "start" : "end"}" style="fill:${c};font-weight:700;font-size:${fz(6.6 * fs).toFixed(1)}px">${v > 0 ? "+" : ""}${fmt(v)}</text>`; }); });
   return legendHTML([{n: la, c: CRIM, kind: "sq"}, {n: lb, c: TEAL, kind: "sq"}]) + `<svg data-ax="x" viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 /* dot plot with value columns: state (filled crimson) vs U.S. (open teal) on a share axis, then State / U.S. / Gap
@@ -579,7 +584,7 @@ function stackYears(o, years, {W = 624, H = 400, hatch = null} = {}) {
   const ys = years.filter(y => o.y.includes(y)), lw = 50, bw = W - lw, bh = Math.min(110, (H - 10) / Math.max(1, ys.length) * .52), gap = ys.length > 1 ? (H - 10 - ys.length * bh) / (ys.length - 1) : 0;
   const sh = ys.map(y => { const i = o.y.indexOf(y), t = o.v.reduce((a, s) => a + (s[i] || 0), 0) || 1; return o.k.map((k, j) => 100 * (o.v[j][i] || 0) / t); });
   let h = "";
-  sh.forEach((d, i) => { const y = i * (bh + gap); let x = lw;
+  sh.forEach((d, i) => { const y = i * (bh + gap); let x = lw, lastL = null;
     h += `<text x="0" y="${y + bh / 2}" dominant-baseline="middle" style="fill:#111;font-weight:800">${ys[i]}</text>`;
     d.forEach((v, j) => { const w = bw * v / 100;
       if (i < sh.length - 1) { const nx = sh[i + 1], xa = lw + bw * d.slice(0, j).reduce((a, b) => a + b, 0) / 100, xb = lw + bw * nx.slice(0, j).reduce((a, b) => a + b, 0) / 100, wb = bw * nx[j] / 100;
@@ -588,7 +593,8 @@ function stackYears(o, years, {W = 624, H = 400, hatch = null} = {}) {
       const hv = hatch && o.k[j] === hatch.k ? hatch.by[ys[i]] || 0 : 0, hw = Math.min(bw * hv / 100, w - 2);
       if (hw > 1) h += `<rect x="${x + w - 2 - hw}" y="${y}" width="${hw}" height="${bh}" fill="url(#hatchRC)"/>`;
       if (w > 44) h += `<text x="${x + 8}" y="${y + bh / 2}" dominant-baseline="middle" style="fill:${inkOn(PAL[j % PAL.length])};font-weight:800">${pct(v)}</text>`;
-      else if (v >= .5) h += `<text x="${x + w / 2}" y="${y - 6}" text-anchor="middle" style="fill:#111;font-weight:700">${pct(v)}</text>`;   // small segments labelled above the bar
+      else if (v >= .5) { const cx = x + w / 2, tw = pct(v).length * 7.4, row_ = lastL && cx - tw / 2 < lastL.r + 4 ? lastL.row + 1 : 0; lastL = {r: cx + tw / 2, row: row_};
+        h += `<text x="${cx}" y="${y - 6 - row_ * 14}" text-anchor="middle" style="fill:#111;font-weight:700">${pct(v)}</text>`; }   // small segments labelled above the bar, stepped up when they would touch
       x += w; }); });
   const defs = hatch ? `<defs><pattern id="hatchRC" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="${PAL[o.k.indexOf(hatch.k) % PAL.length]}"/><line x1="0" y1="0" x2="0" y2="6" stroke="#fff" stroke-width="2.4"/></pattern></defs>` : "";
   const hl = hatch ? [{n: hatch.n, c: `repeating-linear-gradient(135deg, ${PAL[o.k.indexOf(hatch.k) % PAL.length]} 0 2px, #fff 2px 4px)`, kind: "sq"}] : [];
@@ -816,7 +822,7 @@ const buildBTN = () => {
       `<table class="dt" style="margin-top:6px"><tr><th>Per FTE student, ${yF}</th>${fi.st.k.map(k => `<th>${esc(k)}</th>`).join("")}</tr><tr><td>${esc(NAME)}</td>${fi.st.k.map(k => `<td class="focus">${usd(last(kser(fi.st, k)))}</td>`).join("")}</tr><tr><td>United States</td>${fi.us.k.map(k => `<td>${usd(last(kser(fi.us, k)))}</td>`).join("")}</tr></table>`, `Core revenue sources per FTE student at public institutions, 2024 dollars. ${SRC} Finance.`)); })();
 
 /* ---------------- 8 Outcomes ---------------- */
-(() => { const o = P.outcomes, s6 = o.bach6_by_sector, bp = row("bach_per_100_ug");
+(() => { const o = P.outcomes, s6 = noZero(o.bach6_by_sector), bp = row("bach_per_100_ug");
   chapter("Student Outcomes", `<p>${pct(last(o.bach6_st))} of students who started a bachelor's degree at ${esc(NAME)}'s four-year institutions finished within six years (cohort reported in ${lastY(o.bach6_st)}), ${cmp(last(o.bach6_st), last(o.bach6_us))} and ${rk("grad_rate_bach6")}. At two-year institutions ${pct(last(o.two_st))} completed within 150% of normal time (U.S. ${pct(last(o.two_us))}). The state awards ${nf(bp.v1, 1)} bachelor's degrees per 100 undergraduates (U.S. ${nf(bp.us1, 1)}).</p>
     <p>By sector, six-year rates are ${s6.k.map(k => `${pct(last(kser(s6, k)))} at ${k.toLowerCase()} institutions`).join(", ")}. Gaps by race and ethnicity are shown below for groups with at least 100 students in the cohort.</p>`,
     duo(fig("Six-Year Bachelor's Graduation Rate", lineSVG({series: pairs([{name: ST, st: o.bach6_st, us: o.bach6_us, c: CRIM}]), W: HALF, H: 160, right: 60, zero: false}), `Completion within 150% of normal time, four-year institutions. ${SRC} Graduation Rates.`),
@@ -1349,7 +1355,7 @@ function buildSpreads() {
         stats: ok(["dol_h1b_positions", "dol_perm_cert", "dol_perm_f1_share"])});
       if (has("dol_perm_india_share") || has("dol_h1b_stem_share")) hero("", {title: `Who Holds ${esc(NAME)}'s Skilled-Visa Jobs?`, legend: legP([["dol_h1b_stem_share", "STEM share of H-1B positions"], ["dol_perm_india_share", "Indian citizens' share of PERM"], ["dol_perm_f1_share", "F-1 students' share of PERM"]]),
         chart: H => HL(pr([["dol_h1b_stem_share", "STEM share of H-1B positions"], ["dol_perm_india_share", "Indian citizens' share of PERM"], ["dol_perm_f1_share", "F-1 students' share of PERM"]]), H),
-        src: `State solid, U.S. dashed. PERM citizenship and class of admission are not on the form DOL uses from FY2025. Data from DOL, Office of Foreign Labor Certification.`,
+        src: `Share of the state's H-1B positions and PERM green-card certifications; state solid, U.S. dashed. PERM citizenship and class of admission are not on the form DOL uses from FY2025. Data from DOL, Office of Foreign Labor Certification.`,
         paras: [row("dol_h1b_stem_share").v1 != null ? `${fv("dol_h1b_stem_share")} of the state's certified H-1B positions were in STEM occupations in FY${row("dol_h1b_stem_share").y1} (U.S. ${fus("dol_h1b_stem_share")}).` : "",
           row("dol_perm_india_share").v1 != null ? `Citizens of India held ${fv("dol_perm_india_share")} of the state's PERM certifications in FY${row("dol_perm_india_share").y1} (U.S. ${fus("dol_perm_india_share")}). Under per-country caps they face the longest waits for a green card, so this share measures the state's exposure to the backlog.` : ""],
         stats: ok(["dol_h1b_stem_share", "dol_perm_india_share", "dol_h1b_median_wage"])}); }
@@ -1485,7 +1491,7 @@ function buildSpreads() {
         MR.slice(0, 4).map(m => rowFact(m)))); }
 
   /* ===== 7  Outcomes ===== */
-  { const o = P.outcomes, s6 = o.bach6_by_sector, g6 = row("grad_rate_bach6"), g2 = row("grad_rate_2yr");
+  { const o = P.outcomes, s6 = noZero(o.bach6_by_sector), g6 = row("grad_rate_bach6"), g2 = row("grad_rate_2yr");
     hero("Student outcomes", {head: "Student Outcomes", title: `How Do Graduation Rates Differ by Sector?`, legend: legendHTML(s6.k.map((k, i) => ({n: k, c: PAL[i]}))),
       chart: H => HL(multi(s6), H, {zero: false, right: 250}), src: `Six-year bachelor's graduation rate by sector of institution. Data from NCES, IPEDS Graduation Rates.`,
       paras: [`${pct(g6.v1)} of students who started a bachelor's degree at a four-year institution in ${esc(NAME)} graduated within six years (${g6.y1}), ${cmp(g6.v1, g6.us1)}; the state ranks ${rk("grad_rate_bach6")}.`,

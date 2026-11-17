@@ -39,6 +39,7 @@ What it catches, and why each matters:
 - **Summary sheet** (`<ST>_summary.pdf`): exactly two pages, nothing running into the footer or past the page
   edge, no NaN/undefined, "U.S. –" or signed zeros, and DC named "the District of Columbia" in running text.
   `--pdf` also renders the summaries and checks their fonts.
+- **Chart text**: no two labels in one chart overlap (line ends, axis years, small-segment labels, bar values), and every axis title names what is measured, not just "Percent" or "Number".
 - **Margins, NaN/undefined, browser errors**, and with `--pdf`: fonts embedded, no Type3, even print page count.
 
 ## Look at the pages

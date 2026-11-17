@@ -44,6 +44,11 @@ JS = r"""(() => {
   const sections = sel('section');
   /* reconciliation: numbers that must agree with each other */
   const usHundred = (txt.match(/U\.S\.\s*100(\.0)?%/g) || []).length;          // share-of-U.S. measures have no U.S. value
+  /* chart text that collides: any two labels in one SVG overlapping by more than 3 x 4 px */
+  const collide = []; document.querySelectorAll('section.spread svg').forEach(svg => { const ts = [...svg.querySelectorAll('text')].filter(t => t.textContent.trim()).map(t => ({t, r: t.getBoundingClientRect()})).filter(o => o.r.width > 0);
+    for (let i = 0; i < ts.length; i++) for (let j = i + 1; j < ts.length; j++) { const a = ts[i].r, b = ts[j].r, w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (w > 3 && h > 4) collide.push(ts[i].t.textContent.slice(0, 24) + ' / ' + ts[j].t.textContent.slice(0, 24)); } });
+  const vagueAx = [...document.querySelectorAll('section.spread text.ylab, section.spread .xax')].filter(e => /^(Percent|Number|Dollars)?$/.test(e.textContent.trim())).length;
   const dotLead = [...document.querySelectorAll('.stat .c, .t9 .c')].filter(e => /^\s*·/.test(e.textContent)).length;   // caption opening on a separator
   const szEx = [...txt.matchAll(/.{0,70}[+−-]0\.0(?!\d)\s*(pp|pts|points|%)/g)].map(m => m[0]), signedZero = szEx.length;   // '+0.0 pp' reads as a change
   const usDash = (txt.match(/U\.S\.\s*[–-]\s*[)·,;]/g) || []).length;          // a U.S. comparison with no value
@@ -63,7 +68,7 @@ JS = r"""(() => {
       const b = l.getBBox(), d = x => Math.min(Math.abs(b.x - x), Math.abs(b.x + b.width - x)), fx = +f.getAttribute('cx'), ox = +o.getAttribute('cx');
       if (Math.abs(fx - ox) > 14 && d(ox) < d(fx) - 2) dumbBad.push(l.textContent.trim()); }); });
   return {
-    usHundred, usDash, dotLead, signedZero, szEx: szEx.slice(0, 2), instMismatch, sevisNoteMissing, dumbBad: dumbBad.slice(0, 6), dumbBadN: dumbBad.length,
+    usHundred, usDash, collide: collide.slice(0, 4), collideN: collide.length, vagueAx, dotLead, signedZero, szEx: szEx.slice(0, 2), instMismatch, sevisNoteMissing, dumbBad: dumbBad.slice(0, 6), dumbBadN: dumbBad.length,
     pairs: sel('.phead').length, rails: sel('.prail').length, sheets: sections.length,
     errorsNan: [txt.split('NaN').length - 1, txt.split('undefined').length - 1],
     overflow: {lede: sel('.plede').filter(over).length, head: sel('.phead').filter(over).length, rail: sel('.prail').filter(over).length},
@@ -160,6 +165,8 @@ def flags(r: dict) -> list[str]:
     if r.get("ledeKept") and min(r["ledeKept"]) < 1: out.append("a paired page lost all its prose")
     if r.get("dotLead"): out.append(f"{r['dotLead']} stat caption(s) start with '·'")
     if r.get("signedZero"): out.append(f"signed zero change (+0.0/−0.0) printed {r['signedZero']} time(s): {r.get('szEx')}")
+    if r.get("collideN"): out.append(f"{r['collideN']} chart label collision(s): {r.get('collide')}")
+    if r.get("vagueAx"): out.append(f"{r['vagueAx']} figure(s) with an axis title that only names the unit")
     if r.get("usDash"): out.append(f"'U.S. –' printed {r['usDash']} time(s) (drop the comparison when the U.S. value is missing)")
     if r.get("usHundred"): out.append(f"'U.S. 100%' printed {r['usHundred']} time(s) (share-of-U.S. measures have no U.S. value)")
     if r.get("instMismatch"): out.append(f"institution count {r['instMismatch']}")
