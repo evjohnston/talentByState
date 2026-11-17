@@ -876,8 +876,7 @@ function buildSpreads() {
      section, so a section can be found with the book closed. CURSEC is set by sec(name). */
   let CURSEC = null;
   const PX = 96, LOGO = dark => ((D.logos || {})[dark ? "dark" : "light"] || []).map(u => `<img src="${u}" alt="">`).join("");
-  const page = (n, side, dark = false) => `<div class="rhd"><div class="lg">${LOGO(dark)}</div><div class="t"><b>${esc(NAME)} State Talent Profile</b><span>${CURSEC ? (CURSEC.n ? `Section ${CURSEC.n}: ${esc(CURSEC.name)}` : esc(CURSEC.name)) : ""}</span></div></div><div class="fol" style="${side === "L" ? "left:96px" : "right:96px"}">${n}</div>`
-    + (side === "R" && CURSEC && CURSEC.n ? `<div class="ttab" style="top:${110 + (CURSEC.n - 1) * 46}px">${CURSEC.n}</div>` : "");
+  const page = (n, side, dark = false) => `<div class="rhd"><div class="lg">${LOGO(dark)}</div><div class="t"><b>${esc(NAME)} State Talent Profile</b><span>${CURSEC ? (CURSEC.n ? `Section ${CURSEC.n}: ${esc(CURSEC.name)}` : esc(CURSEC.name)) : ""}</span></div></div><div class="fol" style="${side === "L" ? "left:96px" : "right:96px"}">${n}</div>`;
   let FOL = 2; const TOC = [];
   const spread0 = (title, L, Rt, over = "", lcls = "", rcls = "") => { const n = FOL; if (title) TOC.push([n, title]); FOL += 2;
     const dk = c => /\b(dark|fm)\b/.test(c);

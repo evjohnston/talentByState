@@ -1623,8 +1623,8 @@ master's plus doctorates) it is ranked by. Figure and table numbers are assigned
 and each page holds 18 px back so a longer number never wraps a title past the margin.
 
 **Wayfinding and print.** The running head on every page names the profile and the current section ("Section 5:
-Graduate Research"); every right page in a section carries a crimson thumb tab with the section number on its
-outer edge, one step lower per section; the digital PDF has a bookmark for every table-of-contents entry. Each
+Graduate Research"); the digital PDF has a bookmark for every table-of-contents entry (the numbered thumb tabs on
+the page edge were removed at the user's request, 2026-11-16). Each
 section's headline fact, set as a crimson pull quote, is where the state ranks among the 51 on the section's most
 distinctive key measure (the one ranked nearest the top or bottom), with its value and the U.S. figure. In the District of Columbia's profile, running text says "the District of Columbia". For greyscale printing, every line end names its series (name above value when both don't fit), U.S. lines
 use heavier long dashes, small segments of 100% bars are labelled above the bar, and secondary text and table
