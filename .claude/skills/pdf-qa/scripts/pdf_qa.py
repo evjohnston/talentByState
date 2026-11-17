@@ -52,8 +52,8 @@ JS = r"""(() => {
   const tight = [], misalign = [];
   document.querySelectorAll('section.spread .rcol .r-fig, section.spread .abs > .fig').forEach(f => { const prev = f.previousElementSibling; if (!prev) return;
     const g = f.getBoundingClientRect().top - prev.getBoundingClientRect().bottom; if (g < 18) tight.push(((f.querySelector('.ft') || {}).textContent || '').slice(0, 40) + ` (${Math.round(g)} px)`); });
-  document.querySelectorAll('section.spread').forEach(sp => { const b = [...sp.querySelectorAll(':scope > .pg')].map(pg => { const e = pg.querySelector('.rcol .r-body'); return e ? e.getBoundingClientRect().top - pg.getBoundingClientRect().top : null; });
-    if (b[0] != null && b[1] != null && Math.abs(b[0] - b[1]) > 40 && b[1] < b[0]) misalign.push(Math.round(b[0] - b[1])); });
+  document.querySelectorAll('section.spread').forEach(sp => { const b = [...sp.querySelectorAll(':scope > .pg')].map(pg => { const e = pg.querySelector('.rcol'); return e ? e.getBoundingClientRect().top - pg.getBoundingClientRect().top : null; });
+    if (b[0] != null && b[1] != null && b[1] > b[0] + 40) misalign.push(Math.round(b[1] - b[0])); });   // a right page left blank at the top
   const vagueAx = [...document.querySelectorAll('section.spread text.ylab, section.spread .xax')].filter(e => /^(Percent|Number|Dollars)?$/.test(e.textContent.trim())).length;
   const dotLead = [...document.querySelectorAll('.stat .c, .t9 .c')].filter(e => /^\s*·/.test(e.textContent)).length;   // caption opening on a separator
   const szEx = [...txt.matchAll(/.{0,70}[+−-]0\.0(?!\d)\s*(pp|pts|points|%)/g)].map(m => m[0]), signedZero = szEx.length;   // '+0.0 pp' reads as a change
@@ -174,7 +174,7 @@ def flags(r: dict) -> list[str]:
     if r.get("collideN"): out.append(f"{r['collideN']} chart label collision(s): {r.get('collide')}")
     if r.get("vagueAx"): out.append(f"{r['vagueAx']} figure(s) with an axis title that only names the unit")
     if r.get("tightN"): out.append(f"{r['tightN']} figure(s) crowding the text above: {r.get('tight')}")
-    if r.get("misalign"): out.append(f"{r['misalign']} spread(s) whose right-page text starts well above the left page's")
+    if r.get("misalign"): out.append(f"{r['misalign']} spread(s) whose right page starts well below the left page (blank band under the running head)")
     if r.get("usDash"): out.append(f"'U.S. –' printed {r['usDash']} time(s) (drop the comparison when the U.S. value is missing)")
     if r.get("usHundred"): out.append(f"'U.S. 100%' printed {r['usHundred']} time(s) (share-of-U.S. measures have no U.S. value)")
     if r.get("instMismatch"): out.append(f"institution count {r['instMismatch']}")

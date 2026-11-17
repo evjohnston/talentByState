@@ -488,7 +488,7 @@ function fig(title, body, source, {table = false} = {}) {
   const ax = esc(axisLabel(source) || (!/\?$/.test(tt) && tt.length < 50 ? tt.replace(/^Int\. /, "International ") : ""));   // a short, plain title names the measure when the source line does not
   const fitAx = (t, n) => { if (t.length <= n) return t; const sh = t.replace(/^International /, "Int. ").replace(/ graduate / , " grad "); if (sh.length <= n) return sh; let c = t.slice(0, t.lastIndexOf(" ", n)); c = c.replace(/(\s+(by|of|on|in|and|the|for|with|to|at|from|their|its|a|an))+$/i, ""); return c.length >= 10 ? c : ""; };
   body = String(body).replace(/__YLAB:([^:_]*):(\d+)__/g, (m, u, n) => fitAx(ax, +n) || (u.length <= +n ? u : "")).replace(/__YLAB__/g, ax).replace(/(<svg data-ax="x"[\s\S]*?<\/svg>)/, ax ? `$1<div class="xax">${ax}</div>` : "$1");
-  return `<div class="fig"><div class="ft"><em>${table ? "Table" : "Figure"} ${n}</em> ${title}</div>${body}<div class="fs">${source}${BYLINE ? `<br>${table ? "Table" : "Chart"} by ${esc(BYLINE)}, Stanford University` : ""}</div></div>`;
+  return `<div class="fig"><div class="ft"><em>${table ? "Table" : "Figure"} ${n}</em> ${title}</div>${body}<div class="fs">${source}${BYLINE ? ` ${table ? "Table" : "Chart"} by ${esc(BYLINE)}, Stanford University` : ""}</div></div>`;
 }
 const duo = (a, b) => `<div class="duo">${a}${b}</div>`;
 function pairs(list, opt = {}) {
@@ -887,7 +887,8 @@ function buildSpreads() {
      section, so a section can be found with the book closed. CURSEC is set by sec(name). */
   let CURSEC = null;
   const PX = 96, LOGO = dark => ((D.logos || {})[dark ? "dark" : "light"] || []).map(u => `<img src="${u}" alt="">`).join("");
-  const page = (n, side, dark = false) => `<div class="rhd"><div class="lg">${LOGO(dark)}</div><div class="t"><b>${esc(NAME)} State Talent Profile</b><span>${CURSEC ? (CURSEC.n ? `Section ${CURSEC.n}: ${esc(CURSEC.name)}` : esc(CURSEC.name)) : ""}</span></div></div><div class="fol" style="${side === "L" ? "left:96px" : "right:96px"}">${n}</div>`;
+  /* running head across the spread: the logos on the left page, the profile and section titles on the right page */
+  const page = (n, side, dark = false) => `<div class="rhd">${side === "L" ? `<div class="lg">${LOGO(dark)}</div>` : `<div class="t" style="margin-left:auto"><b>${esc(NAME)} State Talent Profile</b><span>${CURSEC ? (CURSEC.n ? `Section ${CURSEC.n}: ${esc(CURSEC.name)}` : esc(CURSEC.name)) : ""}</span></div>`}</div><div class="fol" style="${side === "L" ? "left:96px" : "right:96px"}">${n}</div>`;
   let FOL = 2; const TOC = [];
   const spread0 = (title, L, Rt, over = "", lcls = "", rcls = "") => { const n = FOL; if (title) TOC.push([n, title]); FOL += 2;
     const dk = c => /\b(dark|fm)\b/.test(c);
@@ -1067,9 +1068,9 @@ function buildSpreads() {
       if (H < minH && ps.length > 1) { ps.pop(); continue; }
       fitFig(box, fg, H - 86, H);
       if (box.getBoundingClientRect().bottom - pr.top > RBOT - 14 && ps.length > 1) { ps.pop(); continue; }   // a table that cannot shrink: give up a paragraph
-      /* a table that ends early: its rows share out the height left, at most 12 px more padding a side */
+      /* a table that ends early: its rows share out the height left, at most 18 px more padding a side */
       { const tb = box.querySelector("table"), spare = H - 6 - box.scrollHeight, rows = tb ? tb.querySelectorAll("tr").length : 0;
-        if (tb && spare > 24 && rows) { const add = Math.min(12, spare / rows / 2); tb.querySelectorAll("td, th").forEach(c => { const cs = getComputedStyle(c); c.style.paddingTop = (parseFloat(cs.paddingTop) + add) + "px"; c.style.paddingBottom = (parseFloat(cs.paddingBottom) + add) + "px"; }); } }
+        if (tb && spare > 24 && rows) { const add = Math.min(18, spare / rows / 2); tb.querySelectorAll("td, th").forEach(c => { const cs = getComputedStyle(c); c.style.paddingTop = (parseFloat(cs.paddingTop) + add) + "px"; c.style.paddingBottom = (parseFloat(cs.paddingBottom) + add) + "px"; }); } }
       break; } };
   /* the key numbers of the current section as a report-style table (the page partner of a single page) */
   const keyNums = () => { const k = CURSEC && Object.keys(STATS).find(x => x.toLowerCase() === String(CURSEC.name).toLowerCase()), ms = [...new Set([...((CURSEC || {}).ms || []), ...(k ? STATS[k] : [])])];
@@ -1078,15 +1079,14 @@ function buildSpreads() {
     rpage(sp.children[0], a); rpage(sp.children[1], {fig: keyNums()}); }
   /* one page of text and a figure; two in a row share a spread */
   const pageUnit = spec => { if (!PEND) { PEND = spec; return; } const a = PEND; PEND = null; spread0(a.toc || spec.toc, "", ""); const sp = doc.lastElementChild;
-    rpage(sp.children[0], a); const lb = sp.children[0].querySelector(".r-body, .r-fig"), top = a.h2 && lb ? Math.min(330, Math.round(lb.getBoundingClientRect().top - sp.children[0].getBoundingClientRect().top)) : RTOP; rpage(sp.children[1], {...spec, top}); };
+    rpage(sp.children[0], a); rpage(sp.children[1], spec); };
   /* paired spread: the question as the left page's section heading over its text and figure; the right page opens
      with the section's headline fact as a pull quote, then its text and figure. o = {sec, h, stats, a: {fig(H), lede[]}, b} */
   const pair = (toc, o) => {
     noteMs(o.stats); spread(toc, "", ""); const sp = doc.lastElementChild;
     const q = o.quote !== undefined ? o.quote : headline((o.stats || []).filter(m => typeof m === "string"));
     rpage(sp.children[0], {h2: o.h, paras: o.a.lede, fig: o.a.fig});
-    const lb = sp.children[0].querySelector(".r-body, .r-fig"), top = lb ? Math.min(330, Math.round(lb.getBoundingClientRect().top - sp.children[0].getBoundingClientRect().top)) : RTOP;
-    rpage(sp.children[1], {h3: o.h3, quote: q, paras: o.b.lede, fig: o.b.fig, top}); };
+    rpage(sp.children[1], {h3: o.h3, quote: q, paras: o.b.lede, fig: o.b.fig}); };   // both pages start at the top of the live area
   /* the same from two one() objects: their "about" text and facts become the prose (facts as run-in paragraphs); with
      no partner page (b blank) the right page carries a facts table of the stat measures and the rest of a's prose */
   /* thin data: set THIN = [a too thin, b too thin] just before a pairOne call. A spread whose pages are both thin is
@@ -1108,9 +1108,10 @@ function buildSpreads() {
   const rail = (toc, o, side = "L") => {
     const n = ++figN, rx = side === "L" ? 96 : 1632 - 96 - RW, fx = side === "L" ? 96 + RW + 40 : 96;
     const st = (o.stats || []).map(bandStat).filter(Boolean).slice(0, 3);
-    const box = `<div class="abs prail" style="left:${rx}px;top:92px;width:${RW}px;height:870px"><div class="fno">Figure ${n}</div><div class="rh">${o.title}</div><div class="rr"></div><div class="rp">${o.lede.filter(Boolean).map(t => `<p>${t}</p>`).join("")}</div>${statDivs(st, true)}</div>`;
-    spread(toc, "", "", box + `<div class="abs pgF railF" style="left:${fx}px;top:100px;width:${RFW}px"></div>`); const sp = doc.lastElementChild;
-    fitFig(sp.querySelector(".railF"), H => `<div class="fig">${o.legend || ""}${o.chart(RFW, H)}<div class="fs">${o.src}</div></div>`, 790, 860);
+    /* the rail starts at RTOP, so the running head has as much white above it as below, as on the text pages */
+    const box = `<div class="abs prail" style="left:${rx}px;top:${RTOP}px;width:${RW}px;height:${RBOT - 22 - RTOP}px"><div class="fno">Figure ${n}</div><div class="rh">${o.title}</div><div class="rr"></div><div class="rp">${o.lede.filter(Boolean).map(t => `<p>${t}</p>`).join("")}</div>${statDivs(st, true)}</div>`;
+    spread(toc, "", "", box + `<div class="abs pgF railF" style="left:${fx}px;top:${RTOP + 6}px;width:${RFW}px"></div>`); const sp = doc.lastElementChild;
+    fitFig(sp.querySelector(".railF"), H => `<div class="fig">${o.legend || ""}${o.chart(RFW, H)}<div class="fs">${o.src}${BYLINE ? ` Chart by ${esc(BYLINE)}, Stanford University` : ""}</div></div>`, 760, 820);
     const rb = sp.querySelector(".prail"), rp = rb.querySelector(".rp"), over = () => rb.scrollHeight > rb.clientHeight + 1;
     while (over() && rp.children.length > 1) rp.lastElementChild.remove();
     let f = 15.4; while (over() && f > 13) { f -= .4; rb.style.setProperty("--fs", f + "px"); } };
@@ -1137,7 +1138,12 @@ function buildSpreads() {
     spread(toc, "", "", `${head}<div class="abs heroF" style="left:96px;right:96px;top:${top}px">${draw(H)}</div><div class="abs htxt" style="left:96px;right:96px;bottom:96px"><div class="sp-rule" style="width:100%;margin:0 0 18px"></div>${txt}</div>`);
     /* the chart shrinks until its caption clears the text block below (long captions, headlines) */
     const sp = doc.lastElementChild, hf = sp.querySelector(".heroF"), ht = sp.querySelector(".htxt"), gap = () => ht.getBoundingClientRect().top - hf.getBoundingClientRect().bottom;
-    let h = H; while (gap() < 10 && h > 200) { h -= 12; [figN, tabN] = n0; hf.innerHTML = draw(h); } };
+    let h = H;
+    /* the figure title sits 34 px under the heading block (as under a section heading), and the chart takes the height freed */
+    const hh = sp.querySelector(".hhead");
+    if (hh) { const t1 = Math.round(hh.getBoundingClientRect().bottom - sp.getBoundingClientRect().top) + 34;
+      if (t1 < top) { hf.style.top = t1 + "px"; h += top - t1; [figN, tabN] = n0; hf.innerHTML = draw(h); } }
+    while (gap() < 10 && h > 200) { h -= 12; [figN, tabN] = n0; hf.innerHTML = draw(h); } };
   const HL = (series, H, o = {}) => lineSVG({series, W: SW, H, right: 210, fs: 1.45, ...o});
 
   /* ===== 1  International dependence ===== */

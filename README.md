@@ -1592,9 +1592,12 @@ the PDF; 1 pt = 1.333 px on the 96 px/in pages). Montserrat stands in for Gotham
 Pro, since the report's fonts are licensed. Body text is Garamond 10 pt on 13 pt, black, in two columns; section
 headings Gotham Book 26 pt in taupe (#887e6f); subheads Gotham Bold 12 pt in crimson (#98002e); figure titles
 Gotham Bold 10.8 pt with "Figure n" in crimson; chart text 9 pt #404040; source lines 7.2 pt #737373 with the
-report's "Chart by Emerson Johnston and Amy Zegart, Stanford University"; pull quotes Gotham Book Italic 13 pt in
-crimson (Montserrat italic, `reference/fonts/montserrat-latin-400-italic.woff2`). Every page carries the report's
-running head: the logos at left, the profile title in crimson and the section at right. Every figure has an axis
+report's "Chart by Emerson Johnston and Amy Zegart, Stanford University" on the same line; pull quotes Gotham Book Italic 13 pt in
+crimson (Montserrat italic, `reference/fonts/montserrat-latin-400-italic.woff2`). The running head spans each
+spread: the logos on the left page, the profile title in crimson and the section on the right page. Every page's
+content starts at the top of the live area (`RTOP`, as far below the running head as the head is below the page
+edge); the right page of a pair does not leave a band to mirror the left page's heading, and the Sankey rail starts
+there too. Every figure has an axis
 title saying what it measures (line charts on the y-axis, bar and dot charts under the x-axis), taken from the
 description that opens its source line (`axisLabel` in the template).
 
@@ -1622,7 +1625,7 @@ shares a printed figure with one folded into "Other states"; Table 7 shades the 
 master's plus doctorates) it is ranked by. Figure and table numbers are assigned in reading order after layout,
 and each page holds 18 px back so a longer number never wraps a title past the margin.
 
-**Wayfinding and print.** The running head on every page names the profile and the current section ("Section 5:
+**Wayfinding and print.** The running head on every right page names the profile and the current section ("Section 5:
 Graduate Research"); the digital PDF has a bookmark for every table-of-contents entry (the numbered thumb tabs on
 the page edge were removed at the user's request, 2026-11-16). Each
 section's headline fact, set as a crimson pull quote, is where the state ranks among the 51 on the section's most
