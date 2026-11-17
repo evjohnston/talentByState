@@ -328,6 +328,11 @@ ol.bib li .bn { position: absolute; left: 0; font: 700 9px/1.65 Montserrat, sans
 .spread .rcol .legend { font: 400 10.8px Montserrat, sans-serif; color: #404040 }
 .xax { text-align: center; font: 400 10.8px Montserrat, sans-serif; color: #404040; margin-top: 4px }
 .spread .rcol table.dt td, .spread .rcol table.dt th { font-size: 10.8px !important }
+.spread .hhead h2.r-h2 { font: 400 34.67px/1.2 Montserrat, sans-serif; color: #887e6f; margin: 0; letter-spacing: -.005em }
+.spread .hhead .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 10px 0 0; max-width: 900px }
+.spread .htxt .sp-p { font: 400 13.33px/17.27px 'EB Garamond', serif; color: #000 }
+.spread .heroF .fig .ft, .spread .railF .fig .ft { font: 700 14.4px/1.3 Montserrat, sans-serif; color: #000 } .spread .heroF .fig .ft em, .spread .railF .fig .ft em { color: #98002e }
+.spread .heroF .fig .fs, .spread .railF .fig .fs { font: 400 9.6px/1.45 Montserrat, sans-serif; color: #737373 }
 </style>
 </head>
 <body>
@@ -988,7 +993,7 @@ function buildSpreads() {
   let SEC = 0; const sec = name => { flushPend(); CURSEC = {n: ++SEC, name, ms: []}; return `Section ${SEC}`; };
   const noteMs = ms => { if (CURSEC && CURSEC.ms) (ms || []).forEach(m => typeof m === "string" && !CURSEC.ms.includes(m) && CURSEC.ms.push(m)); };
   const mv = (s, u = "%") => moved(s, u) || "little changed";
-  const PW = 624, SW = 624, SRCC = "Data from NCES, IPEDS Completions.";
+  const PW = 624, SW = 1440, SRCC = "Data from NCES, IPEDS Completions.";
   const blank = `<div class="abs" style="left:96px;right:96px;top:96px;bottom:96px;display:grid;place-items:center"><div class="blank">This page intentionally left blank.</div></div>`;
   const onPage = html => `<div class="abs pgF" style="left:96px;right:96px;top:96px">${html}</div>`;
   const pages = (toc, Lh, Rh, lcls = "", rcls = "") => spread(toc, Lh, Rh, "", lcls, rcls);
@@ -1086,11 +1091,15 @@ function buildSpreads() {
      the outer edge of one page (side "L" or "R"); the figure fills the rest of the spread. o = {title, lede[], stats,
      legend, chart(W, H), src} */
   const RW = 262, RFW = 1632 - 192 - RW - 40;
-  const rail = (toc, o) => {
-    spread(toc, "", ""); const sp = doc.lastElementChild, st = (o.stats || []).filter(m => typeof m === "string"); noteMs(st);
-    const grp = st[0] && row(st[0]).group, ms = [...new Set([...st, ...(grp ? Object.keys(R).filter(m => R[m].group === grp) : [])])].filter(m => row(m).v1 != null).slice(0, 8);
-    rpage(sp.children[0], {h2: o.title, paras: o.lede, fig: ms.length ? factsT("Key Numbers", ms, (String(o.src).match(/Data from[^]*$/) || ["Data from NCES, IPEDS."])[0]) : null, minH: 220});
-    rpage(sp.children[1], {fig: H => fig(o.title, (o.legend || "") + o.chart(RW_, H - 30), o.src), minH: 600}); };
+  const rail = (toc, o, side = "L") => {
+    const n = ++figN, rx = side === "L" ? 96 : 1632 - 96 - RW, fx = side === "L" ? 96 + RW + 40 : 96;
+    const st = (o.stats || []).map(bandStat).filter(Boolean).slice(0, 3);
+    const box = `<div class="abs prail" style="left:${rx}px;top:92px;width:${RW}px;height:870px"><div class="fno">Figure ${n}</div><div class="rh">${o.title}</div><div class="rr"></div><div class="rp">${o.lede.filter(Boolean).map(t => `<p>${t}</p>`).join("")}</div>${statDivs(st, true)}</div>`;
+    spread(toc, "", "", box + `<div class="abs pgF railF" style="left:${fx}px;top:100px;width:${RFW}px"></div>`); const sp = doc.lastElementChild;
+    fitFig(sp.querySelector(".railF"), H => `<div class="fig">${o.legend || ""}${o.chart(RFW, H)}<div class="fs">${o.src}</div></div>`, 790, 860);
+    const rb = sp.querySelector(".prail"), rp = rb.querySelector(".rp"), over = () => rb.scrollHeight > rb.clientHeight + 1;
+    while (over() && rp.children.length > 1) rp.lastElementChild.remove();
+    let f = 15.4; while (over() && f > 13) { f -= .4; rb.style.setProperty("--fs", f + "px"); } };
   /* a facts table as a figure: measure, base year, previous year, latest, change, U.S., rank */
   const factsT = (title, ms, src) => H => { const rs = ms.filter(m => row(m).v1 != null); if (!rs.length) return "";
     return fig(title, `<table class="dt" style="--pad:${padFor(H, rs.length)}px;font-size:11.4px"><tr><th>Measure</th><th>${D.base}</th><th>Previous</th><th>Latest</th><th>Change</th><th>U.S.</th><th>Rank</th></tr>${rs.map(m => { const r = row(m), f = v => fmtSpec(v, r.fmt, r.unit);
@@ -1105,19 +1114,17 @@ function buildSpreads() {
     t = r.unit === "%" ? `the ${/share|rate/i.test(t) ? t : `share of ${t}`}` : /^(average|median)\b/i.test(t) ? `the ${t}` : t;   // shares and averages take "the"; counts read bare
     return `${esc(NAME)} ranks ${ord(r.rank)} of ${r.n} on ${esc(t)}, at ${f(r.v1)} in ${r.y1}${r.us1 != null ? ` against ${f(r.us1)} for the U.S.` : "."}`; };
   const hero = (toc, o) => {
-    if (o.head) sec(o.head);
-    const ps = (o.paras || []).filter(Boolean), st = (o.stats || []).filter(m => typeof m === "string"); noteMs(st);
-    const draw = H => F(o.title, (o.legend || "") + o.chart(H), o.src), hl = st.length ? headline(st) : "";
-    if (!st.length) return pageUnit({toc, h2: o.head || null, paras: ps, fig: draw, minH: 360});
-    /* text, pull quote and the section's key numbers on the left page; the chart at full height on the right */
-    const srcD = (String(o.src).match(/Data from[^]*$/) || ["Data from NCES, IPEDS."])[0];
-    const kk = Object.keys(STATS).find(x => x.toLowerCase() === String((CURSEC || {}).name).toLowerCase());
-    const grp = st[0] && row(st[0]).group, more = grp ? Object.keys(R).filter(m => R[m].group === grp && (!R[m].level || R[m].level === "master" || R[m].level === "all")) : [];
-    const ms = [...new Set([...st, ...((CURSEC || {}).ms || []), ...(kk ? STATS[kk] : []), ...more])].filter(m => row(m).v1 != null).slice(0, 8);
-    spread(toc, "", ""); const sp = doc.lastElementChild;
-    rpage(sp.children[0], {h2: o.head || null, paras: ps, quote: hl, fig: factsT(`How Does ${esc(NAME)} Compare?`, ms, srcD), minH: 240});
-    rpage(sp.children[1], {fig: draw, minH: 600}); };
-  const HL = (series, H, o = {}) => lineSVG({series, W: SW, H, right: 150, ...o});
+    const hl = o.head ? headline(o.stats) : "";
+    const head = o.head ? `<div class="abs hhead" style="left:96px;top:120px;width:1200px" data-sec="${sec(o.head)}"><h2 class="r-h2">${o.head}</h2>${hl ? `<div class="r-quote">${hl}</div>` : ""}</div>` : "";
+    const top = o.head ? (hl ? 262 : 196) : 124, H = (o.H || 500) + (o.head ? (hl ? -66 : 0) : 72);
+    const ps = o.paras.filter(Boolean).map(p => `<p class="sp-p">${p}</p>`).join("");
+    const txt = o.stats ? `<div style="display:grid;grid-template-columns:${PW}px ${PW}px;column-gap:192px;align-items:start"><div class="cols2">${ps}</div>${statsH(o.stats)}</div>` : `<div class="cols2" style="column-gap:192px">${ps}</div>`;
+    const n0 = [figN, tabN], draw = h => F(o.title, (o.legend || "") + o.chart(h), o.src);
+    spread(toc, "", "", `${head}<div class="abs heroF" style="left:96px;right:96px;top:${top}px">${draw(H)}</div><div class="abs htxt" style="left:96px;right:96px;bottom:96px"><div class="sp-rule" style="width:100%;margin:0 0 18px"></div>${txt}</div>`);
+    /* the chart shrinks until its caption clears the text block below (long captions, headlines) */
+    const sp = doc.lastElementChild, hf = sp.querySelector(".heroF"), ht = sp.querySelector(".htxt"), gap = () => ht.getBoundingClientRect().top - hf.getBoundingClientRect().bottom;
+    let h = H; while (gap() < 10 && h > 200) { h -= 12; [figN, tabN] = n0; hf.innerHTML = draw(h); } };
+  const HL = (series, H, o = {}) => lineSVG({series, W: SW, H, right: 210, fs: 1.45, ...o});
 
   /* ===== 1  International dependence ===== */
   hero("International dependence", {head: "International Dependence", title: `What Share of ${esc(NAME)}'s Degrees Go to International Students?`,
@@ -1241,7 +1248,7 @@ function buildSpreads() {
       stats: ["intl_share_master", "intl_share_stem_master", "stem_master_per_doc"]});
   }
   /* ===== 3  Where students come from: Sankey across the spread ===== */
-  hero("Where students come from", {head: "Where Students Come From", title: `First-Time Students by Home and Destination, Fall ${M.year}`, chart: H => sankeySVG(SW, H, 1.1),
+  hero("Where students come from", {head: "Where Students Come From", title: `First-Time Students by Home and Destination, Fall ${M.year}`, chart: H => sankeySVG(SW, H + 40, 1.45),
     src: `Home of first-time degree-seeking undergraduates (left) and the state of the institution entered (right); the five largest sources and destinations (more when states tie at the printed figure), the rest grouped; ties are ordered by exact count. Data from NCES, IPEDS Fall Enrollment.`,
     paras: [`${nf(M.stay)} residents stayed in ${esc(NAME)} for college in fall ${M.year}; ${nf(domIn)} students arrived from other states and ${nf(abroadN)} from abroad, while ${nf(M.out_total)} residents left.`,
       `Each band runs from a student's home on the left to the state where they enrolled on the right. ${pct(ins.v1)} of the state's first-time students are residents${ins.us1 != null ? ` (U.S. ${pct(ins.us1)})` : ""}.`],
@@ -1387,10 +1394,10 @@ function buildSpreads() {
     hero("Fields of study", {head: "Fields of Study", title: `How Many Degrees Does ${esc(NAME)} Award?`, legend: legendHTML(aw.k.map((k, i) => ({n: k, c: PAL[i]}))),
       chart: H => HL(multi(aw), H, {unit: "n", right: 270}), src: `Degrees awarded by level, first majors. ${SRCC}`,
       paras: [`In ${lastY(aw)}, ${esc(NAME)}'s institutions awarded ${awL.map(x => `${sig3(x.v)} ${esc(x.k.toLowerCase())} degrees`).join(", ")}.`, `Since ${D.base}: ${awL.map(x => `${esc(x.k.toLowerCase())} ${mv(kser(aw, x.k), "n").replace(/ since \d+$/, "")}`).join("; ")}. The state awards ${nf(row("bach_per_100_ug").v1, 1)} bachelor's degrees for every 100 undergraduates (U.S. ${nf(row("bach_per_100_ug").us1, 1)}).`]});
-    hero("", {title: `What Do ${esc(NAME)}'s Bachelor's Graduates Study?`, chart: H => dumbbell(tb, {W: SW, Lw: 200, rh: Math.min(44, (H - 40) / Math.max(1, tb.length)), max: mx(tb), fs: 1.4}),
+    hero("", {title: `What Do ${esc(NAME)}'s Bachelor's Graduates Study?`, chart: H => dumbbell(tb, {W: SW, Lw: 330, rh: Math.min(44, (H - 40) / Math.max(1, tb.length)), max: mx(tb), fs: 1.4}),
       src: `Share of bachelor's degrees by field, ${P.degrees.lq_year}. Data from NCES, IPEDS.`,
       paras: [tb.length ? `${esc(NAME)}'s largest bachelor's fields are ${lg3(tb)}.` : "", concT], stats: ["field_share_cs_bach", "field_share_eng_bach", "field_share_business_bach"]});
-    hero("", {title: `What Do ${esc(NAME)}'s Master's Graduates Study?`, chart: H => dumbbell(tm, {W: SW, Lw: 200, rh: Math.min(44, (H - 40) / Math.max(1, tm.length)), max: mx(tm), fs: 1.4}),
+    hero("", {title: `What Do ${esc(NAME)}'s Master's Graduates Study?`, chart: H => dumbbell(tm, {W: SW, Lw: 330, rh: Math.min(44, (H - 40) / Math.max(1, tm.length)), max: mx(tm), fs: 1.4}),
       src: `Share of master's degrees by field, ${P.degrees.lq_year}; largest fields. Data from NCES, IPEDS.`,
       paras: [tm.length ? `${esc(NAME)}'s largest master's fields are ${lg3(tm)}.` : "", `International students earn ${pct(row("intl_share_master").v1)} of all master's degrees in the state (U.S. ${pct(row("intl_share_master").us1)}), and STEM fields account for ${pct(row("stem_share_master").v1)} of them.`],
       stats: ["stem_share_master", "intl_share_master", "intl_share_cs_master"]});

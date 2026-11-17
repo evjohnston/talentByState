@@ -1598,17 +1598,19 @@ running head: the logos at left, the profile title in crimson and the section at
 title saying what it measures (line charts on the y-axis, bar and dot charts under the x-axis), taken from the
 description that opens its source line (`axisLabel` in the template).
 
-**Pages: text plus one figure** (`rpage` in `buildSpreads`). A page holds a taupe section heading or a crimson
+**Pages: text plus one figure** (`rpage` in `buildSpreads`), for the paired spreads. A page holds a taupe section heading or a crimson
 subhead, two columns of text, an optional pull quote, and one figure or table drawn in the height the page leaves;
 a page whose figure would be too short drops its last paragraph and tries again. Nothing is added to fill space,
 and body text never grows. The builders:
 - `pair` (two facing pages, one figure each): the question as the left page's heading; the right page opens with
   the section's headline fact as a pull quote.
-- `hero` (a section's main chart): the heading, all the text, the pull quote and a table of the section's key
-  numbers (up to eight measures from the section's State Talent Sheet group) on the left; the chart at full page
-  height on the right. A chart with no key numbers is a single page (`pageUnit`); two in a row share a spread, and
-  one left alone at a section's end faces the section's key numbers.
-- `rail` (each Sankey): the question, text and key numbers on the left; the Sankey at full height on the right.
+- `hero` (a section's main chart): one chart across both pages, under the section's taupe heading and its
+  headline fact as a crimson pull quote, with two columns of text and the key numbers beneath.
+- `rail` (each Sankey): the question, text and up to three key numbers in a crimson box inside the margins on the
+  outer edge (left page for the first, right page for departures, so the two migration spreads mirror); the Sankey
+  fills the rest of both pages, with only ribbons crossing the fold.
+- `pageUnit` (a single page of text and a figure): two in a row share a spread; one left alone at a section's end
+  faces the section's key numbers.
 Charts here are drawn for reading: the country mix is a dot plot with State / U.S. / Gap columns and a callout;
 race and ethnicity, and funding by source, are paired bars (state over U.S.) with the change or dollars at right;
 enrollment by sector and faculty by tenure status are 100% bars for the base, middle and latest years, joined so
