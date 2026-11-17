@@ -321,7 +321,7 @@ ol.bib li .bn { position: absolute; left: 0; font: 700 9px/1.65 Montserrat, sans
 .spread .rcol h3.r-h3 { font: 700 16px/1.25 Montserrat, sans-serif; color: #98002e; margin: 0 0 8px }
 .spread .rcol .r-body { columns: 2; column-gap: 24px; font: 400 13.33px/17.27px 'EB Garamond', serif; color: #000 }
 .spread .rcol .r-body p { margin: 0 0 9.33px; text-wrap: pretty } .spread .rcol .r-body b { font-weight: 600 }
-.spread .rcol .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 18px 0 4px; max-width: 480px }
+.spread .rcol .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 18px 0 4px; max-width: 560px; text-wrap: balance }
 .spread .rcol .r-fig { margin-top: 21px }
 .spread .rcol .fig .ft { font: 700 14.4px/1.3 Montserrat, sans-serif; color: #000; margin: 0 0 10px } .spread .rcol .fig .ft em { color: #98002e; margin-right: 4px }
 .spread .rcol .fig .fs { font: 400 9.6px/1.45 Montserrat, sans-serif; color: #737373; margin-top: 8px }
@@ -329,7 +329,7 @@ ol.bib li .bn { position: absolute; left: 0; font: 700 9px/1.65 Montserrat, sans
 .xax { text-align: center; font: 400 10.8px Montserrat, sans-serif; color: #404040; margin-top: 4px }
 .spread .rcol table.dt td, .spread .rcol table.dt th { font-size: 10.8px !important }
 .spread .hhead h2.r-h2 { font: 400 34.67px/1.2 Montserrat, sans-serif; color: #887e6f; margin: 0; letter-spacing: -.005em }
-.spread .hhead .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 10px 0 0; max-width: 900px }
+.spread .hhead .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 10px 0 0; max-width: 1040px; text-wrap: balance }
 .spread .htxt .sp-p { font: 400 13.33px/17.27px 'EB Garamond', serif; color: #000 }
 .spread .heroF .fig .ft, .spread .railF .fig .ft { font: 700 14.4px/1.3 Montserrat, sans-serif; color: #000 } .spread .heroF .fig .ft em, .spread .railF .fig .ft em { color: #98002e }
 .spread .heroF .fig .fs, .spread .railF .fig .fs { font: 400 9.6px/1.45 Montserrat, sans-serif; color: #737373 }
@@ -449,7 +449,7 @@ function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104,
   for (let t = lo; t <= hi + step / 2; t += step) h += `<line x1="${Lm}" x2="${W - Rr}" y1="${Y(t)}" y2="${Y(t)}" stroke="#e3dfd9" stroke-width=".6"/><text x="${Lm - 5 * fs}" y="${Y(t) + 2.5 * fs}" text-anchor="end"${tf}>${yf(+t.toFixed(6))}</text>`;
   h += `<line x1="${Lm}" x2="${Lm}" y1="${Tp}" y2="${H - B}" stroke="#555" stroke-width=".7"/>`;
   /* axis title (what is measured), filled in by fig() from the figure's source line */
-  h += `<text class="ylab" transform="translate(${(TF * .95).toFixed(1)},${((Tp + H - B) / 2).toFixed(1)}) rotate(-90)" text-anchor="middle" style="font-size:${(TF * .92).toFixed(1)}px;fill:#404040">__YLAB__</text>`;
+  h += `<text class="ylab" transform="translate(${(TF * .95).toFixed(1)},${((Tp + H - B) / 2).toFixed(1)}) rotate(-90)" text-anchor="middle" style="font-size:${(TF * .92).toFixed(1)}px;fill:#404040">__YLAB:${unit === "%" ? "Percent" : unit === "$" ? "Dollars" : "Number"}:${Math.floor((H - Tp - B) / (TF * .92 * .56))}__</text>`;
   const span = ys[ys.length - 1] - ys[0]; let ts = span > 30 ? 10 : 5; while ((W - Lm - Rr) / (span / ts) < TF * 3.4) ts *= 2;
   for (let y = Math.ceil(ys[0] / ts) * ts; y <= ys[ys.length - 1]; y += ts) h += `<text x="${X(y)}" y="${H - B + TF * 1.3}" text-anchor="middle"${tf}>${y}</text>`;
   const ends = [], mixedEnds = new Set(series.filter(s => s.label !== false && last(s.s) != null).map(s => lastY(s.s))).size > 1;
@@ -461,24 +461,29 @@ function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104,
       /* every line end carries its name (greyscale prints can't tell lines apart by colour): on one line when it
          fits, else the name above the value, else a name shortened to fit */
       const fit = t => t.length * EF * .56 + 8 <= Rr, nm = s.short || s.name, maxC = Math.max(4, Math.floor((Rr - 8) / (EF * .56)));
-      const lines = fit(full) ? [full] : [fit(nm) ? nm : nm.slice(0, maxC - 1) + "…", vt];
-      ends.push({y: Y(lv), x: X(lastY(s.s)), c: s.c, lines, bold: s.bold}); } }
-  ends.sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) { const need = EF * 1.2 * ends[i - 1].lines.length; if (ends[i].y - ends[i - 1].y < need) ends[i].y = ends[i - 1].y + need; }
+      const wrap2 = t => { const w = t.split(" "); let a = ""; while (w.length && fit(a ? a + " " + w[0] : w[0])) a = a ? a + " " + w.shift() : w.shift(); return w.length ? [a, w.join(" ")] : [a]; };
+      const lines = fit(full) ? [full] : fit(nm) ? [nm, vt] : [...wrap2(nm).slice(0, 2), vt];   // a long name wraps, it is never cut
+      ends.push({y: Y(lv), x: mixedEnds ? X(ys[ys.length - 1]) : X(lastY(s.s)), c: s.c, lines, bold: s.bold}); } }
+  ends.sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) { const need = EF * 1.2 * ends[i - 1].lines.length + EF * .4; if (ends[i].y - ends[i - 1].y < need) ends[i].y = ends[i - 1].y + need; }
   h += ends.map(e => `<text x="${e.x + 6 * fs}" y="${e.y + EF * .35}" style="fill:${e.c};font-weight:${e.bold ? 800 : 700};font-size:${EF.toFixed(1)}px">${e.lines.map((t, j) => `<tspan x="${e.x + 6 * fs}" dy="${j ? EF * 1.15 : 0}">${esc(t)}</tspan>`).join("")}</text>`).join("");
   return `<svg data-ax="y" viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 function legendHTML(items) { return `<div class="legend">${items.map(i => `<span><i class="${i.kind || ""}" style="background:${i.c};color:${i.c}"></i>${esc(i.n)}</span>`).join("")}</div>`; }
 /* what a figure measures, for its axis title: the description that opens its source line ("International share of
    degrees awarded, all fields; ...") up to the first semicolon or sentence end, trimmed to fit */
-const axisLabel = src => { let t = String(src || "").replace(/<[^>]+>/g, "").split(/;|\.\s|\.$/)[0].trim();
-  if (/^(Data from|Source)/i.test(t) || t.length < 4) return "";
-  t = t.replace(/,?\s*(fall |FY|fiscal years? )?(19|20)\d\d([–-]((19|20)?\d\d))?$/, "");
-  if (t.length > 58 && t.includes(",")) t = t.slice(0, t.indexOf(","));
-  return t.length > 64 ? t.slice(0, t.lastIndexOf(" ", 62)) : t; };
+const axisLabel = src => { const cl = String(src || "").replace(/<[^>]+>/g, "").split(/;|\.\s|\.$/).map(x => x.trim());
+  let t = cl.find(x => x.length >= 4 && !/^(Data from|Source|Chart by)/i.test(x) && !/\b(solid|dashed|dotted)\b/i.test(x) && !/^(The |This |Each |A |NSF |PERM |DHS |IPEDS )/.test(x)) || "";
+  t = t.replace(/(,?\s*(fall |FY|fiscal years? )?(19|20)\d\d([–-]((19|20)?\d\d))?)+$/, "");
+  if (t.length > 66 && t.includes(",")) t = t.slice(0, t.indexOf(","));
+  if (t.length > 66 && t.lastIndexOf(" and ", 66) > 30) t = t.slice(0, t.lastIndexOf(" and ", 66));   // "graduate students and postdocs" keeps its noun
+  if (t.length > 66) t = t.slice(0, t.lastIndexOf(" ", 64));
+  return t.replace(/(\s+(by|of|on|in|and|the|for|with|to|at|from|their|its|a|an))+$/i, "").replace(/\s*\($/, ""); };
 const BYLINE = String(((D.front || {}).byline) || "").replace(/^By /, "");
 function fig(title, body, source, {table = false} = {}) {
-  const n = table ? ++tabN : ++figN, ax = esc(axisLabel(source));
-  body = String(body).replace(/__YLAB__/g, ax).replace(/(<svg data-ax="x"[\s\S]*?<\/svg>)/, ax ? `$1<div class="xax">${ax}</div>` : "$1");
+  const tt = String(title).replace(/<[^>]+>/g, "").trim(), n = table ? ++tabN : ++figN;
+  const ax = esc(axisLabel(source) || (!/\?$/.test(tt) && tt.length < 50 ? tt.replace(/^Int\. /, "International ") : ""));   // a short, plain title names the measure when the source line does not
+  const fitAx = (t, n) => { if (t.length <= n) return t; const sh = t.replace(/^International /, "Int. ").replace(/ graduate / , " grad "); if (sh.length <= n) return sh; let c = t.slice(0, t.lastIndexOf(" ", n)); c = c.replace(/(\s+(by|of|on|in|and|the|for|with|to|at|from|their|its|a|an))+$/i, ""); return c.length >= 10 ? c : ""; };
+  body = String(body).replace(/__YLAB:([^:_]*):(\d+)__/g, (m, u, n) => fitAx(ax, +n) || (u.length <= +n ? u : "")).replace(/__YLAB__/g, ax).replace(/(<svg data-ax="x"[\s\S]*?<\/svg>)/, ax ? `$1<div class="xax">${ax}</div>` : "$1");
   return `<div class="fig"><div class="ft"><em>${table ? "Table" : "Figure"} ${n}</em> ${title}</div>${body}<div class="fs">${source}${BYLINE ? `<br>${table ? "Table" : "Chart"} by ${esc(BYLINE)}, Stanford University` : ""}</div></div>`;
 }
 const duo = (a, b) => `<div class="duo">${a}${b}</div>`;
@@ -1018,7 +1023,7 @@ function buildSpreads() {
       while (txtOver() && fs > 11.2) { fs -= .4; redo(H, fs); }
       while (txtOver() && o.facts.length > 1) { o.facts.pop(); redo(H, fs); } }); };
   /* table row padding that spreads n rows over a figure height H */
-  const padFor = (H, n) => Math.max(3, Math.min(26, ((H - 80) / (n + 1) - 15) / 2)).toFixed(1);
+  const padFor = (H, n) => Math.max(3, Math.min(32, ((H - 96) / (n + 1) - 15) / 2)).toFixed(1);
   const eq = (h, lead) => h.replace(/<table class="dt"([^>]*)>/, (m, a) => { const n = (h.match(/<tr>(.*?)<\/tr>/) || ["", ""])[1].split("<th").length - 2; return `<table class="dt eq"${a}><colgroup><col style="width:${lead}px"><col span="${n}" style="width:${((PW - lead) / n).toFixed(1)}px"></colgroup>`; });
   const tbig = h => h.replace('<table class="dt"', '<table class="dt" style="--pad:8px;font-size:11.4px"');
   /* paired spread (the two single pages of a spread read as one): section label, question and crimson rule on the
@@ -1170,7 +1175,7 @@ function buildSpreads() {
         {v: pct(t0.share), l: `From ${esc(t0.country)}`, c: `U.S. <b>${pct(t0.us_share)}</b>`}, {v: pct(t1.share), l: `From ${esc(t1.country)}`, c: `U.S. <b>${pct(t1.us_share)}</b>`},
         {m: "sevis_countries", v: nf(V.countries), l: "Countries represented", c: rC.us1 != null ? `U.S. <b>${nf(rC.us1)}</b>` : ""}],
       a: {fig: H => F(`Is ${esc(NAME)}'s Mix of Countries Like the Nation's?`, dumbCols(V.top.map(r => ({name: r.country, st: r.share, us: r.us_share})), {W: PW, H,
-            callout: `${esc(t0.country)} supplies <b style="color:${CRIM}">${pct(t0.share)}</b> of ${esc(NAME)}'s students, ${nf(Math.abs(gap0))} points ${gap0 >= 0 ? "above" : "below"} its U.S. share.`}), `Share of active F-1 and M-1 students, all levels. ${SV}.`),
+            callout0: `${esc(t0.country)} supplies <b style="color:${CRIM}">${pct(t0.share)}</b> of ${esc(NAME)}'s students, ${nf(Math.abs(gap0))} points ${gap0 >= 0 ? "above" : "below"} its U.S. share.`}), `Share of active F-1 and M-1 students, all levels. ${SV}.`),
         lede: [`In ${V.month}, ${esc(NAME)} had <b>${KMB(V.total)}</b> active F-1 and M-1 students, ${ord(V.rank)} among the 50 states and DC and <b>${pct(100 * V.total / V.us_total)}</b> of the U.S. total. They came from ${nf(V.countries)} countries.`,
           `${sent(theC(esc(t0.country)))} supplied <b>${pct(t0.share)}</b> of them, against ${pct(t0.us_share)} nationally, and ${theC(esc(t1.country))} <b>${pct(t1.share)}</b>, against ${pct(t1.us_share)}.${V.top.length > 4 ? ` ${sent(andList(V.top.slice(2, 5).map(r => `${theC(esc(r.country))} (${pct(r.share)})`)))} followed.` : ""}`,
           r2.v1 != null ? `Together the two largest countries supplied <b>${pct(r2.v1)}</b> of the state's international students (U.S. ${pct(r2.us1)}), ${ord(r2.rank)} among the states${r2.v0 != null ? `, against ${pct(r2.v0)} in ${r2.y0}` : ""}.` : ""].filter(Boolean)},
@@ -1376,9 +1381,9 @@ function buildSpreads() {
   const pser = (m, abbr) => cols.map((s, i) => ({name: s === "US" ? "United States" : NM[s], short: abbr ? (s === "US" ? "U.S." : s) : undefined, s: pl[m][s], c: s === ST ? CRIM : s === "US" ? TAUPE : PEERC[i - 1], w: s === ST ? 2.6 : 1.3, dash: s === "US", bold: s === ST}));
   const leg = legendHTML([ST, ...PEERS].map((s, i) => ({n: NM[s], c: s === ST ? CRIM : PEERC[i - 1]})).concat([{n: "United States", c: TAUPE, kind: "dash"}]));
   const smalls = [["intl_share_enroll_grad", "Int. share of grad students"], ["stem_share_master", "STEM share of master's"], ["grad_rate_bach6", "Six-year graduation rate"], [pl.intl_share_stem_doc ? "intl_share_stem_doc" : "intl_share_stem_master", pl.intl_share_stem_doc ? "Int. share of STEM doctorates" : "Int. share of STEM master's"]];   // the main chart already shows STEM master's
-  spread("Competitors", `<div class="abs" style="left:96px;right:96px;top:96px"><div class="kick">${sec("Competitors")}</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">Competitors</div><div class="sp-rule"></div>
+  spread("Competitors", `<div class="abs" style="left:96px;right:96px;top:96px"><span data-sec="${sec("Competitors")}"></span><h2 class="r-h2" style="font:400 34.67px/1.2 Montserrat,sans-serif;color:#887e6f;margin:24px 0 16px">Competitors</h2>
       <p class="sp-p">The four states closest in total fall enrollment, measured proportionally (a state 1.5 times as large counts as near as one two-thirds the size), are ${andList(PEERS.map(s => esc(NM[s])))}. ${esc(NAME)} ranks ${ord(peerOrder.indexOf(ST) + 1)} of the five on the international share of STEM master's; ${esc(NM[peerOrder[0]])} is the most dependent at ${pct(pSM.vals[peerOrder[0]])}.</p>
-      ${F(`How Dependent Are ${esc(NAME)} and Its Peers on International STEM Master's?`, leg + lineSVG({series: pser("intl_share_stem_master"), W: 624, H: 280, right: 130}), `Data from NCES, IPEDS Completions.`)}</div>`,
+      ${F(`How Dependent Are ${esc(NAME)} and Its Peers on International STEM Master's?`, leg + lineSVG({series: pser("intl_share_stem_master"), W: 624, H: 280, right: 130}), `International share of STEM master's degrees; peers in color, U.S. dashed. Data from NCES, IPEDS Completions.`)}</div>`,
     `<div class="abs" style="left:96px;right:96px;top:96px">${eq(fig(`How Does ${esc(NAME)} Compare With States of Similar Size?`, `<table class="dt"><tr><th>Measure</th>${cols.map(s => `<th class="${s === ST ? "focus" : ""}">${s === "US" ? "U.S." : s}</th>`).join("")}</tr>${D.peer_tab.map(r => `<tr><td>${esc((SHORT[r.m] || r.title).replace(/^International share of /, "Int. share of "))}, <span style="color:var(--muted)">${r.y}</span></td>${cols.map(s => `<td class="${s === ST ? "focus" : ""}">${fmtSpec(r.vals[s], r.fmt, r.unit)}</td>`).join("")}</tr>`).join("")}</table>`, `Latest year for each measure, given after its name. Dollars are 2024 dollars (CPI-U). Data from NCES, IPEDS.`, {table: true}), 222).replace('<table class="dt eq">', '<table class="dt eq" style="--pad:3.4px">')}</div>`,
     `<div class="abs band" style="left:0;right:0;bottom:0;height:400px"></div><div class="abs" style="left:96px;right:96px;bottom:96px;display:grid;grid-template-columns:repeat(4,1fr);gap:34px">${smalls.map(([m, l]) => F(esc(l), lineSVG({series: pser(m, true), W: 334, H: 200, right: 72, zero: m !== "grad_rate_bach6"}), `Data from NCES, IPEDS.`)).join("")}</div>`);
 
@@ -1489,7 +1494,7 @@ function buildSpreads() {
     const rr = o.bach6_race.filter(r => r.n >= 100).map(r => ({name: r.name, st: r.st, us: r.us}));
     THIN = [false, rr.length < 3];
     pairOne("Student outcomes", `How Many of ${esc(NAME)}'s Students Graduate?`, ["grad_rate_bach6", "grad_rate_2yr", "bach_per_100_ug"],
-      one(H => F(`Six-Year Bachelor's Graduation Rate`, lineSVG({series: pairs([{name: ST, st: o.bach6_st, us: o.bach6_us, c: CRIM}]), W: PW, H, right: 96, zero: false, fs: 1.3}), `Four-year institutions; state solid, U.S. dashed. Data from NCES, IPEDS Graduation Rates.`),
+      one(H => F(`Six-Year Bachelor's Graduation Rate`, lineSVG({series: pairs([{name: ST, st: o.bach6_st, us: o.bach6_us, c: CRIM}]), W: PW, H, right: 96, zero: false, fs: 1.3}), `Six-year bachelor's graduation rate, four-year institutions; state solid, U.S. dashed. Data from NCES, IPEDS Graduation Rates.`),
         `The line follows the share of first-time, full-time bachelor's-degree students at ${esc(NAME)}'s four-year institutions who graduated from the institution where they started within six years (150% of normal time). Each year is the cohort that entered six years earlier. The rate leaves out students who start part-time${row("share_parttime").v1 != null ? ` (${pct(row("share_parttime").v1)} of the state's students attend part-time, against ${pct(row("share_parttime").us1)} nationally)` : ""} and students who transfer and finish elsewhere. The state is solid and the United States dashed.`,
         [serFact("Six-year graduation rate", o.bach6_st, "%", {us: o.bach6_us, noun: "The rate"}),
           ...s6.k.map(k => serFact(`${k} institutions`, kser(s6, k), "%", {noun: "The rate"})),
@@ -1512,7 +1517,7 @@ function buildSpreads() {
     const yT0 = tn.y.find(y => y >= D.base && at(tot, y)) || tn.y[0], yTm = tn.y.filter(y => at(tot, y)).reduce((b, y) => Math.abs(y - (yT0 + yT) / 2) < Math.abs(b - (yT0 + yT) / 2) ? y : b, yT0), yT3 = [...new Set([yT0, yTm, yT])];
     const tTen = at(kser(tS, tn.k[0]), yT);
     pairOne("Faculty", `What Do ${esc(NAME)}'s Faculty Earn, and How Many Hold Tenure?`, ["faculty_salary", {v: KMB(last(tot)), l: `Full-time instructional staff, ${lastY(tot)}`, c: ""}, ...(tTen != null ? [{v: pct(tTen), l: `${tn.k[0]}, ${yT}`, c: ""}] : [])],
-      one(H => F(`Average Faculty Salary`, lineSVG({series: pairs([{name: ST, st: f.avg_st, us: f.avg_us, c: CRIM}]), W: PW, H, right: 96, unit: "$", zero: false, fs: 1.3}), `Full-time instructional faculty, 9/10-month, 2024 dollars. Data from NCES, IPEDS.`),
+      one(H => F(`Average Faculty Salary`, lineSVG({series: pairs([{name: ST, st: f.avg_st, us: f.avg_us, c: CRIM}]), W: PW, H, right: 96, unit: "$", zero: false, fs: 1.3}), `Average salary of full-time instructional faculty, 9/10-month contracts, 2024 dollars. Data from NCES, IPEDS.`),
         `The line follows the average salary of full-time instructional faculty on 9- or 10-month contracts at ${esc(NAME)}'s degree-granting institutions, all ranks combined, in 2024 dollars (CPI-U). The state is solid and the United States dashed.`,
         [rowFact("faculty_salary", "Average salary"),
           serFact("Full-time instructional staff", tot, "n"),
@@ -1558,7 +1563,7 @@ function buildSpreads() {
       <h4>Patents</h4><p>Patents are counted two ways. By owner, a patent goes to the state of its assignee, so a company headquartered in another state takes its patents there. By inventor, it is split across the states where its inventors live; inventors abroad take their share out of the U.S. total. "Owned outside the state" is the share of the state's invented patents with an owner but none in the state. Both counts are fractional.</p>
       <h4>Years</h4><p>Each measure uses its latest year, so years differ across a page; every figure, table and statement gives its year, and lines that stop early are labeled with their last year.</p></div>`;
     flushPend(); CURSEC = {n: null, name: "About These Data"};
-    pages("About These Data", onPage(`<div class="kick">Notes</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">About These Data</div><div class="sp-rule"></div>${notes}`), onPage(`<div class="kick">Notes</div><div class="mid-h" style="font-size:40px;color:var(--ink);font-weight:800">How the Numbers Are Counted</div><div class="sp-rule"></div>${notes2}`)); }
+    pages("About These Data", onPage(`<h2 class="r-h2" style="font:400 34.67px/1.2 Montserrat,sans-serif;color:#887e6f;margin:24px 0 16px">About These Data</h2>${notes}`), onPage(`<h2 class="r-h2" style="font:400 34.67px/1.2 Montserrat,sans-serif;color:#887e6f;margin:24px 0 16px">How the Numbers Are Counted</h2>${notes2}`)); }
 
 
   /* By the Numbers: landscape pages (11 x 8.5 in); groups of measures flow together, each with its own header row.
