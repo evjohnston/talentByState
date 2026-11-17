@@ -321,8 +321,8 @@ ol.bib li .bn { position: absolute; left: 0; font: 700 9px/1.65 Montserrat, sans
 .spread .rcol h3.r-h3 { font: 700 16px/1.25 Montserrat, sans-serif; color: #98002e; margin: 0 0 8px }
 .spread .rcol .r-body { columns: 2; column-gap: 24px; font: 400 13.33px/17.27px 'EB Garamond', serif; color: #000 }
 .spread .rcol .r-body p { margin: 0 0 9.33px; text-wrap: pretty } .spread .rcol .r-body b { font-weight: 600 }
-.spread .rcol .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 18px 0 4px; max-width: 560px; text-wrap: balance }
-.spread .rcol .r-fig { margin-top: 21px }
+.spread .rcol .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 22px 0 4px; max-width: 560px; text-wrap: balance }
+.spread .rcol .r-fig { margin-top: 30px } .spread .rcol .r-quote + .r-fig { margin-top: 22px }
 .spread .rcol .fig .ft { font: 700 14.4px/1.3 Montserrat, sans-serif; color: #000; margin: 0 0 10px } .spread .rcol .fig .ft em { color: #98002e; margin-right: 4px }
 .spread .rcol .fig .fs { font: 400 9.6px/1.45 Montserrat, sans-serif; color: #737373; margin-top: 8px }
 .spread .rcol .legend { font: 400 10.8px Montserrat, sans-serif; color: #404040 }
@@ -1056,8 +1056,8 @@ function buildSpreads() {
      columns of 10 pt Garamond, an optional crimson pull quote, then one figure drawn in the height the page leaves.
      A page whose figure would be shorter than minH drops its last paragraph and tries again. ---- */
   const RTOP = 132, RBOT = 984, RW_ = 624;
-  const rpage = (pg, {h2, h3, paras = [], quote, fig: fg, minH = 300}) => {
-    const col = document.createElement("div"); col.className = "abs rcol"; col.style.cssText = `left:96px;top:${RTOP}px;width:${RW_}px`; pg.appendChild(col);
+  const rpage = (pg, {h2, h3, paras = [], quote, fig: fg, minH = 300, top = RTOP}) => {
+    const col = document.createElement("div"); col.className = "abs rcol"; col.style.cssText = `left:96px;top:${top}px;width:${RW_}px`; pg.appendChild(col);
     const pr = pg.getBoundingClientRect(), n0 = [figN, tabN]; let ps = (paras || []).filter(Boolean);
     for (;;) { [figN, tabN] = n0;
       col.innerHTML = `${h2 ? `<h2 class="r-h2">${h2}</h2>` : ""}${h3 ? `<h3 class="r-h3">${h3}</h3>` : ""}${ps.length ? `<div class="r-body">${ps.map(p => `<p>${p}</p>`).join("")}</div>` : ""}${quote ? `<div class="r-quote">${quote}</div>` : ""}${fg ? '<div class="pgF r-fig"></div>' : ""}`;
@@ -1067,6 +1067,9 @@ function buildSpreads() {
       if (H < minH && ps.length > 1) { ps.pop(); continue; }
       fitFig(box, fg, H - 86, H);
       if (box.getBoundingClientRect().bottom - pr.top > RBOT - 14 && ps.length > 1) { ps.pop(); continue; }   // a table that cannot shrink: give up a paragraph
+      /* a table that ends early: its rows share out the height left, at most 12 px more padding a side */
+      { const tb = box.querySelector("table"), spare = H - 6 - box.scrollHeight, rows = tb ? tb.querySelectorAll("tr").length : 0;
+        if (tb && spare > 24 && rows) { const add = Math.min(12, spare / rows / 2); tb.querySelectorAll("td, th").forEach(c => { const cs = getComputedStyle(c); c.style.paddingTop = (parseFloat(cs.paddingTop) + add) + "px"; c.style.paddingBottom = (parseFloat(cs.paddingBottom) + add) + "px"; }); } }
       break; } };
   /* the key numbers of the current section as a report-style table (the page partner of a single page) */
   const keyNums = () => { const k = CURSEC && Object.keys(STATS).find(x => x.toLowerCase() === String(CURSEC.name).toLowerCase()), ms = [...new Set([...((CURSEC || {}).ms || []), ...(k ? STATS[k] : [])])];
@@ -1075,14 +1078,15 @@ function buildSpreads() {
     rpage(sp.children[0], a); rpage(sp.children[1], {fig: keyNums()}); }
   /* one page of text and a figure; two in a row share a spread */
   const pageUnit = spec => { if (!PEND) { PEND = spec; return; } const a = PEND; PEND = null; spread0(a.toc || spec.toc, "", ""); const sp = doc.lastElementChild;
-    rpage(sp.children[0], a); rpage(sp.children[1], spec); };
+    rpage(sp.children[0], a); const lb = sp.children[0].querySelector(".r-body, .r-fig"), top = a.h2 && lb ? Math.min(330, Math.round(lb.getBoundingClientRect().top - sp.children[0].getBoundingClientRect().top)) : RTOP; rpage(sp.children[1], {...spec, top}); };
   /* paired spread: the question as the left page's section heading over its text and figure; the right page opens
      with the section's headline fact as a pull quote, then its text and figure. o = {sec, h, stats, a: {fig(H), lede[]}, b} */
   const pair = (toc, o) => {
     noteMs(o.stats); spread(toc, "", ""); const sp = doc.lastElementChild;
     const q = o.quote !== undefined ? o.quote : headline((o.stats || []).filter(m => typeof m === "string"));
     rpage(sp.children[0], {h2: o.h, paras: o.a.lede, fig: o.a.fig});
-    rpage(sp.children[1], {h3: o.h3, quote: q, paras: o.b.lede, fig: o.b.fig}); };
+    const lb = sp.children[0].querySelector(".r-body, .r-fig"), top = lb ? Math.min(330, Math.round(lb.getBoundingClientRect().top - sp.children[0].getBoundingClientRect().top)) : RTOP;
+    rpage(sp.children[1], {h3: o.h3, quote: q, paras: o.b.lede, fig: o.b.fig, top}); };
   /* the same from two one() objects: their "about" text and facts become the prose (facts as run-in paragraphs); with
      no partner page (b blank) the right page carries a facts table of the stat measures and the rest of a's prose */
   /* thin data: set THIN = [a too thin, b too thin] just before a pairOne call. A spread whose pages are both thin is
@@ -1387,11 +1391,14 @@ function buildSpreads() {
   const pser = (m, abbr) => cols.map((s, i) => ({name: s === "US" ? "United States" : NM[s], short: abbr ? (s === "US" ? "U.S." : s) : undefined, s: pl[m][s], c: s === ST ? CRIM : s === "US" ? TAUPE : PEERC[i - 1], w: s === ST ? 2.6 : 1.3, dash: s === "US", bold: s === ST}));
   const leg = legendHTML([ST, ...PEERS].map((s, i) => ({n: NM[s], c: s === ST ? CRIM : PEERC[i - 1]})).concat([{n: "United States", c: TAUPE, kind: "dash"}]));
   const smalls = [["intl_share_enroll_grad", "Int. share of grad students"], ["stem_share_master", "STEM share of master's"], ["grad_rate_bach6", "Six-year graduation rate"], [pl.intl_share_stem_doc ? "intl_share_stem_doc" : "intl_share_stem_master", pl.intl_share_stem_doc ? "Int. share of STEM doctorates" : "Int. share of STEM master's"]];   // the main chart already shows STEM master's
-  spread("Competitors", `<div class="abs" style="left:96px;right:96px;top:96px"><span data-sec="${sec("Competitors")}"></span><h2 class="r-h2" style="font:400 34.67px/1.2 Montserrat,sans-serif;color:#887e6f;margin:24px 0 16px">Competitors</h2>
-      <p class="sp-p">The four states closest in total fall enrollment, measured proportionally (a state 1.5 times as large counts as near as one two-thirds the size), are ${andList(PEERS.map(s => esc(NM[s])))}. ${esc(NAME)} ranks ${ord(peerOrder.indexOf(ST) + 1)} of the five on the international share of STEM master's; ${esc(NM[peerOrder[0]])} is the most dependent at ${pct(pSM.vals[peerOrder[0]])}.</p>
-      ${F(`How Dependent Are ${esc(NAME)} and Its Peers on International STEM Master's?`, leg + lineSVG({series: pser("intl_share_stem_master"), W: 624, H: 280, right: 130}), `International share of STEM master's degrees; peers in color, U.S. dashed. Data from NCES, IPEDS Completions.`)}</div>`,
-    `<div class="abs" style="left:96px;right:96px;top:96px">${eq(fig(`How Does ${esc(NAME)} Compare With States of Similar Size?`, `<table class="dt"><tr><th>Measure</th>${cols.map(s => `<th class="${s === ST ? "focus" : ""}">${s === "US" ? "U.S." : s}</th>`).join("")}</tr>${D.peer_tab.map(r => `<tr><td>${esc((SHORT[r.m] || r.title).replace(/^International share of /, "Int. share of "))}, <span style="color:var(--muted)">${r.y}</span></td>${cols.map(s => `<td class="${s === ST ? "focus" : ""}">${fmtSpec(r.vals[s], r.fmt, r.unit)}</td>`).join("")}</tr>`).join("")}</table>`, `Latest year for each measure, given after its name. Dollars are 2024 dollars (CPI-U). Data from NCES, IPEDS.`, {table: true}), 222).replace('<table class="dt eq">', '<table class="dt eq" style="--pad:3.4px">')}</div>`,
-    `<div class="abs band" style="left:0;right:0;bottom:0;height:400px"></div><div class="abs" style="left:96px;right:96px;bottom:96px;display:grid;grid-template-columns:repeat(4,1fr);gap:34px">${smalls.map(([m, l]) => F(esc(l), lineSVG({series: pser(m, true), W: 334, H: 200, right: 72, zero: m !== "grad_rate_bach6"}), `Data from NCES, IPEDS.`)).join("")}</div>`);
+  /* Competitors on the report page model: the peer chart at page height under the heading and intro; the comparison
+     table at page height on the right; the four small peer charts on a spread of their own, two to a page. */
+  sec("Competitors"); spread("Competitors", "", ""); { const sp = doc.lastElementChild;
+    rpage(sp.children[0], {h2: "Competitors", paras: [`The four states closest in total fall enrollment, measured proportionally (a state 1.5 times as large counts as near as one two-thirds the size), are ${andList(PEERS.map(s => esc(NM[s])))}. ${esc(NAME)} ranks ${ord(peerOrder.indexOf(ST) + 1)} of the five on the international share of STEM master's; ${esc(NM[peerOrder[0]])} is the most dependent at ${pct(pSM.vals[peerOrder[0]])}.`], fig: H => F(`How Dependent Are ${esc(NAME)} and Its Peers on International STEM Master's?`, leg + lineSVG({series: pser("intl_share_stem_master"), W: 624, H: H - 30, right: 130}), `International share of STEM master's degrees; peers in color, U.S. dashed. Data from NCES, IPEDS Completions.`), minH: 420});
+    rpage(sp.children[1], {fig: H => eq(fig(`How Does ${esc(NAME)} Compare With States of Similar Size?`, `<table class="dt"><tr><th>Measure</th>${cols.map(s => `<th class="${s === ST ? "focus" : ""}">${s === "US" ? "U.S." : s}</th>`).join("")}</tr>${D.peer_tab.map(r => `<tr><td>${esc((SHORT[r.m] || r.title).replace(/^International share of /, "Int. share of "))}, <span style="color:var(--muted)">${r.y}</span></td>${cols.map(s => `<td class="${s === ST ? "focus" : ""}">${fmtSpec(r.vals[s], r.fmt, r.unit)}</td>`).join("")}</tr>`).join("")}</table>`, `Latest year for each measure, given after its name. Dollars are 2024 dollars (CPI-U). Data from NCES, IPEDS.`, {table: true}), 222)}); }
+  spread("", "", ""); { const sp = doc.lastElementChild, two = (a, H) => a.map(([m, l]) => F(esc(l), lineSVG({series: pser(m, true), W: 624, H: Math.max(200, H / 2 - 92), right: 110, zero: m !== "grad_rate_bach6"}), `${esc(l.replace(/^Int\. /, "International "))}; ${esc(NAME)} and its four peers, U.S. dashed. Data from NCES, IPEDS.`)).join('<div style="height:26px"></div>');
+    rpage(sp.children[0], {h3: `How Do ${esc(NAME)} and Its Peers Compare on Other Measures?`, fig: H => two(smalls.slice(0, 2), H), minH: 600});
+    rpage(sp.children[1], {fig: H => two(smalls.slice(2, 4), H), minH: 600}); }
 
   /* ===== 5  Fields of study ===== */
   { const lq = P.degrees.lq, aw = P.degrees.awards, fb = P.degrees.fields.bach;
