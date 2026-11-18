@@ -704,7 +704,12 @@ function stackYears(o, years, {W = 624, H = 400, hatch = null} = {}) {
   return legendHTML([...o.k.map((k, j) => ({n: k, c: PAL[j % PAL.length], kind: "sq"})), ...hl]) + `<svg data-ax="x" viewBox="0 0 ${W} ${H}" height="${H}">${defs}${h}</svg>`;
 }
 /* two-column Sankey: nodes {id, label | lines, n, c}; links {s, t, v, c?} */
-function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [], fs = 1}) {
+/* Sankey annotations (user's pick, 2026-11-18: mockups S2 + S3). ann = {note(f, top, share) -> [line, line], of: "of the
+   total" wording}. S2: the largest named node is followed (on the left, or on the right when the left has one node):
+   its ribbons in full color, the rest faded, with a two-line note under it. S3: each right node's label gains its
+   share of the right side and, when several sources feed it, its largest source's share of it, where the node has
+   room. Facts read off the flows only. */
+function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [], fs = 1, ann = null}) {
   const NW = 9 * fs, gap = 6 * fs, FZ = fz(7.4 * fs), Tp = Math.max(20 * fs, FZ * 2), minH = FZ * 1.25, A = H - Tp - 4;
   const sum = a => a.reduce((s, n) => s + n.n, 0), tot = Math.max(sum(left), sum(right)) || 1;
   const scale = arr => { let k = (A - gap * (arr.length - 1)) / tot; for (let it = 0; it < 4; it++) { const small = arr.filter(n => n.n * k < minH); k = (A - gap * (arr.length - 1) - minH * small.length) / Math.max(1, tot - sum(small)); } return k; };
@@ -713,13 +718,35 @@ function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [],
     arr.forEach(n => { n.x = x; n.h = Math.max(1.5, n.n * k); const slot = Math.max(n.h, minH); n.y = y + (slot - n.h) / 2; n.o = 0; y += slot + gap; }); };
   place(left, LBl); place(right, W - LBr - NW);
   const by = Object.fromEntries([...left, ...right].map(n => [n.id, n])); let h = "";
+  const named = n => !/\bother\b/i.test(n.label || (n.lines || []).join(" ")), nl = left.filter(named), nr = right.filter(named);
+  const side = ann ? (nl.length > 1 || nr.length <= 1 ? "L" : "R") : null, F = side ? (side === "L" ? nl : nr).reduce((a, b) => b.n > a.n ? b : a, {n: -1}) : null, foc = F && F.id ? F : null;
+  const fOf = l => !foc || (side === "L" ? l.s : l.t) === foc.id;
   for (const l of links) { const a = by[l.s], b = by[l.t], w = l.v * k; if (!a || !b || w <= 0) continue; const y0 = a.y + a.o + w / 2, y1 = b.y + b.o + w / 2; a.o += w; b.o += w;
-    const x0 = a.x + NW, x1 = b.x, xm = (x0 + x1) / 2; h += `<path d="M${x0},${y0} C${xm},${y0} ${xm},${y1} ${x1},${y1}" fill="none" stroke="${l.c || a.c}" stroke-opacity=".28" stroke-width="${Math.max(.8, w)}"/>`; }
+    const x0 = a.x + NW, x1 = b.x, xm = (x0 + x1) / 2; h += `<path d="M${x0},${y0} C${xm},${y0} ${xm},${y1} ${x1},${y1}" fill="none" stroke="${l.c || a.c}" stroke-opacity="${foc ? (fOf(l) ? .5 : .07) : .28}" stroke-width="${Math.max(.8, w)}"/>`; }
   const lab = (n, x, anchor) => { const cy = n.y + n.h / 2;
     if (n.lines) return `<text x="${x}" y="${cy - (n.lines.length - 1) * FZ * .62 + 2.5 * fs}" text-anchor="${anchor}" style="fill:#1c1c1c;font-size:${FZ.toFixed(1)}px">${n.lines.map((t, i) => `<tspan x="${x}" dy="${i ? FZ * 1.25 : 0}" style="${i === 0 ? "font-weight:700" : ""}">${esc(t)}${i === n.lines.length - 1 ? " " + sig3(n.n) : ""}</tspan>`).join("")}</text>`;
     return `<text x="${x}" y="${cy + 2.5 * fs}" text-anchor="${anchor}" style="fill:#1c1c1c;font-size:${FZ.toFixed(1)}px"><tspan style="font-weight:700">${esc(n.label)}</tspan> ${sig3(n.n)}</text>`; };
-  for (const n of left) h += `<rect x="${n.x}" y="${n.y}" width="${NW}" height="${n.h}" fill="${n.c}"/>` + lab(n, n.x - 6 * fs, "end");
-  for (const n of right) h += `<rect x="${n.x}" y="${n.y}" width="${NW}" height="${n.h}" fill="${n.c}"/>` + lab(n, n.x + NW + 6 * fs, "start");
+  /* nodes on the followed side other than the followed one fade back */
+  const dim = n => foc && n !== foc && (side === "L" ? left : right).includes(n), nodeR = (n, lb) => `<g opacity="${dim(n) ? .4 : 1}"><rect x="${n.x}" y="${n.y}" width="${NW}" height="${n.h}" fill="${n.c}"/>${lb}</g>`;
+  for (const n of left) h += nodeR(n, lab(n, n.x - 6 * fs, "end"));
+  const pc = v => nf(v, v < 10 ? 1 : 0) + "%", rTot = right.reduce((a, n) => a + n.n, 0), FS = (FZ * .9).toFixed(1);
+  for (const n of right) { let lb = lab(n, n.x + NW + 6 * fs, "start");
+    const nm = n.label || (n.lines && n.lines.length === 1 ? n.lines[0] : null);
+    if (ann && right.length > 1 && named(n) && nm && !(foc === n && side === "R")) { const into = links.filter(l => l.t === n.id && l.v > 0), tp = into.reduce((a, b) => b.v > a.v ? b : a, {v: 0}), src = by[tp.s];
+      /* the source line drops "of them" when the full wording would not fit the label column */
+      const fits = t => t.length * FZ * .9 * .56 <= LBr - 10 * fs, sl = src && (src.label || src.lines.join(" ")), sp = pc(100 * tp.v / n.n);
+      const s2 = into.length > 1 && src && named(src) ? [`${sl}: ${sp} of them`, `${sl}: ${sp}`].find(fits) : null;
+      const ex = [`${pc(100 * n.n / rTot)} ${ann.of || "of the total"}`, ...(s2 ? [s2] : [])];
+      const wOK = ex.every(fits), hOK = n.h + gap >= (ex.length + 1) * FZ * 1.2;
+      if (wOK && hOK) { const cy = n.y + n.h / 2, y0 = cy - ex.length * FZ * .6 + 2.5 * fs, x = n.x + NW + 6 * fs;
+        lb = `<text x="${x}" y="${y0}" style="fill:#1c1c1c;font-size:${FZ.toFixed(1)}px"><tspan style="font-weight:700">${esc(nm)}</tspan> ${sig3(n.n)}</text>` + ex.map((t, i) => `<text x="${x}" y="${(y0 + FZ * 1.2 * (i + 1)).toFixed(1)}" style="fill:#404040;font-size:${FS}px">${esc(t)}</text>`).join(""); } }
+    h += nodeR(n, lb); }
+  /* the followed node's note, under it (above it when it sits at the bottom), on the ribbon side */
+  if (foc && ann.note) { const out = links.filter(l => (side === "L" ? l.s : l.t) === foc.id && l.v > 0), tp = out.reduce((a, b) => b.v > a.v ? b : a, {v: 0}), other = by[side === "L" ? tp.t : tp.s];
+    const tot = (side === "L" ? left : right).reduce((a, n) => a + n.n, 0), L = ann.note(foc, other, 100 * tp.v / foc.n, 100 * foc.n / tot).filter(Boolean);
+    if (L.length) { const x = side === "L" ? foc.x + NW + 8 * fs : foc.x - 8 * fs, an = side === "L" ? "start" : "end", below = foc.y + foc.h + FZ * 1.5 + FZ * 1.25 * (L.length - 1) <= H - 2;
+      const y = below ? foc.y + foc.h + FZ * 1.5 : foc.y - FZ * .6 - FZ * 1.25 * (L.length - 1);
+      h += L.map((t, i) => `<text x="${x}" y="${(y + FZ * 1.25 * i).toFixed(1)}" text-anchor="${an}" style="fill:${i ? "#404040" : CRIM};font-weight:${i ? 400 : 700};font-size:${FZ.toFixed(1)}px">${esc(t)}</text>`).join(""); } }
   if (heads[0]) h += `<text x="${LBl + NW / 2}" y="${8 * fs}" text-anchor="middle" style="font-weight:700;fill:#1c1c1c;font-size:${fz(8.6 * fs).toFixed(1)}px">${esc(heads[0])}</text>`;
   if (heads[1]) h += `<text x="${W - LBr - NW / 2}" y="${8 * fs}" text-anchor="middle" style="font-weight:700;fill:#1c1c1c;font-size:${fz(8.6 * fs).toFixed(1)}px">${esc(heads[1])}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
@@ -727,14 +754,14 @@ function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [],
 /* The k largest flows, plus any that tie the k-th at the printed precision (up to three more), so a state
    never shows the same label as one folded into "Other states". */
 function topTie(a, k) { let n = Math.min(k, a.length); while (n < a.length && n < k + 3 && sig3(a[n].n) === sig3(a[k - 1].n)) n++; return a.slice(0, n); }
-function sankeySVG(W = FW, H = 270, fs = 1) {
+function sankeySVG(W = FW, H = 270, fs = 1, ann = null) {
   const stay = M.stay, outN = M.out_total, inN = M.in_total;
   const topIn = topTie(M.in, 5), inRest = Math.max(0, inN - topIn.reduce((a, b) => a + b.n, 0));
   const topOut = topTie(M.out, 5), outRest = Math.max(0, outN - topOut.reduce((a, b) => a + b.n, 0));
   const left = [{id: "res", label: `${NAME} residents`, n: stay + outN, c: CRIM}, ...topIn.map(x => ({id: "i" + x.k, label: x.k === "Abroad" ? "From abroad" : x.name, n: x.n, c: x.k === "Abroad" ? cssv("--orange") : TEAL})), {id: "ir", label: "Other states", n: inRest, c: cssv("--grey")}];
   const right = [{id: "inst", label: `${NAME} institutions`, n: stay + inN, c: CRIM}, ...topOut.map(x => ({id: "o" + x.k, label: x.name, n: x.n, c: TEAL})), {id: "or", label: "Other states", n: outRest, c: cssv("--grey")}];
   const links = [{s: "res", t: "inst", v: stay, c: CRIM}, ...topIn.map(x => ({s: "i" + x.k, t: "inst", v: x.n})), {s: "ir", t: "inst", v: inRest}, ...topOut.map(x => ({s: "res", t: "o" + x.k, v: x.n})), {s: "res", t: "or", v: outRest}];
-  return sankeyDraw({left, right, links, W, H, LBl: 132 * fs, LBr: 132 * fs, heads: ["Home of student", "Where they enrolled"], fs});
+  return sankeyDraw({left, right, links, W, H, LBl: 132 * fs, LBr: 132 * fs, heads: ["Home of student", "Where they enrolled"], fs, ann});
 }
 
 /* ---------------- document structure ---------------- */
@@ -1276,7 +1303,8 @@ function buildSpreads() {
     const sk = (H, W = PW) => sankeyDraw({left: ord8.map((c, i) => ({id: "c" + i, label: c, n: cn(c), c: c === "All other countries" ? cssv("--grey") : TEAL})),
       right: levs.map(k => ({id: k, lines: [LVN[k]], n: V.stem.levels[k].n, c: LVC[k]})),
       links: V.stem.flows.filter(f => levs.includes(f.lev)).map(f => ({s: "c" + ord8.indexOf(f.c), t: f.lev, v: f.n, c: LVC[f.lev]})),
-      W, H, LBl: W > 900 ? 220 : 190, LBr: W > 900 ? 240 : 150, heads: ["Country of citizenship", "Level of study"], fs: W > 900 ? 1.5 : 1.25});
+      W, H, LBl: W > 900 ? 220 : 190, LBr: W > 900 ? 240 : 150, heads: ["Country of citizenship", "Level of study"], fs: W > 900 ? 1.5 : 1.25,
+      ann: {note: (f, t, p) => [`${f.label}: ${KMB(f.n)} STEM students`, t ? `${pct(p)} of them ${t.id === "other" ? "at other levels" : `in ${LVN[t.id].toLowerCase()} programs`}` : ""]}});
     /* paired spread: the country mix (dot plot with value columns) and Table: international students since the base year */
     const pt = (s, y) => { const p = s.y.map((yy, i) => [yy, s.v[i]]).filter(d => d[1] != null && d[1] > 0); const b = p.find(d => d[0] >= y) || p[0], l1 = p[p.length - 1], lp = p[p.length - 2];
       return {yb: b && b[0], vb: b && b[1], y1: l1 && l1[0], v1: l1 && l1[1], yp: lp && lp[0], vp: lp && lp[1]}; };
@@ -1373,7 +1401,7 @@ function buildSpreads() {
       stats: ["intl_share_master", "intl_share_stem_master", "stem_master_per_doc"]});
   }
   /* ===== 3  Where students come from: Sankey across the spread ===== */
-  hero("Where students come from", {head: "Where Students Come From", title: `First-Time Students by Home and Destination, Fall ${M.year}`, chart: H => sankeySVG(SW, H + 40, 1.45),
+  hero("Where students come from", {head: "Where Students Come From", title: `First-Time Students by Home and Destination, Fall ${M.year}`, chart: H => sankeySVG(SW, H + 40, 1.45, {note: (f, t, p) => [`${f.label}: ${KMB(f.n)} first-time students`, t ? `${pct(p)} of them enrolled in ${t.label === `${NAME} institutions` ? `${NAME}` : t.label}` : ""]}),
     src: `Home of first-time degree-seeking undergraduates (left) and the state of the institution entered (right); the five largest sources and destinations (more when states tie at the printed figure), the rest grouped; ties are ordered by exact count. Data from NCES, IPEDS Fall Enrollment.`,
     paras: [`${nf(M.stay)} residents stayed in ${esc(NAME)} for college in fall ${M.year}; ${nf(domIn)} students arrived from other states and ${nf(abroadN)} from abroad, while ${nf(M.out_total)} residents left.`,
       `Each band runs from a student's home on the left to the state where they enrolled on the right. ${pct(ins.v1)} of the state's first-time students are residents${ins.us1 != null ? ` (U.S. ${pct(ins.us1)})` : ""}.`],
@@ -1391,10 +1419,12 @@ function buildSpreads() {
     const iN = top(M.in), iR = rest(M.in, M.in_total), oN = top(M.out), oR = rest(M.out, M.out_total), GR = cssv("--grey"), OR = cssv("--orange");
     const sIn = (H, W = PW) => sankeyDraw({left: [...iN.map(x => ({id: "i" + x.k, label: x.k === "Abroad" ? "Abroad" : x.name, n: x.n, c: x.k === "Abroad" ? OR : TEAL})), ...(iR ? [{id: "ir", label: "All other states", n: iR, c: GR}] : [])],
       right: [{id: "in", lines: [NAME, "institutions"], n: M.in_total, c: CRIM}], links: [...iN.map(x => ({s: "i" + x.k, t: "in", v: x.n})), ...(iR ? [{s: "ir", t: "in", v: iR}] : [])],
-      W, H, LBl: W > 900 ? 230 : 180, LBr: W > 900 ? 200 : 130, heads: ["Home", "Enrolled in"], fs: W > 900 ? 1.5 : 1.25});
+      W, H, LBl: W > 900 ? 230 : 180, LBr: W > 900 ? 200 : 130, heads: ["Home", "Enrolled in"], fs: W > 900 ? 1.5 : 1.25,
+      ann: {note: (f, t, p, sh) => [`${f.label === "Abroad" ? "From abroad" : f.label}: ${nf(f.n)} students`, `${pct(sh)} of all newcomers`]}});
     const sOut = (H, W = PW) => sankeyDraw({left: [{id: "res", lines: [NAME, "residents"], n: M.out_total, c: CRIM}], right: [...oN.map(x => ({id: "o" + x.k, label: x.name, n: x.n, c: TEAL})), ...(oR ? [{id: "or", label: "All other states", n: oR, c: GR}] : [])],
       links: [...oN.map(x => ({s: "res", t: "o" + x.k, v: x.n, c: TEAL})), ...(oR ? [{s: "res", t: "or", v: oR, c: GR}] : [])],
-      W, H, LBl: W > 900 ? 200 : 130, LBr: W > 900 ? 230 : 180, heads: ["Home", "Enrolled in"], fs: W > 900 ? 1.5 : 1.25});
+      W, H, LBl: W > 900 ? 200 : 130, LBr: W > 900 ? 230 : 180, heads: ["Home", "Enrolled in"], fs: W > 900 ? 1.5 : 1.25,
+      ann: {of: "of those who left", note: (f, t, p, sh) => [`${f.label}: ${nf(f.n)} residents`, `${pct(sh)} of those who left`]}});
     const srcM = `First-time degree-seeking undergraduates, fall ${M.year}; the 12 largest flows (more when states tie at the printed figure), ordered by exact count. Data from NCES, IPEDS Fall Enrollment.`;
     const fl = k => kser(M.flows, k), fy = y => `fall ${y}`, top3 = a => andList(a.filter(x => x.k !== "Abroad").slice(0, 3).map(x => `${esc(x.name)} (${nf(x.n)})`));
     const mIn = one(null,
