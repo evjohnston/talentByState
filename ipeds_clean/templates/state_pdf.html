@@ -323,8 +323,9 @@ ol.bib li .bn { position: absolute; left: 0; font: 700 9px/1.65 Montserrat, sans
 .spread .rcol .r-body p { margin: 0 0 9.33px; text-wrap: pretty } .spread .rcol .r-body b { font-weight: 600 }
 .spread .rcol .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 22px 0 4px; max-width: 560px; text-wrap: balance }
 /* table annotations: G change bars, H margin note beside the row with the largest change */
-.cbar { display: inline-block; height: 7px; margin-left: 6px; vertical-align: .05em }
-.hwrap .cbar { display: none } .hwrap td.htint { background: #fbf3f5 } .hwrap td:first-child { white-space: normal }
+.ctrack { display: block; position: relative; height: 9px; margin: 3px 0 -12px; background: linear-gradient(#9a9189, #9a9189) center / 1px 100% no-repeat }
+.ctrack .cbar { position: absolute; top: 1.5px; height: 6px }
+.hwrap .ctrack { display: none } .hwrap td.htint { background: #fbf3f5 } .hwrap td:first-child { white-space: normal }
 .hwrap { padding-right: 146px } .hwrap td.hn { position: relative }
 .hwrap td.hn::after { content: attr(data-note); position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-50%); width: 132px; padding-left: 8px; border-left: 2px solid #98002e;
   font: italic 400 10.4px/1.35 Montserrat, sans-serif; color: #98002e; text-align: left; white-space: normal; background: none !important }
@@ -563,7 +564,11 @@ function tabAnn(title, body) {
   /* G's bars are drawn on every such table; the note for H is stored on the table, and after layout annTables()
      turns every other table to H where the note fits */
   { const mx = Math.max(...G.map(o => Math.abs(o.p.v)));
-    G.forEach(o => { if (!o.p.v) return; o.c.style.whiteSpace = "nowrap"; o.c.insertAdjacentHTML("beforeend", `<span class="cbar" style="width:${(3 + Math.abs(o.p.v) / mx * 31).toFixed(1)}px;background:${o.p.v > 0 ? CRIM : TAUPE}"></span>`); }); }
+    /* diverging bars on a shared midline: falls run left, rises run right; every change cell in the column gets the
+       same track, a strip under the number whose midline is the column's centre */
+    const inG = new Set(G);
+    cells.forEach(o => { const on = inG.has(o) && o.p.v, w = on ? Math.max(3, Math.abs(o.p.v) / mx * 47).toFixed(1) : 0;
+      if (inG.has(o)) o.c.insertAdjacentHTML("beforeend", `<span class="ctrack">${on ? `<span class="cbar" style="width:${w}%;${o.p.v > 0 ? "left:50%" : "right:50%"};background:${o.p.v > 0 ? CRIM : TAUPE}"></span>` : ""}</span>`); }); }
   { const o = G.reduce((a, b) => Math.abs(b.p.v) > Math.abs(a.p.v) ? b : a), lab = o.r.cells[0].textContent.trim(), up = o.p.v > 0, mixed = units.length > 1;
     tb.dataset.hnote = `${lab}: ${o.c.textContent.trim()}${since ? ` since ${since}` : ""}, the largest ${mixed && u === "%" ? "percentage " : ""}${up ? "rise" : "fall"}${mixed && u === "pp" ? " in points" : ""}`;
     tb.dataset.hrow = [...tb.rows].indexOf(o.r); }

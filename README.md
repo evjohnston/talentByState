@@ -1635,8 +1635,8 @@ never a reason, so the same rules write them for every state. They vary through 
   annotated. Labels go in a free spot no line passes through (`freeSpot`), or are left off.
 - Dot plots (`dumbbell`) spotlight the widest gap above the U.S. and the widest below (E), naming each gap; other
   rows fade back. "Unknown" and "Other" rows are never spotlit.
-- Tables with a change column alternate between G, a short bar after each change (crimson rises, taupe falls),
-  and H, the row with the largest change tinted with a note beside it in the margin. Only changes in one unit are
+- Tables with a change column alternate between G, a diverging bar under each change on a shared midline (the
+  column's centre; rises run right in crimson, falls run left in taupe, scaled to the largest change), and H, the row with the largest change tinted with a note beside it in the margin. Only changes in one unit are
   compared. H is tried after layout (`annTables`): where the note would make a cell wrap or push the table past
   the page's bottom margin, the table keeps G and the next table takes H's turn.
 
