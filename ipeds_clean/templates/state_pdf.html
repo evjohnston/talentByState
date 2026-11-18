@@ -322,6 +322,10 @@ ol.bib li .bn { position: absolute; left: 0; font: 700 9px/1.65 Montserrat, sans
 .spread .rcol .r-body { columns: 2; column-gap: 24px; font: 400 13.33px/17.27px 'EB Garamond', serif; color: #000 }
 .spread .rcol .r-body p { margin: 0 0 9.33px; text-wrap: pretty } .spread .rcol .r-body b { font-weight: 600 }
 .spread .rcol .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 22px 0 4px; max-width: 560px; text-wrap: balance }
+/* pull quote with a lead number: the state's value large in crimson, the sentence beside it, between hairlines */
+.spread .rcol .r-quote:has(> .qn) { display: flex; gap: 20px; align-items: center; max-width: none; margin: 26px 0 4px; padding: 14px 0; border-top: 1px solid #c9c1b6; border-bottom: 1px solid #c9c1b6 }
+.spread .rcol .r-quote .qn { flex: none; font: 800 60px/1 Montserrat, sans-serif; color: #98002e; letter-spacing: -.02em; font-style: normal }
+.spread .rcol .r-quote .qs { font: italic 400 16px/1.4 Montserrat, sans-serif; color: #222; text-wrap: balance }
 .spread .rcol .r-fig { margin-top: 30px } .spread .rcol .r-quote + .r-fig { margin-top: 22px }
 .spread .rcol .fig .ft { font: 700 14.4px/1.3 Montserrat, sans-serif; color: #000; margin: 0 0 10px } .spread .rcol .fig .ft em { color: #98002e; margin-right: 4px }
 .spread .rcol .fig .fs { font: 400 9.6px/1.45 Montserrat, sans-serif; color: #737373; margin-top: 8px }
@@ -1084,7 +1088,7 @@ function buildSpreads() {
      with the section's headline fact as a pull quote, then its text and figure. o = {sec, h, stats, a: {fig(H), lede[]}, b} */
   const pair = (toc, o) => {
     noteMs(o.stats); spread(toc, "", ""); const sp = doc.lastElementChild;
-    const q = o.quote !== undefined ? o.quote : headline((o.stats || []).filter(m => typeof m === "string"));
+    const q = o.quote !== undefined ? o.quote : headline((o.stats || []).filter(m => typeof m === "string"), true);
     rpage(sp.children[0], {h2: o.h, paras: o.a.lede, fig: o.a.fig});
     rpage(sp.children[1], {h3: o.h3, quote: q, paras: o.b.lede, fig: o.b.fig}); };   // both pages start at the top of the live area
   /* the same from two one() objects: their "about" text and facts become the prose (facts as run-in paragraphs); with
@@ -1123,11 +1127,13 @@ function buildSpreads() {
   /* section headline: one sentence under a section's title reporting where the state stands out most among the
      section's key measures, the one whose rank is nearest the top or the bottom of the 51 (a fact, not a reading of it) */
   const lc1 = t => /^[A-Z][a-z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t;
-  const headline = ms => { const c = (ms || []).filter(m => typeof m === "string" && row(m).rank && row(m).v1 != null).map(m => ({m, r: row(m), d: Math.min(row(m).rank, row(m).n + 1 - row(m).rank)}));
+  const headline = (ms, lead = false) => { const c = (ms || []).filter(m => typeof m === "string" && row(m).rank && row(m).v1 != null).map(m => ({m, r: row(m), d: Math.min(row(m).rank, row(m).n + 1 - row(m).rank)}));
     if (!c.length) return ""; const {m, r} = c.sort((a, b) => a.d - b.d)[0], f = v => fmtSpec(v, r.fmt, r.unit);
     let t = lc1(r.title.replace(/\s*\([^)]*\)$/, "")).replace(/^(.*), average score$/, "average $1 score");
     t = r.unit === "%" ? `the ${/share|rate/i.test(t) ? t : `share of ${t}`}` : /^(average|median)\b/i.test(t) ? `the ${t}` : t;   // shares and averages take "the"; counts read bare
-    return `${esc(NAME)} ranks ${ord(r.rank)} of ${r.n} on ${esc(t)}, at ${f(r.v1)} in ${r.y1}${r.us1 != null ? ` against ${f(r.us1)} for the U.S.` : "."}`; };
+    const s = `${esc(NAME)} ranks ${ord(r.rank)} of ${r.n} on ${esc(t)}, at ${f(r.v1)} in ${r.y1}${r.us1 != null ? ` against ${f(r.us1)} for the U.S.` : "."}`;
+    /* lead: the page pull quote with the state's value set large beside the sentence (pull-quote mockup C, 2026-11-18) */
+    return lead ? `<span class="qn">${f(r.v1)}</span><span class="qs">${s}</span>` : s; };
   const hero = (toc, o) => {
     const hl = o.head ? headline(o.stats) : "";
     const head = o.head ? `<div class="abs hhead" style="left:96px;top:120px;width:1200px" data-sec="${sec(o.head)}"><h2 class="r-h2">${o.head}</h2>${hl ? `<div class="r-quote">${hl}</div>` : ""}</div>` : "";

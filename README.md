@@ -1606,7 +1606,8 @@ subhead, two columns of text, an optional pull quote, and one figure or table dr
 a page whose figure would be too short drops its last paragraph and tries again. Nothing is added to fill space,
 and body text never grows. The builders:
 - `pair` (two facing pages, one figure each): the question as the left page's heading; the right page opens with
-  the section's headline fact as a pull quote.
+  the section's headline fact as a pull quote, with the state's value set large in crimson beside the sentence
+  between two hairlines (`headline(ms, true)`).
 - `hero` (a section's main chart): one chart across both pages, under the section's taupe heading and its
   headline fact as a crimson pull quote, with two columns of text and the key numbers beneath.
 - `rail` (each Sankey): the question, text and up to three key numbers in a crimson box inside the margins on the
