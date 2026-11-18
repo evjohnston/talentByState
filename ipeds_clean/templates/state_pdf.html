@@ -322,6 +322,12 @@ ol.bib li .bn { position: absolute; left: 0; font: 700 9px/1.65 Montserrat, sans
 .spread .rcol .r-body { columns: 2; column-gap: 24px; font: 400 13.33px/17.27px 'EB Garamond', serif; color: #000 }
 .spread .rcol .r-body p { margin: 0 0 9.33px; text-wrap: pretty } .spread .rcol .r-body b { font-weight: 600 }
 .spread .rcol .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 22px 0 4px; max-width: 560px; text-wrap: balance }
+/* table annotations: G change bars, H margin note beside the row with the largest change */
+.cbar { display: inline-block; height: 7px; margin-left: 6px; vertical-align: .05em }
+.hwrap .cbar { display: none } .hwrap td.htint { background: #fbf3f5 } .hwrap td:first-child { white-space: normal }
+.hwrap { padding-right: 146px } .hwrap td.hn { position: relative }
+.hwrap td.hn::after { content: attr(data-note); position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-50%); width: 132px; padding-left: 8px; border-left: 2px solid #98002e;
+  font: italic 400 10.4px/1.35 Montserrat, sans-serif; color: #98002e; text-align: left; white-space: normal; background: none !important }
 /* pull quote with a lead number: the state's value large in crimson, the sentence beside it, between hairlines */
 .spread .rcol .r-quote:has(> .qn) { display: flex; gap: 20px; align-items: center; max-width: none; margin: 26px 0 4px; padding: 14px 0; border-top: 1px solid #c9c1b6; border-bottom: 1px solid #c9c1b6 }
 .spread .rcol .r-quote .qn { flex: none; font: 800 60px/1 Montserrat, sans-serif; color: #98002e; letter-spacing: -.02em; font-style: normal }
@@ -442,6 +448,59 @@ const shares = o => ({y: o.y, k: o.k, v: o.k.map((_, j) => o.y.map((_, i) => { c
 let figN = 0, tabN = 0;
 const MINF = (D.variant || "base") === "spread" ? 12 : 0, fz = v => Math.max(MINF, v);
 const FW = 596, HALF = 285;
+/* ---- annotations (user's picks from the annotation mockups, 2026-11-18): each states a fact read off the data,
+   never a reason. Line charts alternate B (the years since the base year shaded, with the change) and C (the gap
+   between state and U.S. shaded, with how many years the state sat below or above); dot plots spotlight the widest
+   gap each way (E); tables with a change column alternate G (change bars) and H (a margin note on the largest
+   change). The pick is made once per figure, keyed by its content, so refits redraw the same treatment. ---- */
+const ANNPICK = new Map(), ANNN = {line: 0, tab: 0};
+const annPick = (kind, key, order, ok) => { const k = kind + "|" + key; if (ANNPICK.has(k)) return ANNPICK.get(k);
+  const want = order[ANNN[kind] % order.length], got = ok.includes(want) ? want : ok[0] || null; if (got === want) ANNN[kind]++;   /* a figure that cannot take its turn's treatment leaves the turn to the next */ ANNPICK.set(k, got); return got; };
+const chgTxt = (a, b, unit) => unit === "%" ? `${sgn1(b - a)} pts` : a > 0 ? (b / a >= 2 ? `${nf(b / a, 2)}×` : `${b >= a ? "+" : "−"}${nf(Math.abs(b / a - 1) * 100)}%`) : "";
+/* a free spot for a text block inside the plot: no line passes within 4 px; nearest to (cx, cy) */
+const freeSpot = (pts, box, w, h, cx, cy) => { const C = 4, nx = Math.ceil((box.x1 - box.x0) / C) + 1, ny = Math.ceil((box.y1 - box.y0) / C) + 1;
+  /* occupancy grid of 4 px cells (each point marks its cell and the neighbours), then a summed-area table */
+  const occ = new Uint8Array(nx * ny); pts.forEach(p => { const i = Math.floor((p[0] - box.x0) / C), j = Math.floor((p[1] - box.y0) / C);
+    for (let a = i - 1; a <= i + 1; a++) for (let b = j - 1; b <= j + 1; b++) if (a >= 0 && b >= 0 && a < nx && b < ny) occ[b * nx + a] = 1; });
+  const S = new Int32Array((nx + 1) * (ny + 1)); for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) S[(j + 1) * (nx + 1) + i + 1] = occ[j * nx + i] + S[j * (nx + 1) + i + 1] + S[(j + 1) * (nx + 1) + i] - S[j * (nx + 1) + i];
+  const sum = (i0, j0, i1, j1) => S[j1 * (nx + 1) + i1] - S[j0 * (nx + 1) + i1] - S[j1 * (nx + 1) + i0] + S[j0 * (nx + 1) + i0];
+  const cwN = Math.ceil(w / C) + 1, chN = Math.ceil(h / C) + 1; let best = null;
+  for (let j = 1; j + chN < ny; j++) for (let i = 1; i + cwN < nx; i++) { if (sum(i, j, i + cwN, j + chN)) continue;
+    const x = box.x0 + i * C, y = box.y0 + j * C, d = (x + w / 2 - cx) ** 2 + (y + h / 2 - cy) ** 2; if (!best || d < best.d) best = {x, y, d}; }
+  return best; };
+function lineAnn({series, X, Y, ys, Lm, Rr, W, H, Tp, B, unit, EF}) {
+  const out = {under: "", over: ""}, val = (s, y) => { const i = s.s.y.indexOf(y); return i < 0 ? null : s.s.v[i]; };
+  let sts = series.filter(s => !s.dash && !s.dot && s.s && s.s.v); const uss = series.filter(s => s.dash);
+  /* on a chart of the state and its peers, only the profile's own state is annotated */
+  const own = sts.filter(s => s.name === NAME || s.name === ST); if (own.length) sts = own;
+  const usOf = s => uss.find(u => u.name === s.name + " (U.S.)") || (sts.length === 1 && uss.length === 1 ? uss[0] : null);
+  /* every drawn point, densified along each segment, for collision tests */
+  const pts = []; series.forEach(s => { let p0 = null; s.s.y.forEach((y, i) => { const v = s.s.v[i]; if (v == null) { p0 = null; return; } const p = [X(y), Y(v)];
+    if (p0) for (let t = 0; t <= 1; t += 3 / Math.max(3, Math.hypot(p[0] - p0[0], p[1] - p0[1]))) pts.push([p0[0] + (p[0] - p0[0]) * t, p0[1] + (p[1] - p0[1]) * t]); else pts.push(p); p0 = p; }); });
+  const y0 = ys[0], y1 = ys[ys.length - 1], b0 = D.base, cw = t => t.length * EF * .58, nm = s => sts.length > 1 ? `${s.short || s.name}: ` : "";
+  const text = (x, y, lines) => `<text x="${x}" y="${y + EF}" style="font-size:${EF.toFixed(1)}px">${lines.map((t, j) => `<tspan x="${x}" dy="${j ? EF * 1.25 : 0}" style="fill:${j === 0 ? lines.head || CRIM : j === 1 && lines.head ? CRIM : "#404040"};font-weight:${j === 0 || (j === 1 && lines.head) ? 700 : 400}">${esc(t)}</tspan>`).join("")}</text>`;
+  /* B: needs the base year inside the chart with some history before it */
+  const bS = sts.map(s => ({s, a: val(s, b0), b: last(s.s), yl: lastY(s.s)})).filter(o => o.a != null && o.b != null && o.yl > b0 + 1);
+  const okB = b0 - y0 >= 4 && (X(b0) - Lm) / (W - Lm - Rr) >= .15 && bS.length;
+  /* C: a state line and its U.S. line with at least five common years */
+  const cS = sts.map(s => { const u = usOf(s); if (!u) return null; const c = s.s.y.filter(y => val(s, y) != null && val(u, y) != null); return c.length >= 5 ? {s, u, c, g: c.reduce((a, y) => a + Math.abs(Y(val(s, y)) - Y(val(u, y))), 0) / c.length} : null; }).filter(Boolean);
+  const key = series.map(s => s.name + ":" + s.s.v.filter(v => v != null).length).join("|") + y0 + "-" + y1;   // the same chart at any height
+  const pick = annPick("line", key, ["B", "C"], [okB ? "B" : null, cS.length ? "C" : null].filter(Boolean));
+  if (pick === "B") { const o = bS.sort((p, q) => Math.abs(Y(q.b) - Y(q.a)) - Math.abs(Y(p.b) - Y(p.a)))[0], u = usOf(o.s), xb = X(b0), xe = X(Math.max(...bS.map(p => p.yl)));
+    out.under = `<rect x="${xb}" y="${Tp}" width="${xe - xb}" height="${H - B - Tp}" fill="#887e6f" fill-opacity=".09"/>`;
+    const L = [`SINCE ${b0}`, `${nm(o.s)}${chgTxt(o.a, o.b, unit)}`]; const ua = u && val(u, b0), ub = u && last(u.s); if (ua != null && ub != null) L.push(`U.S. ${chgTxt(ua, ub, unit)}`); L.head = TAUPE;
+    for (let a = -2; a <= 2; a++) pts.push([xb + a * 2, Y(o.a)]);   // keep the label off the base-year dot
+    const w = Math.max(...L.map(cw)), hh = EF * 1.25 * L.length + 2, sp = w <= xe - xb - 8 && freeSpot(pts, {x0: xb, x1: xe, y0: Tp, y1: H - B}, w, hh, xb, Tp);
+    out.over = `<circle cx="${xb}" cy="${Y(o.a)}" r="3.6" fill="#fff" stroke="${CRIM}" stroke-width="1.6"/>` + (sp ? text(sp.x, sp.y, L) : ""); }
+  if (pick === "C") { const o = cS.sort((p, q) => q.g - p.g)[0], {s, u, c} = o, P = c.map(y => [X(y), Y(val(s, y))]), Q = c.map(y => [X(y), Y(val(u, y))]).reverse();
+    out.under = `<path d="M${[...P, ...Q].map(p => p.map(v => v.toFixed(1)).join(",")).join("L")}Z" fill="${CRIM}" fill-opacity=".09"/>`;
+    const k = c.filter(y => val(s, y) < val(u, y)).length, below = k * 2 >= c.length, yl = c[c.length - 1], g = val(s, yl) - val(u, yl);
+    const gt = Math.abs(g) < (unit === "%" ? .05 : Math.abs(val(u, yl)) * .005) ? `level with the U.S. in ${yl}` : `${unit === "%" ? nf(Math.abs(g), 1) + " pts" : unit === "$" ? usd(Math.abs(g)) : sig3(Math.abs(g))} ${g < 0 ? "below" : "above"} in ${yl}`;
+    const L = [`${nm(s)}${below ? "Below" : "Above"} the U.S. in ${below ? k : c.length - k} of ${c.length} years`, gt];
+    const w = Math.max(...L.map(cw)), hh = EF * 1.25 * L.length + 2, mid = c[Math.floor(c.length / 2)];
+    const sp = freeSpot(pts, {x0: Lm, x1: W - Rr, y0: Tp, y1: H - B}, w, hh, X(mid), (Y(val(s, mid)) + Y(val(u, mid))) / 2);
+    if (sp) out.over = text(sp.x, sp.y, L); }
+  return out; }
 function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104, yFmt, fs = 1, gap = 2}) {
   const EF = fz(7.2 * fs), TF = fz(8.6 * fs), Lm = Math.max(36 * fs, TF * 3.6) + TF * 1.5, Rr = right, Tp = 8 * fs, B = Math.max(20 * fs, TF * 2), tf = TF !== 8.6 ? ` style="font-size:${TF.toFixed(1)}px"` : "";
   const all = series.flatMap(s => (s.s && s.s.v ? s.s.v : []).filter(v => v != null)); if (!all.length) return "<svg></svg>";
@@ -458,6 +517,8 @@ function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104,
   h += `<text class="ylab" transform="translate(${(TF * .95).toFixed(1)},${((Tp + H - B) / 2).toFixed(1)}) rotate(-90)" text-anchor="middle" style="font-size:${(TF * .92).toFixed(1)}px;fill:#404040">__YLAB:${unit === "%" ? "Percent" : unit === "$" ? "Dollars" : "Number"}:${Math.floor((H - Tp - B) / (TF * .92 * .56))}__</text>`;
   const span = ys[ys.length - 1] - ys[0]; let ts = span > 30 ? 10 : 5; while ((W - Lm - Rr) / (span / ts) < TF * 3.4) ts *= 2;
   for (let y = Math.ceil(ys[0] / ts) * ts; y <= ys[ys.length - 1]; y += ts) h += `<text x="${X(y)}" y="${H - B + TF * 1.3}" text-anchor="middle"${tf}>${y}</text>`;
+  const ann = W >= 480 && H >= 200 ? lineAnn({series, X, Y, ys, Lm, Rr, W, H, Tp, B, unit, EF}) : {under: "", over: ""};
+  h += ann.under;
   const ends = [], mixedEnds = new Set(series.filter(s => s.label !== false && last(s.s) != null).map(s => lastY(s.s))).size > 1;
   for (const s of [...series].reverse()) { let p = "", pen = false;
     s.s.y.forEach((y, i) => { const v = s.s.v[i]; if (v == null || (i && y - s.s.y[i - 1] > gap)) pen = false; if (v != null) { p += (pen ? "L" : "M") + X(y).toFixed(1) + " " + Y(v).toFixed(1); pen = true; } });
@@ -474,6 +535,7 @@ function lineSVG({series, W = FW, H = 190, unit = "%", zero = true, right = 104,
   /* keep the stack above the x-axis year labels: push the lowest up, then re-space upward */
   if (ends.length) { const lim = H - B - EF * 1.15 * (ends[ends.length - 1].lines.length - 1) - EF * .5; if (ends[ends.length - 1].y > lim) { ends[ends.length - 1].y = lim; for (let i = ends.length - 2; i >= 0; i--) { const need = EF * 1.2 * ends[i].lines.length + EF * .4; if (ends[i + 1].y - ends[i].y < need) ends[i].y = ends[i + 1].y - need; } } }
   h += ends.map(e => `<text x="${e.x + 6 * fs}" y="${e.y + EF * .35}" style="fill:${e.c};font-weight:${e.bold ? 800 : 700};font-size:${EF.toFixed(1)}px">${e.lines.map((t, j) => `<tspan x="${e.x + 6 * fs}" dy="${j ? EF * 1.15 : 0}">${esc(t)}</tspan>`).join("")}</text>`).join("");
+  h += ann.over;
   return `<svg data-ax="y" viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 function legendHTML(items) { return `<div class="legend">${items.map(i => `<span><i class="${i.kind || ""}" style="background:${i.c};color:${i.c}"></i>${esc(i.n)}</span>`).join("")}</div>`; }
@@ -486,9 +548,30 @@ const axisLabel = src => { const cl = String(src || "").replace(/<[^>]+>/g, "").
   if (t.length > 66 && t.lastIndexOf(" and ", 66) > 30) t = t.slice(0, t.lastIndexOf(" and ", 66));   // "graduate students and postdocs" keeps its noun
   if (t.length > 66) t = t.slice(0, t.lastIndexOf(" ", 64));
   return t.replace(/(\s+(by|of|on|in|and|the|for|with|to|at|from|their|its|a|an))+$/i, "").replace(/\s*\($/, ""); };
+/* G / H on a table with a change column: the rows whose change cells share a unit (%, × counts as %, or points),
+   at least three of them. G puts a bar after each change; H tints the row with the largest change and sets a note
+   beside it in the margin (the note takes 146 px of the width; where that makes a cell wrap, the table keeps G; see annTables). */
+function tabAnn(title, body) {
+  const t = document.createElement("template"); t.innerHTML = body; const tb = t.content.querySelector("table.dt"); if (!tb || !tb.rows.length) return body;
+  const hdr = tb.rows[0], ncol = hdr.cells.length, ci = [...hdr.cells].findIndex(c => /change/i.test(c.textContent)); if (ci < 0) return body;
+  const since = (hdr.cells[ci].textContent.match(/since\s*((19|20)\d\d)/i) || [])[1] || ([...hdr.cells].map(c => c.textContent.trim()).find(t => /^(19|20)\d\d$/.test(t)));   // "Change" after year columns: since the first
+  const parse = s => { s = s.trim(); let m = s.match(/^([\d.,]+)×$/); if (m) return {v: (parseFloat(m[1].replace(/,/g, "")) - 1) * 100, u: "%"};
+    m = s.match(/^([+−\-–]?)\s*([\d.,]+)\s*(%|pp|pts?)?$/); if (!m) return null; return {v: parseFloat(m[2].replace(/,/g, "")) * (/[−\-–]/.test(m[1]) ? -1 : 1), u: m[3] === "%" ? "%" : m[3] ? "pp" : "n"}; };
+  const cells = [...tb.rows].slice(1).filter(r => !r.classList.contains("s") && r.cells.length === ncol).map(r => ({r, c: r.cells[ci], p: parse(r.cells[ci].textContent)})).filter(o => o.p);
+  const grp = {}; cells.forEach(o => (grp[o.p.u] = grp[o.p.u] || []).push(o)); const units = Object.keys(grp); if (!units.length) return body;
+  const u = units.sort((a, b) => grp[b].length - grp[a].length)[0], G = grp[u]; if (G.length < 3 || !G.some(o => o.p.v)) return body;
+  /* G's bars are drawn on every such table; the note for H is stored on the table, and after layout annTables()
+     turns every other table to H where the note fits */
+  { const mx = Math.max(...G.map(o => Math.abs(o.p.v)));
+    G.forEach(o => { if (!o.p.v) return; o.c.style.whiteSpace = "nowrap"; o.c.insertAdjacentHTML("beforeend", `<span class="cbar" style="width:${(3 + Math.abs(o.p.v) / mx * 31).toFixed(1)}px;background:${o.p.v > 0 ? CRIM : TAUPE}"></span>`); }); }
+  { const o = G.reduce((a, b) => Math.abs(b.p.v) > Math.abs(a.p.v) ? b : a), lab = o.r.cells[0].textContent.trim(), up = o.p.v > 0, mixed = units.length > 1;
+    tb.dataset.hnote = `${lab}: ${o.c.textContent.trim()}${since ? ` since ${since}` : ""}, the largest ${mixed && u === "%" ? "percentage " : ""}${up ? "rise" : "fall"}${mixed && u === "pp" ? " in points" : ""}`;
+    tb.dataset.hrow = [...tb.rows].indexOf(o.r); }
+  return t.innerHTML; }
 const BYLINE = String(((D.front || {}).byline) || "").replace(/^By /, "");
 function fig(title, body, source, {table = false} = {}) {
   const tt = String(title).replace(/<[^>]+>/g, "").trim(), n = table ? ++tabN : ++figN;
+  if (table) body = tabAnn(tt, body);
   const ax = esc(axisLabel(source) || (!/\?$/.test(tt) && tt.length < 50 ? tt.replace(/^Int\. /, "International ") : ""));   // a short, plain title names the measure when the source line does not
   const fitAx = (t, n) => { if (t.length <= n) return t; const sh = t.replace(/^International /, "Int. ").replace(/ graduate / , " grad "); if (sh.length <= n) return sh; let c = t.slice(0, t.lastIndexOf(" ", n)); c = c.replace(/(\s+(by|of|on|in|and|the|for|with|to|at|from|their|its|a|an))+$/i, ""); return c.length >= 10 ? c : ""; };
   body = String(body).replace(/__YLAB:([^:_]*):(\d+)__/g, (m, u, n) => fitAx(ax, +n) || (u.length <= +n ? u : "")).replace(/__YLAB__/g, ax).replace(/(<svg data-ax="x"[\s\S]*?<\/svg>)/, ax ? `$1<div class="xax">${ax}</div>` : "$1");
@@ -508,14 +591,25 @@ function dumbbell(rows, {W = FW, Lw = 170, max, rh = 16, fs = 1} = {}) {
   const step = hi > 60 ? 20 : hi > 25 ? 10 : 5;
   let h = "";
   for (let t = 0; t <= hi; t += step) h += `<line x1="${X(t)}" x2="${X(t)}" y1="${Tp}" y2="${H - TF * 1.45}" stroke="#e3dfd9" stroke-width=".6"/><text x="${X(t)}" y="${H - 5 * fs}" text-anchor="middle" style="${tf}">${t}%</text>`;
-  rows.forEach((r, i) => { const y = Tp + i * rh + rh / 2, a = r.us, b = r.st;
-    h += `<text x="${Lw - 8 * fs}" y="${y + 2.5 * fs}" text-anchor="end" style="fill:#1c1c1c;font-size:${LF.toFixed(1)}px;${r.bold ? "font-weight:700" : ""}">${esc(r.name)}</text>`;
-    if (a != null && b != null) h += `<line x1="${X(a)}" x2="${X(b)}" y1="${y}" y2="${y}" stroke="${CRIM}" stroke-opacity=".4" stroke-width="${2.2 * fs}"/>`;
-    if (a != null) h += `<circle cx="${X(a)}" cy="${y}" r="${3.8 * fs}" fill="#fff" stroke="${TEAL}" stroke-width="${1.7 * fs}"/>`;
+  /* E: spotlight the widest gap above the U.S. and the widest below (at least 1 point each); other rows fade back */
+  const gaps = rows.map((r, i) => r.st != null && r.us != null && !/^(unknown|other)\b/i.test(r.name) ? {i, d: r.st - r.us} : null).filter(Boolean);
+  const top = gaps.length >= 5 ? gaps.reduce((a, g) => g.d > a.d ? g : a, {d: 1}) : {}, bot = gaps.length >= 5 ? gaps.reduce((a, g) => g.d < a.d ? g : a, {d: -1}) : {};
+  const spot = new Set([top.i, bot.i].filter(i => i != null));
+  rows.forEach((r, i) => { const y = Tp + i * rh + rh / 2, a = r.us, b = r.st, on = !spot.size || spot.has(i), op = on ? 1 : .35;
+    h += `<text x="${Lw - 8 * fs}" y="${y + 2.5 * fs}" text-anchor="end" style="fill:${on ? "#1c1c1c" : "#8a8a8a"};font-size:${LF.toFixed(1)}px;${r.bold || spot.has(i) ? "font-weight:700" : ""}">${esc(r.name)}</text>`;
+    if (a != null && b != null) h += `<line x1="${X(a)}" x2="${X(b)}" y1="${y}" y2="${y}" stroke="${CRIM}" stroke-opacity="${on ? .4 : .14}" stroke-width="${2.2 * fs}"/>`;
+    if (a != null) h += `<circle cx="${X(a)}" cy="${y}" r="${3.8 * fs}" fill="#fff" stroke="${TEAL}" stroke-width="${1.7 * fs}" opacity="${op}"/>`;
     /* the state's value sits beside the state's (filled) dot, on the side away from the U.S. dot, so it can never be
        read as the U.S. figure; it goes left only when the state is below the U.S. and there is room before the axis */
-    if (b != null) { const left = a != null && a > b && X(b) - Lw > 44 * fs;
-      h += `<circle cx="${X(b)}" cy="${y}" r="${4.2 * fs}" fill="${CRIM}"/><text x="${left ? X(b) - 8 * fs : (a != null && a > b ? X(a) + 8 * fs : X(b) + 8 * fs)}" y="${y + 2.5 * fs}" ${left ? 'text-anchor="end"' : ""} style="fill:${CRIM};font-weight:700;${tf}">${a != null && a > b && !left ? `${esc(ST)} ` : ""}${pct(b)}</text>`; } });
+    if (b != null) { const left = a != null && a > b && X(b) - Lw > 44 * fs, lt = `${a != null && a > b && !left ? `${ST} ` : ""}${pct(b)}`, lx = left ? X(b) - 8 * fs : (a != null && a > b ? X(a) + 8 * fs : X(b) + 8 * fs);
+      h += `<circle cx="${X(b)}" cy="${y}" r="${4.2 * fs}" fill="${CRIM}" opacity="${op}"/><text x="${lx}" y="${y + 2.5 * fs}" ${left ? 'text-anchor="end"' : ""} style="fill:${CRIM};font-weight:700;${tf}" opacity="${on ? 1 : .5}">${esc(lt)}</text>`;
+      /* the spotlit rows name their gap after the value label (or before the dots when the right side is full) */
+      if (spot.has(i)) { const d = b - a, gt = `${d > 0 ? "+" : "−"}${nf(Math.abs(d), Math.abs(d) < 10 ? 1 : 0)} pts vs U.S.`, gw = gt.length * TF * .58;
+        const re = left ? Math.max(X(a), X(b)) + 6 * fs : lx + lt.length * TF * .6, ls = Math.min(X(a), X(b), left ? lx - lt.length * TF * .6 : X(b)) - 8 * fs;
+        if (re + 8 + gw <= W - 2) h += `<text x="${re + 8}" y="${y + 2.5 * fs}" style="fill:${CRIM};font-weight:700;${tf}">${gt}</text>`;
+        else if (ls - gw > Lw + 4) h += `<text x="${ls}" y="${y + 2.5 * fs}" text-anchor="end" style="fill:${CRIM};font-weight:700;${tf}">${gt}</text>`;
+        /* on the line between the dots, over a white box (stroked text would print as a Type3 font) */
+        else if (Math.abs(X(a) - X(b)) > gw + 24) { const mx = (X(a) + X(b)) / 2; h += `<rect x="${(mx - gw / 2 - 4).toFixed(1)}" y="${(y - TF * .7).toFixed(1)}" width="${(gw + 8).toFixed(1)}" height="${(TF * 1.4).toFixed(1)}" fill="#fff"/><text x="${mx}" y="${y + 2.5 * fs}" text-anchor="middle" style="fill:${CRIM};font-weight:700;${tf}">${gt}</text>`; } } } });
   return legendHTML([{n: NAME, c: CRIM, kind: "dot"}, {n: "United States", c: TEAL, kind: "ring"}]) + `<svg data-ax="x" viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
 }
 /* part-of-whole as donuts: rows [{label, parts:[{k, v}]}]; one donut per row, legend with each row's share */
@@ -1761,7 +1855,32 @@ function buildSummary() {
   doc.insertAdjacentHTML("beforeend", `<section class="sum"><div class="hd2"><b>${esc(NAME)}</b><span>State Talent Profile · Summary</span></div>
     <div class="body" style="padding-top:16px">${tab}<div style="height:14px"></div>${fig2}<div style="height:12px"></div>${out}</div>${foot(2)}</section>`);
 }
-document.fonts.ready.then(() => { if (VAR === "spread") buildSpreads(); else if (VAR === "summary") buildSummary(); else buildBTN(); theDC();
+/* G and H alternate over the tables in reading order. H is tried in place: the table moves into a wrapper that
+   leaves 146 px for the note, its label column may wrap, and the row with the largest change is tinted. If any
+   other cell then wraps, a header overflows, or the figure grows past the page's bottom margin, the table goes back to G and the next
+   table takes H's turn. */
+const lines = el => { const rg = document.createRange(); rg.selectNodeContents(el); return new Set([...rg.getClientRects()].filter(r => r.width > 1).map(r => Math.round(r.top / 3))).size; };
+const HRES = 146;   /* width the margin note takes: 132 px note plus 14 px gap */
+function annTables() { let wantH = false;
+  document.querySelectorAll("table.dt[data-hnote]").forEach(tb => { if (!wantH) { wantH = true; return; }
+    const fg = tb.closest(".fig") || tb.parentNode, pg = tb.closest(".pg"), h0 = fg.getBoundingClientRect().height, row = tb.rows[+tb.dataset.hrow], lc = row.cells[row.cells.length - 1];
+    const w = document.createElement("div"); w.className = "hwrap"; tb.parentNode.insertBefore(w, tb); w.appendChild(tb);
+    /* fixed column widths (eq tables): the label column gives up the width first, the number columns keep at
+       least 72 px (or what they had) */
+    const cols = [...tb.querySelectorAll("col")], cw0 = cols.map(c => c.style.width), sp = c => +c.getAttribute("span") || 1;
+    const tot = cols.reduce((a, c) => a + (parseFloat(c.style.width) || 0) * sp(c), 0), k = w.clientWidth - HRES;
+    if (tot && cols.length > 1) { const n = cols.slice(1).reduce((a, c) => a + sp(c), 0), v0 = parseFloat(cols[1].style.width), vw = Math.min(v0, Math.max(72, (k - 120) / n));
+      cols[0].style.width = (k - vw * n).toFixed(1) + "px"; cols.slice(1).forEach(c => { c.style.width = vw.toFixed(1) + "px"; }); }
+    [...row.cells].forEach(c => { if (!c.classList.contains("focus")) c.classList.add("htint"); }); lc.classList.add("hn"); lc.dataset.note = tb.dataset.hnote;
+    /* rows give back padding (to 4 px a side) so the taller table stays inside the page's bottom margin */
+    const lim = pg ? pg.getBoundingClientRect().top + 970 : Infinity, over = () => fg.getBoundingClientRect().bottom - lim, tds = [...tb.querySelectorAll("td, th")], pad0 = tds.map(c => [c.style.paddingTop, c.style.paddingBottom]);
+    if (over() > 0) { const nr = tb.rows.length; let cut = over() / nr / 2 + .5;
+      tds.forEach(c => { const cs = getComputedStyle(c); c.style.paddingTop = Math.max(4, parseFloat(cs.paddingTop) - cut) + "px"; c.style.paddingBottom = Math.max(4, parseFloat(cs.paddingBottom) - cut) + "px"; }); }
+    const bad = (cols.length > 1 && parseFloat(cols[0].style.width) < 100) || [...tb.rows].some(r => [...r.cells].slice(1).some(c => c.tagName === "TD" ? lines(c) > 1 : c.scrollWidth > c.clientWidth + 1)) || over() > 0;
+    if (bad) { w.replaceWith(tb); cols.forEach((c, i) => { c.style.width = cw0[i]; }); tds.forEach((c, i) => { [c.style.paddingTop, c.style.paddingBottom] = pad0[i]; });
+      tb.querySelectorAll(".htint").forEach(c => c.classList.remove("htint")); lc.classList.remove("hn"); delete lc.dataset.note; }
+    else wantH = false; }); }
+document.fonts.ready.then(() => { if (VAR === "spread") buildSpreads(); else if (VAR === "summary") buildSummary(); else buildBTN(); theDC(); annTables();
   /* PDF bookmarks: one per table-of-contents entry, at its sheet (sections in order are the PDF's sheets) */
   window.__outline = [...document.querySelectorAll("section")].map((s, i) => s.dataset.toc ? {t: s.dataset.toc, i} : null).filter(Boolean);
   window.__ready = true; });

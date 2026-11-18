@@ -1626,6 +1626,20 @@ shares a printed figure with one folded into "Other states"; Table 7 shades the 
 master's plus doctorates) it is ranked by. Figure and table numbers are assigned in reading order after layout,
 and each page holds 18 px back so a longer number never wraps a title past the margin.
 
+**Annotations** (chosen from the annotation mockups, 2026-11-18). Each one states a fact read off the data (a
+change since the base year, a count of years above or below the U.S., a gap, the largest change in a table) and
+never a reason, so the same rules write them for every state. They vary through the book:
+- Line charts (full-size ones only) alternate between B, the years since the base year shaded with the state's
+  change and the U.S. change, and C, the space between the state and U.S. lines shaded with "Below the U.S. in k
+  of n years" and the latest gap. On a chart of the state and its peers only the profile's own state is
+  annotated. Labels go in a free spot no line passes through (`freeSpot`), or are left off.
+- Dot plots (`dumbbell`) spotlight the widest gap above the U.S. and the widest below (E), naming each gap; other
+  rows fade back. "Unknown" and "Other" rows are never spotlit.
+- Tables with a change column alternate between G, a short bar after each change (crimson rises, taupe falls),
+  and H, the row with the largest change tinted with a note beside it in the margin. Only changes in one unit are
+  compared. H is tried after layout (`annTables`): where the note would make a cell wrap or push the table past
+  the page's bottom margin, the table keeps G and the next table takes H's turn.
+
 **Wayfinding and print.** The running head on every right page names the profile and the current section ("Section 5:
 Graduate Research"); the digital PDF has a bookmark for every table-of-contents entry (the numbered thumb tabs on
 the page edge were removed at the user's request, 2026-11-16). Each
