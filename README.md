@@ -1628,21 +1628,29 @@ and each page holds 18 px back so a longer number never wraps a title past the m
 
 **Annotations** (chosen from the annotation mockups, 2026-11-18). Each one states a fact read off the data (a
 change since the base year, a count of years above or below the U.S., a gap, the largest change in a table) and
-never a reason, so the same rules write them for every state. They vary through the book:
+never a reason, so the same rules write them for every state. What each one picks out is chosen for the
+report's subject (2026-11-19, `talentScore`): a series, row or flow about international STEM talent first, then
+international talent (international, abroad, visa, H-1B, PERM, OPT), then STEM fields, then graduate levels, and
+only within that the largest change or gap. They vary through the book:
 - Line charts (full-size ones only) alternate between B, the years since the base year shaded with the state's
   change and the U.S. change, and C, the space between the state and U.S. lines shaded with "Below the U.S. in k
   of n years" and the latest gap. On a chart of the state and its peers only the profile's own state is
   annotated. Labels go in a free spot no line passes through (`freeSpot`), or are left off.
-- Dot plots (`dumbbell`) spotlight the widest gap above the U.S. and the widest below (E), naming each gap; other
-  rows fade back. "Unknown" and "Other" rows are never spotlit.
-- Sankeys (the three rails and Figure 10's opener; not the summary sheet) combine S2 and S3 (`sankeyDraw`'s
-  `ann`): the largest named node is followed (left side, or the right side when the left has one node), its
-  ribbons in full color and the rest faded, with a two-line note under it ("India: 3.18K STEM students · 66% of
-  them in master's programs"); each right node's label adds its share of the right side and, when several sources
-  feed it, its largest source's share ("India: 68% of them", shortened to "India: 68%" when the column is narrow),
-  only where the node has room.
+- Dot plots (`dumbbell`) spotlight one gap above the U.S. and one below (E), each over a point: the most
+  talent-related row (the International row, STEM fields), the widest within that; other rows fade back.
+  "Unknown" and "Other" rows are never spotlit.
+- Sankeys combine S2 and S3 (`sankeyDraw`'s `ann`). One node is followed, its ribbons in full color (a thin band
+  darker and at least 2 px wide) and the rest faded, with a two-line note in a white box between the columns,
+  placed in the nearest spot clear of the followed ribbons and joined to the node by a leader when it sits apart.
+  Figure 4 (STEM students by country and level) follows the largest country and its level labels add their
+  share and largest source ("India: 68% of them"); Figure 10's opener follows students from abroad ("From
+  abroad: 77 first-time students · 0.9% of all first-time students in Montana (U.S. 3.1%)"); the newcomers rail
+  follows them too, with their share of newcomers and their rank among sources. The residents-who-leave rail has
+  no international or STEM side and carries no annotation. Students from abroad always have their own band in
+  the migration Sankeys, never folded into "Other states".
 - Tables with a change column alternate between G, a diverging bar under each change on a shared midline (the
-  column's centre; rises run right in crimson, falls run left in taupe, scaled to the largest change), and H, the row with the largest change tinted with a note beside it in the margin. Only changes in one unit are
+  column's centre; rises run right in crimson, falls run left in taupe, scaled to the largest change), and H, one row tinted with a note beside it in the margin (the most talent-related row, the largest change
+  within that; "the largest rise" is added only when it is). Only changes in one unit are
   compared. H is tried after layout (`annTables`): where the note would make a cell wrap or push the table past
   the page's bottom margin, the table keeps G and the next table takes H's turn.
 

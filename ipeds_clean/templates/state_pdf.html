@@ -457,6 +457,11 @@ const FW = 596, HALF = 285;
 const ANNPICK = new Map(), ANNN = {line: 0, tab: 0};
 const annPick = (kind, key, order, ok) => { const k = kind + "|" + key; if (ANNPICK.has(k)) return ANNPICK.get(k);
   const want = order[ANNN[kind] % order.length], got = ok.includes(want) ? want : ok[0] || null; if (got === want) ANNN[kind]++;   /* a figure that cannot take its turn's treatment leaves the turn to the next */ ANNPICK.set(k, got); return got; };
+/* what the annotations look for first (user, 2026-11-19): the series, row or flow most about international talent,
+   STEM talent or international STEM talent; graduate levels next; only then the largest change or gap */
+const T_INTL = /international|\bintl\b|\bint\.|abroad|foreign|visa|nonresident|\bf-1\b|\bopt\b|h-1b|\bperm\b|green.card/i,
+  T_STEM = /\bstem\b|computer|engineer|math|statist|physical sci|biolog|natural resources|architecture/i, T_GRAD = /master|doctor|\bgraduate|postdoc/i;   /* \b: "Undergraduate" is not a graduate level */
+const talentScore = s => { s = String(s || ""); const i = T_INTL.test(s), t = T_STEM.test(s); return i && t ? 4 : i ? 3 : t ? 2 : T_GRAD.test(s) && !/professional/i.test(s) ? 1 : 0; };
 const chgTxt = (a, b, unit) => unit === "%" ? `${sgn1(b - a)} pts` : a > 0 ? (b / a >= 2 ? `${nf(b / a, 2)}×` : `${b >= a ? "+" : "−"}${nf(Math.abs(b / a - 1) * 100)}%`) : "";
 /* a free spot for a text block inside the plot: no line passes within 4 px; nearest to (cx, cy) */
 const freeSpot = (pts, box, w, h, cx, cy) => { const C = 4, nx = Math.ceil((box.x1 - box.x0) / C) + 1, ny = Math.ceil((box.y1 - box.y0) / C) + 1;
@@ -487,13 +492,13 @@ function lineAnn({series, X, Y, ys, Lm, Rr, W, H, Tp, B, unit, EF}) {
   const cS = sts.map(s => { const u = usOf(s); if (!u) return null; const c = s.s.y.filter(y => val(s, y) != null && val(u, y) != null); return c.length >= 5 ? {s, u, c, g: c.reduce((a, y) => a + Math.abs(Y(val(s, y)) - Y(val(u, y))), 0) / c.length} : null; }).filter(Boolean);
   const key = series.map(s => s.name + ":" + s.s.v.filter(v => v != null).length).join("|") + y0 + "-" + y1;   // the same chart at any height
   const pick = annPick("line", key, ["B", "C"], [okB ? "B" : null, cS.length ? "C" : null].filter(Boolean));
-  if (pick === "B") { const o = bS.sort((p, q) => Math.abs(Y(q.b) - Y(q.a)) - Math.abs(Y(p.b) - Y(p.a)))[0], u = usOf(o.s), xb = X(b0), xe = X(Math.max(...bS.map(p => p.yl)));
+  if (pick === "B") { const o = bS.sort((p, q) => talentScore(q.s.name) - talentScore(p.s.name) || Math.abs(Y(q.b) - Y(q.a)) - Math.abs(Y(p.b) - Y(p.a)))[0], u = usOf(o.s), xb = X(b0), xe = X(Math.max(...bS.map(p => p.yl)));
     out.under = `<rect x="${xb}" y="${Tp}" width="${xe - xb}" height="${H - B - Tp}" fill="#887e6f" fill-opacity=".09"/>`;
     const L = [`SINCE ${b0}`, `${nm(o.s)}${chgTxt(o.a, o.b, unit)}`]; const ua = u && val(u, b0), ub = u && last(u.s); if (ua != null && ub != null) L.push(`U.S. ${chgTxt(ua, ub, unit)}`); L.head = TAUPE;
     for (let a = -2; a <= 2; a++) pts.push([xb + a * 2, Y(o.a)]);   // keep the label off the base-year dot
     const w = Math.max(...L.map(cw)), hh = EF * 1.25 * L.length + 2, sp = w <= xe - xb - 8 && freeSpot(pts, {x0: xb, x1: xe, y0: Tp, y1: H - B}, w, hh, xb, Tp);
     out.over = `<circle cx="${xb}" cy="${Y(o.a)}" r="3.6" fill="#fff" stroke="${CRIM}" stroke-width="1.6"/>` + (sp ? text(sp.x, sp.y, L) : ""); }
-  if (pick === "C") { const o = cS.sort((p, q) => q.g - p.g)[0], {s, u, c} = o, P = c.map(y => [X(y), Y(val(s, y))]), Q = c.map(y => [X(y), Y(val(u, y))]).reverse();
+  if (pick === "C") { const o = cS.sort((p, q) => talentScore(q.s.name) - talentScore(p.s.name) || q.g - p.g)[0], {s, u, c} = o, P = c.map(y => [X(y), Y(val(s, y))]), Q = c.map(y => [X(y), Y(val(u, y))]).reverse();
     out.under = `<path d="M${[...P, ...Q].map(p => p.map(v => v.toFixed(1)).join(",")).join("L")}Z" fill="${CRIM}" fill-opacity=".09"/>`;
     const k = c.filter(y => val(s, y) < val(u, y)).length, below = k * 2 >= c.length, yl = c[c.length - 1], g = val(s, yl) - val(u, yl);
     const gt = Math.abs(g) < (unit === "%" ? .05 : Math.abs(val(u, yl)) * .005) ? `level with the U.S. in ${yl}` : `${unit === "%" ? nf(Math.abs(g), 1) + " pts" : unit === "$" ? usd(Math.abs(g)) : sig3(Math.abs(g))} ${g < 0 ? "below" : "above"} in ${yl}`;
@@ -569,8 +574,11 @@ function tabAnn(title, body) {
     const inG = new Set(G);
     cells.forEach(o => { const on = inG.has(o) && o.p.v, w = on ? Math.max(3, Math.abs(o.p.v) / mx * 47).toFixed(1) : 0;
       if (inG.has(o)) o.c.insertAdjacentHTML("beforeend", `<span class="ctrack">${on ? `<span class="cbar" style="width:${w}%;${o.p.v > 0 ? "left:50%" : "right:50%"};background:${o.p.v > 0 ? CRIM : TAUPE}"></span>` : ""}</span>`); }); }
-  { const o = G.reduce((a, b) => Math.abs(b.p.v) > Math.abs(a.p.v) ? b : a), lab = o.r.cells[0].textContent.trim(), up = o.p.v > 0, mixed = units.length > 1;
-    tb.dataset.hnote = `${lab}: ${o.c.textContent.trim()}${since ? ` since ${since}` : ""}, the largest ${mixed && u === "%" ? "percentage " : ""}${up ? "rise" : "fall"}${mixed && u === "pp" ? " in points" : ""}`;
+  { const ts = o => talentScore(o.r.cells[0].textContent), big = G.reduce((a, b) => Math.abs(b.p.v) > Math.abs(a.p.v) ? b : a);
+    /* the note goes on the most talent-related row (international, STEM), the largest change within that */
+    const o = G.filter(x => x.p.v).reduce((a, b) => ts(b) > ts(a) || (ts(b) === ts(a) && Math.abs(b.p.v) > Math.abs(a.p.v)) ? b : a), lab = o.r.cells[0].textContent.trim(), up = o.p.v > 0, mixed = units.length > 1;
+    const most = G.filter(x => Math.sign(x.p.v) === Math.sign(o.p.v)).every(x => Math.abs(x.p.v) <= Math.abs(o.p.v));
+    tb.dataset.hnote = `${lab}: ${o.c.textContent.trim()}${since ? ` since ${since}` : ""}${o === big || most ? `, the largest ${mixed && u === "%" ? "percentage " : ""}${up ? "rise" : "fall"}${mixed && u === "pp" ? " in points" : ""}` : ""}`;
     tb.dataset.hrow = [...tb.rows].indexOf(o.r); }
   return t.innerHTML; }
 const BYLINE = String(((D.front || {}).byline) || "").replace(/^By /, "");
@@ -598,7 +606,9 @@ function dumbbell(rows, {W = FW, Lw = 170, max, rh = 16, fs = 1} = {}) {
   for (let t = 0; t <= hi; t += step) h += `<line x1="${X(t)}" x2="${X(t)}" y1="${Tp}" y2="${H - TF * 1.45}" stroke="#e3dfd9" stroke-width=".6"/><text x="${X(t)}" y="${H - 5 * fs}" text-anchor="middle" style="${tf}">${t}%</text>`;
   /* E: spotlight the widest gap above the U.S. and the widest below (at least 1 point each); other rows fade back */
   const gaps = rows.map((r, i) => r.st != null && r.us != null && !/^(unknown|other)\b/i.test(r.name) ? {i, d: r.st - r.us} : null).filter(Boolean);
-  const top = gaps.length >= 5 ? gaps.reduce((a, g) => g.d > a.d ? g : a, {d: 1}) : {}, bot = gaps.length >= 5 ? gaps.reduce((a, g) => g.d < a.d ? g : a, {d: -1}) : {};
+  /* each way, the most talent-related row with a gap over 1 point (international, then STEM fields), widest within that */
+  const sc = g => g.i == null ? -1 : talentScore(rows[g.i].name), pickE = dir => gaps.reduce((a, g) => dir * g.d > 1 && (sc(g) > sc(a) || (sc(g) === sc(a) && dir * g.d > dir * a.d)) ? g : a, {d: dir});
+  const top = gaps.length >= 5 ? pickE(1) : {}, bot = gaps.length >= 5 ? pickE(-1) : {};
   const spot = new Set([top.i, bot.i].filter(i => i != null));
   rows.forEach((r, i) => { const y = Tp + i * rh + rh / 2, a = r.us, b = r.st, on = !spot.size || spot.has(i), op = on ? 1 : .35;
     h += `<text x="${Lw - 8 * fs}" y="${y + 2.5 * fs}" text-anchor="end" style="fill:${on ? "#1c1c1c" : "#8a8a8a"};font-size:${LF.toFixed(1)}px;${r.bold || spot.has(i) ? "font-weight:700" : ""}">${esc(r.name)}</text>`;
@@ -719,10 +729,13 @@ function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [],
   place(left, LBl); place(right, W - LBr - NW);
   const by = Object.fromEntries([...left, ...right].map(n => [n.id, n])); let h = "";
   const named = n => !/\bother\b/i.test(n.label || (n.lines || []).join(" ")), nl = left.filter(named), nr = right.filter(named);
-  const side = ann ? (nl.length > 1 || nr.length <= 1 ? "L" : "R") : null, F = side ? (side === "L" ? nl : nr).reduce((a, b) => b.n > a.n ? b : a, {n: -1}) : null, foc = F && F.id ? F : null;
-  const fOf = l => !foc || (side === "L" ? l.s : l.t) === foc.id;
+  /* ann.focus names the node to follow (the flow from abroad, say); without it, the largest named node */
+  const fx = ann && ann.focus ? by[ann.focus] : null;
+  const side = ann ? (fx ? (left.includes(fx) ? "L" : "R") : nl.length > 1 || nr.length <= 1 ? "L" : "R") : null;
+  const F = ann && ann.focus ? fx : side ? (side === "L" ? nl : nr).reduce((a, b) => b.n > a.n ? b : a, {n: -1}) : null, foc = F && F.id && F.n > 0 ? F : null;
+  const fOf = l => !foc || (side === "L" ? l.s : l.t) === foc.id, geo = [];
   for (const l of links) { const a = by[l.s], b = by[l.t], w = l.v * k; if (!a || !b || w <= 0) continue; const y0 = a.y + a.o + w / 2, y1 = b.y + b.o + w / 2; a.o += w; b.o += w;
-    const x0 = a.x + NW, x1 = b.x, xm = (x0 + x1) / 2; h += `<path d="M${x0},${y0} C${xm},${y0} ${xm},${y1} ${x1},${y1}" fill="none" stroke="${l.c || a.c}" stroke-opacity="${foc ? (fOf(l) ? .5 : .07) : .28}" stroke-width="${Math.max(.8, w)}"/>`; }
+    const x0 = a.x + NW, x1 = b.x, xm = (x0 + x1) / 2; if (foc && fOf(l)) geo.push({x0, y0, x1, y1, xm, w}); h += `<path d="M${x0},${y0} C${xm},${y0} ${xm},${y1} ${x1},${y1}" fill="none" stroke="${l.c || a.c}" stroke-opacity="${foc ? (fOf(l) ? (w < 6 ? .85 : .5) : .07) : .28}" stroke-width="${Math.max(foc && fOf(l) ? 2 * fs : .8, w)}"/>`; }   /* a thin followed band is drawn darker and at least 2 px so it can be seen */
   const lab = (n, x, anchor) => { const cy = n.y + n.h / 2;
     if (n.lines) return `<text x="${x}" y="${cy - (n.lines.length - 1) * FZ * .62 + 2.5 * fs}" text-anchor="${anchor}" style="fill:#1c1c1c;font-size:${FZ.toFixed(1)}px">${n.lines.map((t, i) => `<tspan x="${x}" dy="${i ? FZ * 1.25 : 0}" style="${i === 0 ? "font-weight:700" : ""}">${esc(t)}${i === n.lines.length - 1 ? " " + sig3(n.n) : ""}</tspan>`).join("")}</text>`;
     return `<text x="${x}" y="${cy + 2.5 * fs}" text-anchor="${anchor}" style="fill:#1c1c1c;font-size:${FZ.toFixed(1)}px"><tspan style="font-weight:700">${esc(n.label)}</tspan> ${sig3(n.n)}</text>`; };
@@ -732,7 +745,7 @@ function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [],
   const pc = v => nf(v, v < 10 ? 1 : 0) + "%", rTot = right.reduce((a, n) => a + n.n, 0), FS = (FZ * .9).toFixed(1);
   for (const n of right) { let lb = lab(n, n.x + NW + 6 * fs, "start");
     const nm = n.label || (n.lines && n.lines.length === 1 ? n.lines[0] : null);
-    if (ann && right.length > 1 && named(n) && nm && !(foc === n && side === "R")) { const into = links.filter(l => l.t === n.id && l.v > 0), tp = into.reduce((a, b) => b.v > a.v ? b : a, {v: 0}), src = by[tp.s];
+    if (ann && ann.s3 !== false && right.length > 1 && named(n) && nm && !(foc === n && side === "R")) { const into = links.filter(l => l.t === n.id && l.v > 0), tp = into.reduce((a, b) => b.v > a.v ? b : a, {v: 0}), src = by[tp.s];
       /* the source line drops "of them" when the full wording would not fit the label column */
       const fits = t => t.length * FZ * .9 * .56 <= LBr - 10 * fs, sl = src && (src.label || src.lines.join(" ")), sp = pc(100 * tp.v / n.n);
       const s2 = into.length > 1 && src && named(src) ? [`${sl}: ${sp} of them`, `${sl}: ${sp}`].find(fits) : null;
@@ -744,9 +757,18 @@ function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [],
   /* the followed node's note, under it (above it when it sits at the bottom), on the ribbon side */
   if (foc && ann.note) { const out = links.filter(l => (side === "L" ? l.s : l.t) === foc.id && l.v > 0), tp = out.reduce((a, b) => b.v > a.v ? b : a, {v: 0}), other = by[side === "L" ? tp.t : tp.s];
     const tot = (side === "L" ? left : right).reduce((a, n) => a + n.n, 0), L = ann.note(foc, other, 100 * tp.v / foc.n, 100 * foc.n / tot).filter(Boolean);
-    if (L.length) { const x = side === "L" ? foc.x + NW + 8 * fs : foc.x - 8 * fs, an = side === "L" ? "start" : "end", below = foc.y + foc.h + FZ * 1.5 + FZ * 1.25 * (L.length - 1) <= H - 2;
-      const y = below ? foc.y + foc.h + FZ * 1.5 : foc.y - FZ * .6 - FZ * 1.25 * (L.length - 1);
-      h += L.map((t, i) => `<text x="${x}" y="${(y + FZ * 1.25 * i).toFixed(1)}" text-anchor="${an}" style="fill:${i ? "#404040" : CRIM};font-weight:${i ? 400 : 700};font-size:${FZ.toFixed(1)}px">${esc(t)}</text>`).join(""); } }
+    /* the note sits in a white box between the columns, in the nearest spot clear of the followed ribbons (it may
+       cover faded ones), so it never reads as part of a node label or sits on a highlighted band */
+    if (L.length) { const P = 4 * fs, lw = Math.max(...L.map((t, i) => t.length * FZ * (i ? .54 : .6))), lh = FZ * 1.25 * L.length;
+      const pts = []; geo.forEach(g => { for (let t = 0; t <= 1.0001; t += .02) { const u = 1 - t, x = u ** 3 * g.x0 + 3 * u * u * t * g.xm + 3 * u * t * t * g.xm + t ** 3 * g.x1, y = u ** 3 * g.y0 + 3 * u * u * t * g.y0 + 3 * u * t * t * g.y1 + t ** 3 * g.y1;
+        for (let d = -g.w / 2 - 3; d <= g.w / 2 + 3; d += 3) pts.push([x, y + d]); } });
+      const bx = {x0: left[0].x + NW + 6 * fs, x1: right[0].x - 6 * fs, y0: Tp, y1: H - 2}, cy = foc.y + foc.h / 2;
+      const cx = side === "L" ? bx.x0 + lw / 2 + P + 8 * fs : bx.x1 - lw / 2 - P - 8 * fs, sp = freeSpot(pts, bx, lw + 2 * P, lh + 2 * P, cx, cy);
+      if (sp) { const tx = sp.x + P, ty = sp.y + P + FZ * .95, ex = side === "L" ? sp.x : sp.x + lw + 2 * P, ey = sp.y + (lh + 2 * P) / 2, nx = side === "L" ? foc.x + NW : foc.x;
+        h += `<rect x="${sp.x.toFixed(1)}" y="${sp.y.toFixed(1)}" width="${(lw + 2 * P).toFixed(1)}" height="${(lh + 2 * P).toFixed(1)}" fill="#fff" fill-opacity=".94" stroke="${CRIM}" stroke-opacity=".35" stroke-width=".6"/>`;
+        /* a leader back to the node when the box had to sit away from it */
+        if (Math.abs(ex - nx) > 14 * fs || ey < foc.y - 4 || ey > foc.y + foc.h + 4) h += `<line x1="${nx + (side === "L" ? 2 : -2)}" y1="${Math.min(Math.max(ey, foc.y + 1), foc.y + foc.h - 1).toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="${CRIM}" stroke-width=".7" stroke-opacity=".6"/>`;
+        h += `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" style="font-size:${FZ.toFixed(1)}px">${L.map((t, i) => `<tspan x="${tx.toFixed(1)}" dy="${i ? (FZ * 1.25).toFixed(1) : 0}" style="fill:${i ? "#404040" : CRIM};font-weight:${i ? 400 : 700}">${esc(t)}</tspan>`).join("")}</text>`; } } }
   if (heads[0]) h += `<text x="${LBl + NW / 2}" y="${8 * fs}" text-anchor="middle" style="font-weight:700;fill:#1c1c1c;font-size:${fz(8.6 * fs).toFixed(1)}px">${esc(heads[0])}</text>`;
   if (heads[1]) h += `<text x="${W - LBr - NW / 2}" y="${8 * fs}" text-anchor="middle" style="font-weight:700;fill:#1c1c1c;font-size:${fz(8.6 * fs).toFixed(1)}px">${esc(heads[1])}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" height="${H}">${h}</svg>`;
@@ -756,7 +778,8 @@ function sankeyDraw({left, right, links, W, H, LBl = 132, LBr = 132, heads = [],
 function topTie(a, k) { let n = Math.min(k, a.length); while (n < a.length && n < k + 3 && sig3(a[n].n) === sig3(a[k - 1].n)) n++; return a.slice(0, n); }
 function sankeySVG(W = FW, H = 270, fs = 1, ann = null) {
   const stay = M.stay, outN = M.out_total, inN = M.in_total;
-  const topIn = topTie(M.in, 5), inRest = Math.max(0, inN - topIn.reduce((a, b) => a + b.n, 0));
+  /* the five largest states, and students from abroad always as their own band (never folded into "Other states") */
+  const ab = M.in.find(x => x.k === "Abroad"), topIn = [...topTie(M.in.filter(x => x.k !== "Abroad"), 5), ...(ab && ab.n > 0 ? [ab] : [])].sort((a, b) => b.n - a.n), inRest = Math.max(0, inN - topIn.reduce((a, b) => a + b.n, 0));
   const topOut = topTie(M.out, 5), outRest = Math.max(0, outN - topOut.reduce((a, b) => a + b.n, 0));
   const left = [{id: "res", label: `${NAME} residents`, n: stay + outN, c: CRIM}, ...topIn.map(x => ({id: "i" + x.k, label: x.k === "Abroad" ? "From abroad" : x.name, n: x.n, c: x.k === "Abroad" ? cssv("--orange") : TEAL})), {id: "ir", label: "Other states", n: inRest, c: cssv("--grey")}];
   const right = [{id: "inst", label: `${NAME} institutions`, n: stay + inN, c: CRIM}, ...topOut.map(x => ({id: "o" + x.k, label: x.name, n: x.n, c: TEAL})), {id: "or", label: "Other states", n: outRest, c: cssv("--grey")}];
@@ -1401,8 +1424,8 @@ function buildSpreads() {
       stats: ["intl_share_master", "intl_share_stem_master", "stem_master_per_doc"]});
   }
   /* ===== 3  Where students come from: Sankey across the spread ===== */
-  hero("Where students come from", {head: "Where Students Come From", title: `First-Time Students by Home and Destination, Fall ${M.year}`, chart: H => sankeySVG(SW, H + 40, 1.45, {note: (f, t, p) => [`${f.label}: ${KMB(f.n)} first-time students`, t ? `${pct(p)} of them enrolled in ${t.label === `${NAME} institutions` ? `${NAME}` : t.label}` : ""]}),
-    src: `Home of first-time degree-seeking undergraduates (left) and the state of the institution entered (right); the five largest sources and destinations (more when states tie at the printed figure), the rest grouped; ties are ordered by exact count. Data from NCES, IPEDS Fall Enrollment.`,
+  hero("Where students come from", {head: "Where Students Come From", title: `First-Time Students by Home and Destination, Fall ${M.year}`, chart: H => sankeySVG(SW, H + 40, 1.45, {focus: "iAbroad", s3: false, note: f => [`From abroad: ${nf(f.n)} first-time students`, frn.v1 != null ? `${pct(frn.v1)} of all first-time students in ${NAME}${frn.us1 != null ? ` (U.S. ${pct(frn.us1)})` : ""}` : ""]}),
+    src: `Home of first-time degree-seeking undergraduates (left) and the state of the institution entered (right); students from abroad and the five largest states of origin and destination (more when states tie at the printed figure), the rest grouped; ties are ordered by exact count. Data from NCES, IPEDS Fall Enrollment.`,
     paras: [`${nf(M.stay)} residents stayed in ${esc(NAME)} for college in fall ${M.year}; ${nf(domIn)} students arrived from other states and ${nf(abroadN)} from abroad, while ${nf(M.out_total)} residents left.`,
       `Each band runs from a student's home on the left to the state where they enrolled on the right. ${pct(ins.v1)} of the state's first-time students are residents${ins.us1 != null ? ` (U.S. ${pct(ins.us1)})` : ""}.`],
     stats: ["instate_share_ft", "foreign_share_ft", "net_migration_ft"]});
@@ -1415,17 +1438,18 @@ function buildSpreads() {
       paras: [`Since ${D.base}, the number of residents staying in state for college is ${mv(kser(M.flows, "Stayed in state"), "n").replace(/ since \d+$/, "")}, arrivals from other states are ${mv(kser(M.flows, "Arrived from other states"), "n").replace(/ since \d+$/, "")}, and residents leaving are ${mv(kser(M.flows, "Left for other states"), "n").replace(/ since \d+$/, "")}.`,
         `Net migration was ${fmtSpec(nr.v1, nr.fmt, nr.unit)} per 100 resident first-time students (${rk("net_migration_ft")}).${outTop ? ` The top destination for residents who left was ${esc(outTop.name)} (${nf(outTop.n)}).` : ""}`],
     });
-    const top = a => topTie(a, 12), rest = (a, t) => Math.max(0, t - top(a).reduce((s, x) => s + x.n, 0));
+    /* the 12 largest flows; students from abroad are always shown as their own band */
+    const top = a => { const t = topTie(a, 12), ab = a.find(x => x.k === "Abroad"); return ab && ab.n > 0 && !t.includes(ab) ? [...t, ab].sort((p, q) => q.n - p.n) : t; }, rest = (a, t) => Math.max(0, t - top(a).reduce((s, x) => s + x.n, 0));
     const iN = top(M.in), iR = rest(M.in, M.in_total), oN = top(M.out), oR = rest(M.out, M.out_total), GR = cssv("--grey"), OR = cssv("--orange");
     const sIn = (H, W = PW) => sankeyDraw({left: [...iN.map(x => ({id: "i" + x.k, label: x.k === "Abroad" ? "Abroad" : x.name, n: x.n, c: x.k === "Abroad" ? OR : TEAL})), ...(iR ? [{id: "ir", label: "All other states", n: iR, c: GR}] : [])],
       right: [{id: "in", lines: [NAME, "institutions"], n: M.in_total, c: CRIM}], links: [...iN.map(x => ({s: "i" + x.k, t: "in", v: x.n})), ...(iR ? [{s: "ir", t: "in", v: iR}] : [])],
       W, H, LBl: W > 900 ? 230 : 180, LBr: W > 900 ? 200 : 130, heads: ["Home", "Enrolled in"], fs: W > 900 ? 1.5 : 1.25,
-      ann: {note: (f, t, p, sh) => [`${f.label === "Abroad" ? "From abroad" : f.label}: ${nf(f.n)} students`, `${pct(sh)} of all newcomers`]}});
+      ann: {focus: "iAbroad", note: (f, t, p, sh) => { const r = [...M.in].sort((a, b) => b.n - a.n).findIndex(x => x.k === "Abroad") + 1;
+        return [`From abroad: ${nf(f.n)} students`, `${pct(sh)} of all newcomers, ${r === 1 ? "the largest source" : `the ${ord(r)}-largest source`}`]; }}});
     const sOut = (H, W = PW) => sankeyDraw({left: [{id: "res", lines: [NAME, "residents"], n: M.out_total, c: CRIM}], right: [...oN.map(x => ({id: "o" + x.k, label: x.name, n: x.n, c: TEAL})), ...(oR ? [{id: "or", label: "All other states", n: oR, c: GR}] : [])],
       links: [...oN.map(x => ({s: "res", t: "o" + x.k, v: x.n, c: TEAL})), ...(oR ? [{s: "res", t: "or", v: oR, c: GR}] : [])],
-      W, H, LBl: W > 900 ? 200 : 130, LBr: W > 900 ? 230 : 180, heads: ["Home", "Enrolled in"], fs: W > 900 ? 1.5 : 1.25,
-      ann: {of: "of those who left", note: (f, t, p, sh) => [`${f.label}: ${nf(f.n)} residents`, `${pct(sh)} of those who left`]}});
-    const srcM = `First-time degree-seeking undergraduates, fall ${M.year}; the 12 largest flows (more when states tie at the printed figure), ordered by exact count. Data from NCES, IPEDS Fall Enrollment.`;
+      W, H, LBl: W > 900 ? 200 : 130, LBr: W > 900 ? 230 : 180, heads: ["Home", "Enrolled in"], fs: W > 900 ? 1.5 : 1.25});   /* no annotation: residents leaving for other states has no international or STEM side to follow */
+    const srcM = `First-time degree-seeking undergraduates, fall ${M.year}; the 12 largest flows (more when states tie at the printed figure) and students from abroad, ordered by exact count. Data from NCES, IPEDS Fall Enrollment.`;
     const fl = k => kser(M.flows, k), fy = y => `fall ${y}`, top3 = a => andList(a.filter(x => x.k !== "Abroad").slice(0, 3).map(x => `${esc(x.name)} (${nf(x.n)})`));
     const mIn = one(null,
         `The bands show where first-time degree-seeking undergraduates who enrolled at ${esc(NAME)}'s institutions in fall ${M.year} but did not live in the state came from: the 12 largest home states and students from abroad, with all other states grouped. Band widths are proportional to the number of students. Home is the state where the student lived when admitted.`,
@@ -1444,7 +1468,7 @@ function buildSpreads() {
     rail("", {title: `Where Do ${esc(NAME)}'s Newcomers Come From?`, lede: ledeOf(mIn), src: srcM,
       stats: [{v: KMB(M.in_total), l: `First-time students from other states and abroad, fall ${M.year}`, c: abroadN ? `Abroad <b>${KMB(abroadN)}</b>` : ""}, "foreign_share_ft", "instate_share_ft"],
       legend: leg([{n: "Other states", c: TEAL, kind: "sq"}, {n: "Abroad", c: OR, kind: "sq"}], [{n: `${NAME} institutions`, c: CRIM, kind: "sq"}]), chart: (W, H) => sIn(H, W)}, "L");
-    rail("", {title: `Where Do ${esc(NAME)}'s Residents Go When They Leave?`, lede: ledeOf(mOut), src: srcM,
+    rail("", {title: `Where Do ${esc(NAME)}'s Residents Go When They Leave?`, lede: ledeOf(mOut), src: srcM.replace(" and students from abroad", ""),
       stats: [{v: KMB(M.out_total), l: `Residents who started college in another state, fall ${M.year}`, c: `Arrived from other states <b>${KMB(domIn)}</b> · <b>${KMB(M.in_total)}</b> with abroad`}, "net_migration_ft", ...(M.out[0] ? [{v: KMB(M.out[0].n), l: `Went to ${esc(M.out[0].name)}`, c: "The largest destination"}] : [])],
       legend: leg([{n: `${NAME} residents`, c: CRIM, kind: "sq"}, {n: "Other states", c: TEAL, kind: "sq"}], []), chart: (W, H) => sOut(H, W)}, "R"); }
 
@@ -1880,7 +1904,7 @@ function buildSummary() {
   const prow = m => { const p = D.peer_tab.find(x => x.m === m); if (!p) return ""; const f = v => fmtSpec(v, p.fmt, p.unit);
     return `<tr><td>${esc(SHORT[m] || p.title)}, ${p.y}</td>${pcols.map(s => `<td class="${s === ST ? "me" : ""}">${p.vals[s] != null && !(s === "US" && p.unit === "%" && Math.abs(p.vals[s] - 100) < 1e-6) ? f(p.vals[s]) : "–"}</td>`).join("")}</tr>`; };
   const tab = `<h2><em>Table 1</em>How ${TN} compares with states of similar size</h2><table class="pt"><tr><th>Measure</th>${pcols.map(s => `<th class="${s === ST ? "me" : ""}">${s === "US" ? "U.S." : esc(NM[s])}</th>`).join("")}</tr>${PT.map(prow).join("")}</table><div class="fs">Peers are the four states closest in total fall enrollment. Dollars are 2024 dollars (CPI-U). Data from NCES, IPEDS.</div>`;
-  const fig2 = `<h2><em>Figure 2</em>Where first-time students come from, and where residents go, fall ${M.year}</h2>${sankeySVG(704, 290, 1.2)}<div class="fs">Home of first-time degree-seeking undergraduates (left) and the state of the institution they entered (right); the five largest sources and destinations, the rest grouped. Data from NCES, IPEDS Fall Enrollment.</div>`;
+  const fig2 = `<h2><em>Figure 2</em>Where first-time students come from, and where residents go, fall ${M.year}</h2>${sankeySVG(704, 290, 1.2)}<div class="fs">Home of first-time degree-seeking undergraduates (left) and the state of the institution they entered (right); students from abroad and the five largest states of origin and destination, the rest grouped. Data from NCES, IPEDS Fall Enrollment.</div>`;
   /* where the state stands out: its nearest-to-the-edge ranks across the profile's headline measures */
   const pool = [...new Set(Object.values(STATS).flat().concat(["sevis_total", "acs_stem_fb_share", "h1b_initial", "pat_inv_patents", "rd_herd", "opt_retention", "naep_math8_prof"]))]
     .filter(m => row(m).rank && row(m).v1 != null && !/^share_of_us_|_count$|^enroll_total$|^sevis_total$|^h1b_initial$|^pat_inv_patents$|^rd_herd$/.test(m))
