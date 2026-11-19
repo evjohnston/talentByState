@@ -323,7 +323,7 @@ ol.bib li .bn { position: absolute; left: 0; font: 700 9px/1.65 Montserrat, sans
 .spread .rcol .r-body p { margin: 0 0 9.33px; text-wrap: pretty } .spread .rcol .r-body b { font-weight: 600 }
 .spread .rcol .r-quote { font: italic 400 17.33px/1.35 Montserrat, sans-serif; color: #98002e; margin: 22px 0 4px; max-width: 560px; text-wrap: balance }
 /* table annotations: G change bars, H margin note beside the row with the largest change */
-.ctrack { display: block; position: relative; height: 9px; margin: 3px 0 -12px; background: linear-gradient(#9a9189, #9a9189) center / 1px 100% no-repeat }
+.ctrack { display: block; position: relative; width: 56px; height: 9px; margin: 3px 0 -12px auto;   /* a fixed track ending at the number's right edge, so every bar starts under the number */ background: linear-gradient(#9a9189, #9a9189) center / 1px 100% no-repeat }
 .ctrack .cbar { position: absolute; top: 1.5px; height: 6px }
 .hwrap .ctrack { display: none } .hwrap td.htint { background: #fbf3f5 } .hwrap td:first-child { white-space: normal }
 .hwrap { padding-right: 146px } .hwrap td.hn { position: relative }
@@ -566,9 +566,12 @@ function tabAnn(title, body) {
   const cells = [...tb.rows].slice(1).filter(r => !r.classList.contains("s") && r.cells.length === ncol).map(r => ({r, c: r.cells[ci], p: parse(r.cells[ci].textContent)})).filter(o => o.p);
   const grp = {}; cells.forEach(o => (grp[o.p.u] = grp[o.p.u] || []).push(o)); const units = Object.keys(grp); if (!units.length) return body;
   const u = units.sort((a, b) => grp[b].length - grp[a].length)[0], G = grp[u]; if (G.length < 3 || !G.some(o => o.p.v)) return body;
-  /* G's bars are drawn on every such table; the note for H is stored on the table, and after layout annTables()
-     turns every other table to H where the note fits */
-  { const mx = Math.max(...G.map(o => Math.abs(o.p.v)));
+  /* G's bars are drawn only where the change column is uniform (user, 2026-11-19: Table 1 mixed % and pp rows,
+     counts of students and of countries, and dashes, so bars sat under some cells and not others): every row
+     with a change in one unit, dashes on at most a third of the rows. The note for H is stored on any table with
+     a change column, and after layout annTables() turns every other table to H where the note fits */
+  const dataRows = [...tb.rows].slice(1).filter(r => !r.classList.contains("s") && r.cells.length === ncol).length;
+  if (units.length === 1 && G.length >= dataRows * 2 / 3) { const mx = Math.max(...G.map(o => Math.abs(o.p.v)));
     /* diverging bars on a shared midline: falls run left, rises run right; every change cell in the column gets the
        same track, a strip under the number whose midline is the column's centre */
     const inG = new Set(G);
@@ -1341,7 +1344,7 @@ function buildSpreads() {
         + rs.map(m => { const r = row(m); return `<tr><td>${esc(cleanT(r.title).replace("Active F-1/M-1 students, all levels", "Active F-1 and M-1 students"))}</td><td>${f(m, r.v0)}</td><td>${f(m, r.vp)}</td><td class="focus">${f(m, r.v1)}</td><td>${chg(r).t}</td><td>${m === "sevis_share_of_us" ? "–" : f(m, r.us1)}</td><td>${r.rank ? ord(r.rank) : "–"}</td></tr>`; }).join("")
         + `<tr class="s"><td colspan="5">Largest countries of citizenship (students)</td><td>U.S. share</td><td>State share</td></tr>`
         + lineP.map(l => `<tr><td>${esc(l.c)}</td><td>${KMB(l.vb)}</td><td>${KMB(l.vp)}</td><td class="focus">${KMB(l.v1)}</td><td>${l.vb >= 50 ? chgW(l.vb, l.v1, "n").replace(/^up /, "+").replace(/^down /, "−") : "–"}</td><td>${pct(share(l.c).us_share)}</td><td>${pct(share(l.c).share)}</td></tr>`).join("") + `</table>`,
-        `Active F-1 and M-1 students, one fall snapshot per year (the month closest to November; ${tr.y.includes(2019) ? "" : "2019 has none; "}the latest year is ${V.month}). Rank among the 50 states and DC. ${SV.replace(`, ${V.month}`, "")}.`, {table: true}); };
+        `Active F-1 and M-1 students, one fall snapshot per year (the month closest to November; ${tr.y.includes(2019) ? "" : "2019 has none; "}the latest year is ${V.month}). Rank among the 50 states and DC.${lineP.some(l => l.vb < 50) ? ` No percent change is shown for a country with fewer than 50 students in ${tt.yb || D.base}.` : ""} ${SV.replace(`, ${V.month}`, "")}.`, {table: true}); };
     pair("", {sec: "International students", h: `How Does ${esc(NAME)}'s Mix of Countries Compare With the Nation's?`,
       stats: [{m: "sevis_total", v: KMB(V.total), l: `Active international students, ${V.month}`, c: `<b>${ord(V.rank)}</b> of ${V.n_ranked} · U.S. <b>${KMB(V.us_total)}</b>`},
         {v: pct(t0.share), l: `From ${esc(t0.country)}`, c: `U.S. <b>${pct(t0.us_share)}</b>`}, {v: pct(t1.share), l: `From ${esc(t1.country)}`, c: `U.S. <b>${pct(t1.us_share)}</b>`},
@@ -1376,7 +1379,7 @@ function buildSpreads() {
     const sF = L.master.stem_fields, iF = L.master.intl_stem_fields, gRows = sF.k.map(k => { const a = kser(sF, k), b = iF && iF.k.includes(k) ? kser(iF, k) : null;
       return {k, a0: at(a, T.y0), a1: at(a, T.y1), i0: b ? at(b, T.y0) : null, i1: b ? at(b, T.y1) : null}; }).filter(r => r.a1 != null);
     const shr = (i, a) => i != null && a >= 30 ? pct(100 * i / a) : "–";   // no share of fewer than 30 degrees
-    const t6 = H => fig(`How Many STEM Master's Degrees Does Each Field Award?`, `<table class="dt" style="--pad:${padFor(H, gRows.length)}px;font-size:11.4px"><tr><th>Field</th><th>${T.y0}</th><th>${T.y1}</th><th>Change</th><th>International<br>${T.y1}</th><th>Int. share<br>${T.y0}</th><th>Int. share<br>${T.y1}</th></tr>${gRows.map(r => `<tr><td>${esc(r.k)}</td><td>${nf(r.a0)}</td><td class="focus">${nf(r.a1)}</td><td>${r.a0 >= 50 ? chgW(r.a0, r.a1, "n").replace(/^up /, "+").replace(/^down /, "−") : "–"}</td><td>${nf(r.i1)}</td><td>${shr(r.i0, r.a0)}</td><td>${shr(r.i1, r.a1)}</td></tr>`).join("")}</table>`, `STEM master's degrees awarded in ${esc(NAME)}, all students and international students, ${T.y0} and ${T.y1}. ${SRCC}`, {table: true});
+    const t6 = H => fig(`How Many STEM Master's Degrees Does Each Field Award?`, `<table class="dt" style="--pad:${padFor(H, gRows.length)}px;font-size:11.4px"><tr><th>Field</th><th>${T.y0}</th><th>${T.y1}</th><th>Change</th><th>International<br>${T.y1}</th><th>Int. share<br>${T.y0}</th><th>Int. share<br>${T.y1}</th></tr>${gRows.map(r => `<tr><td>${esc(r.k)}</td><td>${nf(r.a0)}</td><td class="focus">${nf(r.a1)}</td><td>${r.a0 >= 50 ? chgW(r.a0, r.a1, "n").replace(/^up /, "+").replace(/^down /, "−") : "–"}</td><td>${nf(r.i1)}</td><td>${shr(r.i0, r.a0)}</td><td>${shr(r.i1, r.a1)}</td></tr>`).join("")}</table>`, `STEM master's degrees awarded in ${esc(NAME)}, all students and international students, ${T.y0} and ${T.y1}.${gRows.some(r => r.a0 < 50 || r.a1 < 30) ? ` A dash marks a change on fewer than 50 degrees in ${T.y0}, or a share of fewer than 30 degrees.` : ""} ${SRCC}`, {table: true});
     THIN = [fieldsRows.filter(f => f.st > 0).length < 5, mt.filter(f => f.master && f.master.n).length < 4];
     pairOne("International dependence", `How International Are ${esc(NAME)}'s Master's Fields?`, ["intl_share_master", "intl_share_stem_master", "intl_share_cs_master", "intl_share_eng_master"],
       one(H => F(`Which Master's Fields Depend Most on International Students?`, dumbbell(fieldsRows, {W: PW, Lw: 220, rh: Math.min(48, (H - 40) / Math.max(1, fieldsRows.length)), fs: 1.3}), `International share of master's degrees by field, ${I.by_field_year}; fields with 30+ graduates. ${SRCC}`),

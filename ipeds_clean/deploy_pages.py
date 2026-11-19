@@ -41,6 +41,11 @@ def git(*args, cwd=WORK, check=True) -> str:
 
 
 def build() -> None:
+    # the all-states zips are repacked from the current PDFs on every deploy: a QA rebuild (pdf_qa) renders the
+    # PDFs but not the zips, and stale zips once shipped old profiles under "Download all PDFs"
+    from .state_pdf import write_viewer, zip_all
+    write_viewer()
+    zip_all()
     if WORK.exists():
         shutil.rmtree(WORK)
     shutil.copytree(SITE_SRC, WORK, ignore=shutil.ignore_patterns(".DS_Store"))

@@ -1649,7 +1649,8 @@ only within that the largest change or gap. They vary through the book:
   no international or STEM side and carries no annotation. Students from abroad always have their own band in
   the migration Sankeys, never folded into "Other states".
 - Tables with a change column alternate between G, a diverging bar under each change on a shared midline (the
-  column's centre; rises run right in crimson, falls run left in taupe, scaled to the largest change), and H, one row tinted with a note beside it in the margin (the most talent-related row, the largest change
+  column's centre; rises run right in crimson, falls run left in taupe, scaled to the largest change; drawn only when the column is uniform: one unit, and changes on at least two
+  thirds of the rows, so a column mixing percent and point changes or with many dashes gets no bars), and H, one row tinted with a note beside it in the margin (the most talent-related row, the largest change
   within that; "the largest rise" is added only when it is). Only changes in one unit are
   compared. H is tried after layout (`annTables`): where the note would make a cell wrap or push the table past
   the page's bottom margin, the table keeps G and the next table takes H's turn.
