@@ -1581,11 +1581,21 @@ first-time student flows Sankey, and the six measures on which the state ranks n
 and shares only, so size alone does not decide the list). `pdf-qa` checks every summary: two pages, nothing into
 the footer or past the page edge, no empty values.
 
-**Contents.** At a glance, International dependence, STEM, Where students come from, Migration, then the
-outside sources (K-12 preparation, Graduate research, H-1B jobs and green cards, STEM workforce, Patents).
-These are followed by Competitors, Fields, Students and money, Outcomes and faculty, Institutions with data
-notes, and By the Numbers. Layouts are measured so nothing overruns a page, and small states get extra
-figures where there is room.
+**Contents.** Front matter in the Talent Report's order: cover, title page and table of contents, authors and how
+to cite, then Executive Summary (plain-reporting paragraphs, international and STEM first) facing About This
+Profile and Reading the Profile, then At a glance: the Key Takeaways page (warm grey, the state name over a
+crimson rule, numbered findings on a crimson line, after the report's chapter takeaways) facing the scorecard.
+Then International dependence, STEM, Where students come from, Migration, the outside sources (K-12
+preparation, Graduate research, H-1B jobs and green cards, STEM workforce, Patents), Competitors, Fields,
+Students and money, Outcomes and faculty, Institutions with data notes, and By the Numbers.
+
+**Same structure in every state** (since 2026-11-20). All 51 profiles have the same sections, figures and tables
+in the same order and on the same sheets, so Figure 12 is the same chart everywhere. A thin figure is never
+dropped: it draws the rows the state has and its source line says how many (for example "3 fields in Alaska");
+with no rows it keeps its number and title over a plain note (`rowsOr`, for example "No field in Alaska awarded 20
+or more research doctorates in 2025"). By the Numbers lists every measure in every state, with a dash where the
+state has no value, and its value cells never wrap, so its pages break at the same rows. `pdf-qa` and a
+figure-title comparison against Montana check this after a rebuild.
 
 **Type and page design follow the 2026 US Talent Report** (`Hoover_HAI_TalentReport_Final.pdf`, measured from
 the PDF; 1 pt = 1.333 px on the 96 px/in pages). Montserrat stands in for Gotham and EB Garamond for Adobe Garamond
