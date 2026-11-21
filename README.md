@@ -1597,6 +1597,17 @@ or more research doctorates in 2025"). By the Numbers lists every measure in eve
 state has no value, and its value cells never wrap, so its pages break at the same rows. `pdf-qa` and a
 figure-title comparison against Montana check this after a rebuild.
 
+**Highlights and table tints** (after the AI Index's highlight pages and the Talent Report's Table 2.01). Every
+paired spread whose right page is a table ends that page with a Highlight panel (five per state) in place of the
+pull quote. The highlights are the state's own: `HLS` scores every ranked measure with data from 2020 or later and
+at least 45 states reporting, 100 for 1st or 51st, 70 for top or bottom three, 45 for top or bottom five, or 40–70
+for a change since the base year at least 8 points out of line with the nation's (counts: at least double or half
+the national growth); international and STEM measures get a bonus. Ranks count only for shares, rates and
+per-person measures, and never for a state's slice of a national total, so size alone does not decide. One per
+measure group; each table page takes the best one for its section's topic, or the best left. The panel gives the
+rank, the value, the U.S. figure and the base-year value, plus a base-to-latest slope against the U.S. for shares.
+Facts only. Change columns in one unit are tinted by size (crimson rises, teal falls) instead of carrying bars.
+
 **Type and page design follow the 2026 US Talent Report** (`Hoover_HAI_TalentReport_Final.pdf`, measured from
 the PDF; 1 pt = 1.333 px on the 96 px/in pages). Montserrat stands in for Gotham and EB Garamond for Adobe Garamond
 Pro, since the report's fonts are licensed. Body text is Garamond 10 pt on 13 pt, black, in two columns; section

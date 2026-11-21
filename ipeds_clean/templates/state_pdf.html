@@ -343,6 +343,16 @@ ol.ktp li:last-child::before { display: none }
 /* table annotations: G change bars, H margin note beside the row with the largest change */
 .ctrack { display: block; position: relative; width: 56px; height: 9px; margin: 3px 0 -12px auto;   /* a fixed track ending at the number's right edge, so every bar starts under the number */ background: linear-gradient(#9a9189, #9a9189) center / 1px 100% no-repeat }
 .ctrack .cbar { position: absolute; top: 1.5px; height: 6px }
+table.dt td.ctint { font-weight: 700 }
+/* Highlight panel (after the AI Index's highlight pages, round-2 page 6): a tinted band at the foot of a table
+   page with the section's standout number, the sentence behind it and a 2-point slope against the U.S. */
+.hlp { background: #f3e9ec; padding: 18px 22px 16px; display: grid; grid-template-columns: 1fr auto; column-gap: 22px; align-items: start }
+.hlp .hl-k { font: 700 13px Montserrat, sans-serif; color: var(--crim); grid-column: 1 / -1 }
+.hlp .hl-h { font: 400 23px/1.2 Montserrat, sans-serif; color: #000; margin: 2px 0 8px; grid-column: 1 / -1 }
+.hlp .hl-h b { font-weight: 800; color: var(--crim) }
+.hlp .hl-p { font: 400 13.3px/1.45 "EB Garamond", Garamond, serif; color: #111; margin: 0 }
+.hlp svg { display: block }
+.hlp .hl-s { font: 400 9.6px/1.35 Montserrat, sans-serif; color: #737373; grid-column: 1 / -1; margin-top: 8px }
 .hwrap .ctrack { display: none } .hwrap td.htint { background: #fbf3f5 } .hwrap td:first-child { white-space: normal }
 .hwrap { padding-right: 146px } .hwrap td.hn { position: relative }
 .hwrap td.hn::after { content: attr(data-note); position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-50%); width: 132px; padding-left: 8px; border-left: 2px solid #98002e;
@@ -596,8 +606,10 @@ function tabAnn(title, body) {
     /* diverging bars on a shared midline: falls run left, rises run right; every change cell in the column gets the
        same track, a strip under the number whose midline is the column's centre */
     const inG = new Set(G);
-    cells.forEach(o => { const on = inG.has(o) && o.p.v, w = on ? Math.max(3, Math.abs(o.p.v) / mx * 47).toFixed(1) : 0;
-      if (inG.has(o)) o.c.insertAdjacentHTML("beforeend", `<span class="ctrack">${on ? `<span class="cbar" style="width:${w}%;${o.p.v > 0 ? "left:50%" : "right:50%"};background:${o.p.v > 0 ? CRIM : TAUPE}"></span>` : ""}</span>`); }); }
+    /* the change cells are tinted by size instead (user picked the round-2 table page, 2026-11-20): crimson for a
+       rise, teal for a fall, the strongest tint on the column's largest change; white figures on the darker tints */
+    cells.forEach(o => { if (!inG.has(o) || !o.p.v) return; const a = .14 + .76 * Math.abs(o.p.v) / mx, rgb = o.p.v > 0 ? "152,0,46" : "31,110,128";
+      o.c.classList.add("ctint"); o.c.style.background = `rgba(${rgb},${a.toFixed(2)})`; o.c.style.color = a > .5 ? "#fff" : "#1a1a1a"; }); }
   { const ts = o => talentScore(o.r.cells[0].textContent), big = G.reduce((a, b) => Math.abs(b.p.v) > Math.abs(a.p.v) ? b : a);
     /* the note goes on the most talent-related row (international, STEM), the largest change within that */
     const o = G.filter(x => x.p.v).reduce((a, b) => ts(b) > ts(a) || (ts(b) === ts(a) && Math.abs(b.p.v) > Math.abs(a.p.v)) ? b : a), lab = o.r.cells[0].textContent.trim(), up = o.p.v > 0, mixed = units.length > 1;
@@ -1249,10 +1261,15 @@ function buildSpreads() {
   /* ---- report page kit, after the 2026 US Talent Report: a taupe section heading or a crimson subhead, two
      columns of 10 pt Garamond, an optional crimson pull quote, then one figure drawn in the height the page leaves.
      A page whose figure would be shorter than minH drops its last paragraph and tries again. ---- */
-  const RTOP = 132, RBOT = 984, RW_ = 624;
-  const rpage = (pg, {h2, h3, paras = [], quote, fig: fg, minH = 300, top = RTOP}) => {
+  const RTOP = 132, RBOT = 984, RBOT0 = RBOT, RW_ = 624;
+  const rpage = (pg, {h2, h3, paras = [], quote, fig: fg, minH = 300, top = RTOP, hl}) => {
     const col = document.createElement("div"); col.className = "abs rcol"; col.style.cssText = `left:96px;top:${top}px;width:${RW_}px`; pg.appendChild(col);
     const pr = pg.getBoundingClientRect(), n0 = [figN, tabN]; let ps = (paras || []).filter(Boolean);
+    /* a page whose figure is a table carries the section's Highlight panel at its foot instead of the pull quote */
+    let RBOT = RBOT0;
+    if (hl && fg) { const probe = fg(400); [figN, tabN] = n0;
+      if (/<table class="dt/.test(probe)) { const hp = document.createElement("div"); hp.className = "abs"; hp.style.cssText = `left:96px;width:${RW_}px;bottom:${1056 - RBOT0}px`; hp.innerHTML = typeof hl === "function" ? hl() : hl; pg.appendChild(hp);
+        if (hp.firstElementChild) { RBOT = RBOT0 - hp.getBoundingClientRect().height - 26; quote = ""; } else hp.remove(); } }
     for (;;) { [figN, tabN] = n0;
       col.innerHTML = `${h2 ? `<h2 class="r-h2">${h2}</h2>` : ""}${h3 ? `<h3 class="r-h3">${h3}</h3>` : ""}${ps.length ? `<div class="r-body">${ps.map(p => `<p>${p}</p>`).join("")}</div>` : ""}${quote ? `<div class="r-quote">${quote}</div>` : ""}${fg ? '<div class="pgF r-fig"></div>' : ""}`;
       if (!fg) { if (col.getBoundingClientRect().bottom - pr.top > RBOT && ps.length > 1) { ps.pop(); continue; } break; }
@@ -1279,7 +1296,7 @@ function buildSpreads() {
     noteMs(o.stats); spread(toc, "", ""); const sp = doc.lastElementChild;
     const q = o.quote !== undefined ? o.quote : headline((o.stats || []).filter(m => typeof m === "string"), true);
     rpage(sp.children[0], {h2: o.h, paras: o.a.lede, fig: o.a.fig});
-    rpage(sp.children[1], {h3: o.h3, quote: q, paras: o.b.lede, fig: o.b.fig}); };   // both pages start at the top of the live area
+    rpage(sp.children[1], {h3: o.h3, quote: q, paras: o.b.lede, fig: o.b.fig, hl: () => pickHL(o.sec) || highlight((o.stats || []).filter(m => typeof m === "string"))}); };   // both pages start at the top of the live area
   /* the same from two one() objects: their "about" text and facts become the prose (facts as run-in paragraphs); with
      no partner page (b blank) the right page carries a facts table of the stat measures and the rest of a's prose */
   /* thin data: THIN = [a thin, b thin] is still set before some pairOne calls but no longer drops a page (see pairOne). */
@@ -1325,6 +1342,57 @@ function buildSpreads() {
     const s = `${esc(NAME)} ranks ${ord(r.rank)} of ${r.n} on ${esc(t)}, at ${f(r.v1)} in ${r.y1}${r.us1 != null ? ` against ${f(r.us1)} for the U.S.` : "."}`;
     /* lead: the page pull quote with the state's value set large beside the sentence (pull-quote mockup C, 2026-11-18) */
     return lead ? `<span class="qn">${f(r.v1)}</span><span class="qs">${s}</span>` : s; };
+  /* highlight panel for a table page: the section measure whose rank is nearest the top or bottom of the 51 (the
+     pull quote's pick, preferring international and STEM measures on a tie), its change since the base year, and a
+     slope from the base year to the latest for the state (crimson) and the U.S. (dashed) */
+  const highlight = ms => { const c = (ms || []).filter(m => typeof m === "string" && row(m).rank && row(m).v1 != null).map(m => ({m, r: row(m), d: Math.min(row(m).rank, row(m).n + 1 - row(m).rank)}));
+    if (!c.length) return ""; const {m, r} = c.sort((a, b) => a.d - b.d || talentScore(b.r.title) - talentScore(a.r.title))[0], f = v => fmtSpec(v, r.fmt, r.unit), ch = chg(r);
+    const name = esc(lc1(cleanT(SHORT[m] || r.title)));
+    const p1 = `${esc(NAME)} ranks ${ord(r.rank)} of ${r.n} on ${name}, at ${f(r.v1)} in ${r.y1}${r.us1 != null ? `; the U.S. figure is ${f(r.us1)}` : ""}.`;
+    const p2 = r.v0 != null && r.y0 != null && r.y0 < r.y1 ? ` In ${r.y0} it was ${f(r.v0)}${r.us0 != null ? ` (U.S. ${f(r.us0)})` : ""}${ch.t && ch.t !== "–" ? `, a change of ${ch.t}` : ""}.` : "";
+    /* the slope only for shares and rates, where the state and the U.S. sit on one scale */
+    let svg = ""; if (r.unit === "%" && r.v0 != null && r.y0 != null && r.y0 < r.y1) { const vs = [r.v0, r.v1, r.us0, r.us1].filter(v => v != null), lo = Math.min(0, ...vs), hi = Math.max(...vs) * 1.08 || 1, Y = v => 86 - (v - lo) / (hi - lo) * 74;
+      /* end labels 12 px apart at least, the higher value's label above */
+      let yS = r.v1 != null ? Y(r.v1) : null, yU = r.us1 != null ? Y(r.us1) : null;
+      if (yS != null && yU != null && Math.abs(yS - yU) < 12) { const m = (yS + yU) / 2, up = r.v1 >= r.us1; yS = m + (up ? -6 : 6); yU = m + (up ? 6 : -6); }
+      const ln = (a, b, col, d) => a != null && b != null ? `<line x1="14" x2="118" y1="${Y(a).toFixed(1)}" y2="${Y(b).toFixed(1)}" stroke="${col}" stroke-width="${d ? 1.4 : 2.4}"${d ? ' stroke-dasharray="4 3"' : ""}/><circle cx="118" cy="${Y(b).toFixed(1)}" r="3" fill="${col}"/><text x="124" y="${((d ? yU : yS) + 3).toFixed(1)}" style="font:700 9.6px Montserrat;fill:${col}">${d ? "U.S. " : ""}${f(b)}</text>` : "";
+      svg = `<svg viewBox="0 0 170 104" width="170" height="104"><line x1="14" x2="14" y1="8" y2="88" stroke="#c9c1b6"/><line x1="118" x2="118" y1="8" y2="88" stroke="#c9c1b6"/>${ln(r.us0, r.us1, "#555", true)}${ln(r.v0, r.v1, CRIM, false)}<text x="14" y="101" text-anchor="middle" style="font:400 9px Montserrat;fill:#737373">${r.y0}</text><text x="118" y="101" text-anchor="middle" style="font:400 9px Montserrat;fill:#737373">${r.y1}</text></svg>`; }
+    return slopeHL(r, `<b>${f(r.v1)}</b> ${name}`, p1 + p2); };
+  const slopeHL = (r, head, text) => { const f = v => fmtSpec(v, r.fmt, r.unit);
+    let svg = ""; if (r.unit === "%" && r.v0 != null && r.y0 != null && r.y0 < r.y1) { const vs = [r.v0, r.v1, r.us0, r.us1].filter(v => v != null), lo = Math.min(0, ...vs), hi = Math.max(...vs) * 1.08 || 1, Y = v => 86 - (v - lo) / (hi - lo) * 74;
+      let yS = r.v1 != null ? Y(r.v1) : null, yU = r.us1 != null ? Y(r.us1) : null;
+      if (yS != null && yU != null && Math.abs(yS - yU) < 12) { const m = (yS + yU) / 2, up = r.v1 >= r.us1; yS = m + (up ? -6 : 6); yU = m + (up ? 6 : -6); }
+      const ln = (a, b, col, d) => a != null && b != null ? `<line x1="14" x2="118" y1="${Y(a).toFixed(1)}" y2="${Y(b).toFixed(1)}" stroke="${col}" stroke-width="${d ? 1.4 : 2.4}"${d ? ' stroke-dasharray="4 3"' : ""}/><circle cx="118" cy="${Y(b).toFixed(1)}" r="3" fill="${col}"/><text x="124" y="${((d ? yU : yS) + 3).toFixed(1)}" style="font:700 9.6px Montserrat;fill:${col}">${d ? "U.S. " : ""}${f(b)}</text>` : "";
+      svg = `<svg viewBox="0 0 170 104" width="170" height="104"><line x1="14" x2="14" y1="8" y2="88" stroke="#c9c1b6"/><line x1="118" x2="118" y1="8" y2="88" stroke="#c9c1b6"/>${ln(r.us0, r.us1, "#555", true)}${ln(r.v0, r.v1, CRIM, false)}<text x="14" y="101" text-anchor="middle" style="font:400 9px Montserrat;fill:#737373">${r.y0}</text><text x="118" y="101" text-anchor="middle" style="font:400 9px Montserrat;fill:#737373">${r.y1}</text></svg>`; }
+    const src = r.src === "ipeds" || !r.src ? "Data from NCES, IPEDS." : `Data from ${esc((String(r.title).match(/\(([^)]*)\)\s*$/) || [])[1] || "the source named in By the Numbers")}.`;
+    return `<div class="hlp"><div class="hl-k">Highlight:</div><div class="hl-h">${head}</div><p class="hl-p">${text}</p>${svg}<div class="hl-s">${svg ? `${esc(NAME)} solid, U.S. dashed. ` : ""}${src}</div></div>`; };
+  /* the state's own highlights (user, 2026-11-20): from every ranked measure, the most striking for this state:
+     1st or 51st first, then top or bottom three and five, or a change since the base year far out of line with the
+     nation's; international and STEM measures win ties. One per measure group, at most five; each table page takes
+     the best one for its section's topic, or the best left. A page with none striking falls back to highlight(). */
+  const HL_CAT = g => /Prices|earnings|Outcomes/i.test(g) ? "money" : /Enrollment|Student migration|K-12|stay\?|Graduate migration/i.test(g) ? "inst" : "intl";
+  const SEC_CAT = sec => /money|outcome/i.test(sec || "") ? "money" : /institution|students come/i.test(sec || "") ? "inst" : "intl";
+  const HLS = (() => { const out = [];
+    Object.values(R).forEach(r => { if (!r.rank || r.v1 == null || r.v1 === 0 || !r.n || r.n < 45 || !r.y1 || r.y1 < 2020) return; const e = Math.min(r.rank, r.n + 1 - r.rank);
+      /* ranks count only for shares, rates and per-person measures, so size alone (California first, Wyoming last on
+         every count) never decides; a count can still qualify on a change far out of line with the nation's */
+      const size = /^share of (all )?(the )?u\.?s\.?\b/i.test(r.title) || /share of u\.?s\.? /i.test(SHORT[r.m] || "");   // a state's slice of the national total tracks its size
+      const rate = !size && (r.unit === "%" || /\b(per|rate|average|median|ratio)\b/i.test(r.title));
+      let sc = !rate ? 0 : e === 1 ? 100 : e <= 3 ? 70 : e <= 5 ? 45 : 0, kind = "rank";
+      if (r.v0 != null && r.us0 != null && r.us1 != null && r.y0 != null && r.y0 < r.y1) {
+        if (r.unit === "%") { const d = (r.v1 - r.v0) - (r.us1 - r.us0); if (Math.abs(d) >= 8 && 40 + Math.min(30, Math.abs(d)) > sc) { sc = 40 + Math.min(30, Math.abs(d)); kind = "chg"; } }
+        else if (r.v0 > 0 && r.us0 > 0 && r.v1 > 0) { const q = (r.v1 / r.v0) / (r.us1 / r.us0); if ((q >= 2 || q <= .5) && 55 > sc) { sc = 55; kind = "chg"; } } }
+      if (sc < 45) return; out.push({r, kind, sc: sc + 12 * talentScore(r.title), cat: HL_CAT(r.group || "")}); });
+    out.sort((a, b) => b.sc - a.sc); const seen = new Set(), pick = [];
+    for (const h of out) { if (seen.has(h.r.group)) continue; seen.add(h.r.group); pick.push(h); if (pick.length === 5) break; }
+    return pick; })();
+  const hlHTML = h => { const r = h.r, f = v => fmtSpec(v, r.fmt, r.unit), name = esc((t => /^(English|India|Indian|China|Chinese|Canada|Asian|Black|Hispanic|Native|Pell|Title|S&E|STEM|H-1B|OPT|PERM|F-1|J-1|AP|SAT|ACT)\b/.test(t) ? t : lc1(t))(cleanT(SHORT[r.m] || r.title)).replace(/\s*\((?:[A-Z][A-Za-z0-9&./ -]*)\)\s*$/, "")), ch = chg(r), hasB = r.v0 != null && r.y0 != null && r.y0 < r.y1;
+    const e = Math.min(r.rank, r.n + 1 - r.rank), pos = r.rank === 1 ? "the highest" : r.rank === r.n ? "the lowest" : null;
+    const head = h.kind === "chg" ? `<b>${ch.t}</b> ${name} since ${r.y0}` : `<b>${ord(r.rank)}</b> of ${r.n} on ${name}`;
+    const p1 = h.kind === "chg" ? `${esc(NAME)}'s ${name} went from ${f(r.v0)} in ${r.y0} to ${f(r.v1)} in ${r.y1}; nationally it went from ${f(r.us0)} to ${f(r.us1)}. The state ranks ${ord(r.rank)} of ${r.n}.`
+      : `${esc(NAME)} ranks ${ord(r.rank)} of ${r.n}${pos ? `, ${pos} of the 50 states and DC,` : ""} on ${name}, at ${f(r.v1)} in ${r.y1}${r.us1 != null ? `; the U.S. figure is ${f(r.us1)}` : ""}.${hasB ? ` In ${r.y0} it was ${f(r.v0)}.` : ""}`;
+    return slopeHL(r, head, p1); };
+  const pickHL = sec => { if (!HLS.length) return ""; const c = SEC_CAT(sec), i = Math.max(0, HLS.findIndex(h => h.cat === c)); return hlHTML(HLS.splice(i, 1)[0]); };
   const hero = (toc, o) => {
     const hl = o.head ? headline(o.stats) : "";
     const head = o.head ? `<div class="abs hhead" style="left:96px;top:120px;width:1200px" data-sec="${sec(o.head)}"><h2 class="r-h2">${o.head}</h2>${hl ? `<div class="r-quote">${hl}</div>` : ""}</div>` : "";
